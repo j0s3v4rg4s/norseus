@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Icons');
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/assets/fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+}

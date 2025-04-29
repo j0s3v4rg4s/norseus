@@ -1,0 +1,12 @@
+@use '@p1kka/ui' as pk;
+
+$theme-config: (
+  primary: #fabd00,
+  secondary: #3b7468,
+  tertiary: #3b743b,
+  error: #c50000,
+);
+
+:root {
+  @include pk.generate-theme-variables($theme-config);
+}

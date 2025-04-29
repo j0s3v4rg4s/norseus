@@ -20,9 +20,18 @@
           {
             "glob": "**/*",
             "input": "apps/admin/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "libs/assets/fonts",
+            "output": "assets/fonts"
           }
         ],
-        "styles": ["apps/admin/src/styles.scss"],
+        "styles": [
+          "apps/admin/src/styles.scss",
+          "libs/assets/styles/global.scss",
+          "libs/assets/styles/global.css"
+        ],
         "scripts": []
       },
       "configurations": {
@@ -44,7 +53,13 @@
         "development": {
           "optimization": false,
           "extractLicenses": false,
-          "sourceMap": true
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/admin/src/environments/environment.ts",
+              "with": "apps/admin/src/environments/environment.development.ts"
+            }
+          ]
         }
       },
       "defaultConfiguration": "production"

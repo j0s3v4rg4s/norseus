@@ -1,0 +1,7 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; // Make it take full viewport height
+  background-color: #f8f9fa; // Use standard light gray instead of non-exposed variable
+}

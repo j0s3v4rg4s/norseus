@@ -1,0 +1,35 @@
+<div class="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
+  <form
+    class="flex flex-col gap-6"
+    [formGroup]="loginForm"
+    (ngSubmit)="onSubmit()"
+  >
+    <h2 class="text-xl text-center mb-4 text-gray-800">Login</h2>
+
+    <pk-form-field label="Email" class="w-full">
+      <input
+        pkInput
+        type="email"
+        formControlName="email"
+        placeholder="Enter your email"
+      />
+    </pk-form-field>
+
+    <pk-form-field label="Password" class="w-full">
+      <input
+        pkInput
+        type="password"
+        formControlName="password"
+        placeholder="Enter your password"
+      />
+    </pk-form-field>
+
+    <button
+      pk-button
+      class="pk-btn-primary w-full mt-2"
+      [disabled]="loginForm.invalid"
+    >
+      Login
+    </button>
+  </form>
+</div>
