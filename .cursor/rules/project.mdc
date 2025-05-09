@@ -1,0 +1,10 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# General rules for this project
+
+* This project is build on nx monorepo
+* The apps of this projects is build with angular v19
+* This project already have installed tailwindcss v4, try to use tailwindcss classes like first options always that you can, if is not the best option use scss when geenrate code

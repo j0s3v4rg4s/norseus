@@ -1,6 +1,6 @@
 ---
-description: UI componentes for use on user interfaces like first option over native html components
-globs:
+description:
+globs: *.html,*.ts
 alwaysApply: false
 ---
 # Pikka UI Library (@p1kka/ui) Usage Guide for AI Agent

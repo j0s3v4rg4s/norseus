@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@front/supabase": ["libs/front/supabase/src/index.ts"]
+      "@front/supabase": ["libs/front/supabase/src/index.ts"],
+      "@ui": ["libs/front/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

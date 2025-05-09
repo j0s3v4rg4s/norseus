@@ -1,4 +1,6 @@
 @use '@p1kka/ui' as pk;
+@use '@angular/material' as mat;
+
 
 $theme-config: (
   primary: #fabd00,
@@ -9,4 +11,14 @@ $theme-config: (
 
 :root {
   @include pk.generate-theme-variables($theme-config);
+}
+
+html {
+  @include mat.core();
+  color-scheme: light;
+  @include mat.theme((
+    color: mat.$azure-palette,
+    typography: Montserrat,
+    density: 0
+  ));
 }

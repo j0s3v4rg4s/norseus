@@ -10,7 +10,7 @@ This project utilizes **Angular 19** and adheres strictly to its latest standard
 ## Key Principles:
 
 ### 1. Standalone Components, Directives, and Pipes
-   - **Do** leverage the standalone API introduced in Angular 14 and finalized later. All new components, directives, and pipes should be standalone by default (`standalone: true`).
+   - **Do** leverage the standalone API introduced in Angular 14 and finalized later. All new components, directives, and pipes should be standalone by default. since v19 is not necesarry to set standalone: true inside `@Component` decorator, it is by default in true
    - **Why?** Simplifies the mental model by removing the need for `NgModule`, reduces boilerplate, and improves tree-shakability. It aligns with the modern Angular ecosystem direction.
 
 ### 2. Single Responsibility Principle (SRP)

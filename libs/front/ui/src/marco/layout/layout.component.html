@@ -1,0 +1,21 @@
+<mat-sidenav-container class="h-dvh" autosize>
+  <mat-sidenav
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="isHandset() ? false : true"
+    #sideNav
+    class=""
+  >
+    <div class="p-4 flex flex-col gap-1.5">
+      @for (item of menuItems(); track item.route) {
+        <pk-nav-item
+          [label]="item.label"
+          [icon]="item.icon"
+          [route]="item.route"
+        ></pk-nav-item>
+      }
+    </div>
+  </mat-sidenav>
+  <mat-sidenav-content class="sidenav-container">
+    <ng-content></ng-content>
+  </mat-sidenav-content>
+</mat-sidenav-container>
