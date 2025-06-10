@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -6,8 +11,9 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { SUPABASE } from '@front/supabase';
+import { Router } from '@angular/router';
 
-// Pikka UI Imports
 import { FormFieldComponent, InputDirective } from '@p1kka/ui/src/forms';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
 
@@ -17,9 +23,9 @@ import { ButtonComponent } from '@p1kka/ui/src/actions';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormFieldComponent, // Import Pikka FormField
-    InputDirective, // Import Pikka Input Directive
-    ButtonComponent, // Import Pikka Button
+    FormFieldComponent,
+    InputDirective,
+    ButtonComponent,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
@@ -27,18 +33,40 @@ import { ButtonComponent } from '@p1kka/ui/src/actions';
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
+  private supabase = inject(SUPABASE);
+  private router = inject(Router);
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
 
-  onSubmit(): void {
+  loading = signal(false);
+  errorMessage = signal<string | null>(null);
+
+  async onSubmit(): Promise<void> {
     if (this.loginForm.valid) {
-      console.log('Login attempt:', this.loginForm.value);
-      // TODO: Implement actual login logic (e.g., call an auth service)
+      this.loading.set(true);
+      this.errorMessage.set(null);
+      const { email, password } = this.loginForm.value;
+      try {
+        const { error } = await this.supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          this.errorMessage.set(error.message);
+        } else {
+          await this.router.navigateByUrl('/home');
+        }
+      } catch (err: unknown) {
+        this.errorMessage.set(
+          err instanceof Error ? err.message : 'An unexpected error occurred.',
+        );
+      } finally {
+        this.loading.set(false);
+      }
     } else {
-      // Mark fields as touched to show validation errors
       this.loginForm.markAllAsTouched();
     }
   }

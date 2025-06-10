@@ -10,6 +10,15 @@ export const appRoutes: Route[] = [
     path: 'home',
     loadComponent: () =>
       import('./pages/home/home.component').then((m) => m.HomeComponent),
+    children: [
+      {
+        path: 'permissions',
+        loadComponent: () =>
+          import('./pages/permissions/permissions.component').then(
+            (m) => m.PermissionsComponent,
+          ),
+      },
+    ],
   },
   {
     path: '',

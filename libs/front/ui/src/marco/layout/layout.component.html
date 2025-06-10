@@ -6,16 +6,15 @@
     class=""
   >
     <div class="p-4 flex flex-col gap-1.5">
+      @if (title()) {
+        <span class="font-medium text-neutral-900 block mb-4 mt-5">{{ title() }}</span>
+      }
       @for (item of menuItems(); track item.route) {
-        <pk-nav-item
-          [label]="item.label"
-          [icon]="item.icon"
-          [route]="item.route"
-        ></pk-nav-item>
+        <ui-nav-item [item]="item" [isActive]="isMenuItemActive(item)"></ui-nav-item>
       }
     </div>
   </mat-sidenav>
-  <mat-sidenav-content class="sidenav-container">
+  <mat-sidenav-content>
     <ng-content></ng-content>
   </mat-sidenav-content>
 </mat-sidenav-container>

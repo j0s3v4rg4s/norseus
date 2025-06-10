@@ -10,8 +10,9 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavItemComponent } from '@p1kka/ui/src/actions';
 import { MenuItem } from './models/menu.model';
+import { NavItemComponent } from '../../actions';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'ui-layout',
@@ -21,9 +22,11 @@ import { MenuItem } from './models/menu.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LayoutComponent {
+  readonly title = input<string>('');
   readonly menuItems = input<MenuItem[]>([]);
 
   private breakpointObserver = inject(BreakpointObserver);
+  private router = inject(Router);
 
   private readonly sideNav = viewChild<MatSidenav>('sideNav');
 
@@ -33,6 +36,16 @@ export class LayoutComponent {
       .pipe(map((result) => result.matches)),
     { initialValue: false },
   );
+
+  readonly currentUrl = toSignal(
+    this.router.events.pipe(map(() => this.router.url)),
+    { initialValue: this.router.url },
+  );
+
+  isMenuItemActive = (item: MenuItem) => {
+    const url = this.currentUrl();
+    return url.includes(item.route);
+  };
 
   toggleSidenav() {
     if (this.isHandset()) {

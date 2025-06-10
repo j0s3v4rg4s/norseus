@@ -6,6 +6,3 @@ to service_role
 using (true)
 with check (true);
 
-insert into public.role(name, description)
-values ('admin', 'admin role');
-

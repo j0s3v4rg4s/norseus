@@ -63,10 +63,3 @@ alter table "public"."permissions" add column "section" sections not null;
 alter table "public"."permissions" add constraint "permissions_role_fkey" FOREIGN KEY (role) REFERENCES role(id) ON DELETE CASCADE not valid;
 
 alter table "public"."permissions" validate constraint "permissions_role_fkey";
-
-insert into public.permissions (role, section, action)
-select r.id, b.section, a.action
-from public.role r,
-     unnest(enum_range(NULL::permission_action)) AS a(action),
-     unnest(enum_range(NULL::sections)) AS b(section)
-where r.name = 'admin'

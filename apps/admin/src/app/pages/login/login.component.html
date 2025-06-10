@@ -28,8 +28,12 @@
       pk-button
       class="pk-btn-primary w-full mt-2"
       [disabled]="loginForm.invalid"
+      [loading]="loading()"
     >
       Login
     </button>
   </form>
+  <div *ngIf="errorMessage()" class="text-red-600 text-center mt-4">
+    {{ errorMessage() }}
+  </div>
 </div>
