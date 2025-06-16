@@ -4,13 +4,14 @@
 
 $theme-config: (
   primary: #0D80F2,
-  secondary: #E8EDF5,
+  secondary: #ffffff,
   tertiary: #3b743b,
   error: #c50000,
 );
 
 :root {
   @include pk.generate-theme-variables($theme-config);
+  --pk-form-field-filled-border-color: #000000;
 }
 
 html {

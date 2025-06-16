@@ -6,8 +6,8 @@
     class=""
   >
     <div class="p-4 flex flex-col gap-1.5">
-      @if (title()) {
-        <span class="font-medium text-neutral-900 block mb-4 mt-5">{{ title() }}</span>
+      @if (menuTitle()) {
+        <span class="font-medium text-neutral-900 block mb-4 mt-5">{{ menuTitle() }}</span>
       }
       @for (item of menuItems(); track item.route) {
         <ui-nav-item [item]="item" [isActive]="isMenuItemActive(item)"></ui-nav-item>

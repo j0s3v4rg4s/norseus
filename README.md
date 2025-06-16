@@ -1,101 +1,161 @@
 # Norseus
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Welcome to the Norseus Monorepo! This document will guide you through the initial setup and key information needed to start developing in this project.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+---
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## 🛠️ Tech Stack
 
-## Run tasks
+- **Nx Monorepo**: Project management and orchestration
+- **Angular 19**: Main frontend framework (standalone components, signals, new control flow)
+- **TailwindCSS v4**: Utility-first CSS framework
+- **Supabase**: Backend as a Service (Postgres, Auth, Storage)
+- **@p1kka/ui**: Custom UI component library (used throughout the app)
+- **TypeScript**: Strongly typed JavaScript
 
-To run the dev server for your app, use:
+---
 
-```sh
-npx nx serve admin
+## 💻 Minimum System Requirements
+
+- **OS**: macOS Sonoma 14.5+ (or Linux/Windows with Docker support)
+- **Node.js**: v20.x or higher
+- **pnpm**: v8.x or higher (recommended for monorepo performance)
+- **Docker**: Required for running local Supabase instance
+- **Supabase CLI**: v1.0.0+ ([Install Guide](https://supabase.com/docs/guides/cli))
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone <repo-url>
+cd norseus
 ```
 
-To create a production bundle:
+### 2. Install Dependencies
 
-```sh
-npx nx build admin
+```bash
+pnpm install
 ```
 
-To see all available targets to run for a project, run:
+### 3. Set Up Local Supabase
 
-```sh
-npx nx show project admin
+- Install the [Supabase CLI](https://supabase.com/docs/guides/cli#install-the-cli) if you haven't already.
+- Start a local Supabase instance:
+
+```bash
+supabase start
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+- This will spin up a local Postgres database, Auth, and Studio. The CLI will output your local Supabase URL and API key (typically `http://127.0.0.1:54321` and a service key).
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 4. Configure Local Environment
 
-## Add new projects
+- Update `apps/admin/src/environments/environment.development.ts` with your local Supabase credentials:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/angular:app demo
+```ts
+export const environment = {
+  supabase: {
+    url: 'http://127.0.0.1:54321', // or as provided by CLI
+    apiKey: '<your-local-service-role-key>',
+  },
+};
 ```
 
-To generate a new library, use:
+### 5. Apply Database Migrations & Seed Data
 
-```sh
-npx nx g @nx/angular:lib mylib
+- With Supabase running, apply all migrations and seed the database:
+
+```bash
+supabase db reset
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+- This will run all migrations and execute the `supabase/seed.sql` script.
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 6. Generate TypeScript Types from Supabase
 
-## Set up CI!
+- The project uses generated types for Supabase tables and enums. To generate/update them, run:
 
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```bash
+supabase gen types typescript --db-url <your-supabase-url> > libs/front/supabase/src/interfaces/types.ts
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### 7. Start the Development Server
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```bash
+pnpm nx serve admin
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Install Nx Console
+## 📁 Project Structure
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+- `apps/admin/` — Main Angular app
+- `libs/front/ui/` — UI components (including wrappers for @p1kka/ui)
+- `libs/front/supabase/` — Supabase types, providers, and interfaces
+- `libs/assets/` — Fonts and global styles
+- `supabase/` — Database migrations and seed scripts
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Useful links
+## 📝 Coding Standards
 
-Learn more:
+- **Angular 19 best practices**: Standalone components, signals, new control flow (`@if`, `@for`, etc.)
+- **TailwindCSS**: Use utility classes for styling whenever possible
+- **@p1kka/ui**: Always use this UI library for forms, buttons, navigation, etc.
+- **English only**: All code, comments, and documentation must be in English
+- **Conventional Commits**: All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) standard and mention the affected project or library
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🧑‍💻 First-Time Developer Checklist
+
+- [ ] Install Node.js, pnpm, Docker, and Supabase CLI
+- [ ] Clone the repo and install dependencies
+- [ ] Start Supabase locally and update `environment.development.ts`
+- [ ] Run migrations and seed the database
+- [ ] Generate Supabase types
+- [ ] Start the app with `pnpm nx serve admin`
+
+---
+
+## 🆘 Troubleshooting
+
+- **Supabase connection issues**: Ensure Docker is running and Supabase CLI is started
+- **Types not generated**: Double-check your DB URL and Supabase credentials
+- **Port conflicts**: Default Supabase ports are 54321 (API) and 54322 (Postgres)
+- **UI issues**: Make sure you are using @p1kka/ui components and Tailwind classes
+
+---
+
+## 📚 Useful Commands
+
+- `pnpm nx serve admin` — Start the Angular app
+- `pnpm nx build admin` — Build the Angular app
+- `supabase start` — Start local Supabase
+- `supabase db reset` — Reset DB, run all migrations, and seed data
+
+---
+
+## 📦 Additional Notes
+
+- **Fonts**: Montserrat is included and loaded from `libs/assets/fonts/`
+- **Material Icons**: Loaded via CDN in `index.html`
+- **Global Styles**: Tailwind and custom styles in `libs/assets/styles/global.css` and `global.scss`
+- **RLS**: Supabase uses Row Level Security (RLS) — policies are defined in migrations
+
+---
+
+## 🤝 Contributing
+
+- Please follow the coding standards and commit message guidelines
+- Open issues or pull requests for bugs, features, or questions
+
+---
+
+## 📬 Contact
+
+For help, reach out to the project maintainer or open an issue in the repository.
+

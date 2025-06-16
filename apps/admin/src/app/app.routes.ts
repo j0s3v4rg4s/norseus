@@ -14,8 +14,15 @@ export const appRoutes: Route[] = [
       {
         path: 'permissions',
         loadComponent: () =>
-          import('./pages/permissions/permissions.component').then(
-            (m) => m.PermissionsComponent,
+          import('./pages/permissions/permissions-list/permissions-list.component').then(
+            (m) => m.PermissionsListComponent,
+          ),
+      },
+      {
+        path: 'permissions/create',
+        loadComponent: () =>
+          import('./pages/permissions/permissions-create/permissions-create.component').then(
+            (m) => m.PermissionsCreateComponent,
           ),
       },
     ],

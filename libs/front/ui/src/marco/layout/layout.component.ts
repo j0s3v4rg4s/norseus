@@ -22,7 +22,7 @@ import { Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LayoutComponent {
-  readonly title = input<string>('');
+  readonly menuTitle = input<string>('');
   readonly menuItems = input<MenuItem[]>([]);
 
   private breakpointObserver = inject(BreakpointObserver);

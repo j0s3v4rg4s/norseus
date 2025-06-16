@@ -1,0 +1,43 @@
+<div class="container">
+  <div class="flex items-center mb-6">
+    <h1 class="text-2xl font-bold">Crear nuevo permiso</h1>
+  </div>
+
+  <div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+      <form [formGroup]="form">
+        <pk-form-field [label]="'Nombre del rol'" class="mb-4">
+          <input pkInput formControlName="roleName" class="w-full" />
+        </pk-form-field>
+
+        <div class="flex gap-4 items-end">
+          <pk-form-field [label]="'Acción'">
+            <pk-select formControlName="action" [tabIndex]="0">
+              <pk-option *ngFor="let action of actions" [value]="action">
+                {{ actionsDictionary[action] }}
+              </pk-option>
+            </pk-select>
+          </pk-form-field>
+
+          <pk-form-field [label]="'Sección'">
+            <pk-select formControlName="section">
+              <pk-option *ngFor="let section of sections" [value]="section">
+                {{ sectionsDictionary[section] }}
+              </pk-option>
+            </pk-select>
+          </pk-form-field>
+
+          <div class="grow">
+            <button pk-button variant="outline" class="pk-btn-primary ml-auto block" type="button">
+              Agregar acción
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="flex justify-between items-center">
+      <button pk-button variant="flat" class="pk-btn-secondary" routerLink="/home/permissions">Cancelar</button>
+      <button pk-button variant="flat" class="pk-btn-primary">Guardar</button>
+    </div>
+  </div>
+</div>
