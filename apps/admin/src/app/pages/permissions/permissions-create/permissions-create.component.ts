@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -35,7 +35,8 @@ export class PermissionsCreateComponent {
   // Table logic
   displayedColumns = ['action', 'section', 'delete'];
   dataSource: Array<{ action: string; section: string }> = [];
-  duplicateError = false;
+  duplicateError = signal(false);
+  errorMessage = signal('');
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -48,13 +49,20 @@ export class PermissionsCreateComponent {
   addPermissionAction() {
     const action = this.form.get('action')?.value;
     const section = this.form.get('section')?.value;
+    if (!action || !section) {
+      this.duplicateError.set(true);
+      this.errorMessage.set('Por favor, selecciona una acción y una sección.');
+      return;
+    }
     const exists = this.dataSource.some(item => item.action === action && item.section === section);
     if (exists) {
-      this.duplicateError = true;
+      this.duplicateError.set(true);
+      this.errorMessage.set('Esta combinación ya fue agregada.');
       return;
     }
     this.dataSource = [...this.dataSource, { action, section }];
-    this.duplicateError = false;
+    this.duplicateError.set(false);
+    this.errorMessage.set('');
   }
 
   removePermissionAction(index: number) {

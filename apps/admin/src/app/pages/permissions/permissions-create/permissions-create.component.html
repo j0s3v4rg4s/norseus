@@ -39,33 +39,29 @@
             </button>
           </div>
         </div>
-        <div *ngIf="duplicateError" class="text-red-600 text-sm mt-2">Esta combinación ya fue agregada.</div>
+        <div *ngIf="duplicateError()" class="text-red-600 text-sm mt-2">{{ errorMessage() }}</div>
       </form>
 
-      <div *ngIf="dataSource.length > 0" class="overflow-x-auto">
-        <table cdk-table [dataSource]="dataSource" class="min-w-full border rounded-lg bg-white">
+      <div *ngIf="dataSource.length > 0" class="overflow-x-auto rounded-lg border border-slate-300 overflow-hidden">
+        <table cdk-table [dataSource]="dataSource" class="min-w-full bg-slate-50">
           <ng-container cdkColumnDef="action">
-            <th cdk-header-cell *cdkHeaderCellDef class="px-4 py-2 text-left font-semibold border-b">Acción</th>
-            <td cdk-cell *cdkCellDef="let element" class="px-4 py-2 border-b">
-              {{ getActionLabel(element?.action) }}
-            </td>
+            <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50">Acción</th>
+            <td cdk-cell *cdkCellDef="let element; let i = index" class="px-6 py-4 align-middle text-slate-700 bg-white">{{ getActionLabel(element?.action) }}</td>
           </ng-container>
           <ng-container cdkColumnDef="section">
-            <th cdk-header-cell *cdkHeaderCellDef class="px-4 py-2 text-left font-semibold border-b">Sección</th>
-            <td cdk-cell *cdkCellDef="let element" class="px-4 py-2 border-b">
-              {{ getSectionLabel(element?.section) }}
-            </td>
+            <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50">Sección</th>
+            <td cdk-cell *cdkCellDef="let element; let i = index" class="px-6 py-4 align-middle text-slate-700 bg-white">{{ getSectionLabel(element?.section) }}</td>
           </ng-container>
           <ng-container cdkColumnDef="delete">
-            <th cdk-header-cell *cdkHeaderCellDef class="px-4 py-2 text-center font-semibold border-b"></th>
-            <td cdk-cell *cdkCellDef="let element; let i = index" class="px-4 py-2 text-center border-b">
-              <button class="delete-button" type="button" (click)="removePermissionAction(i)">
+            <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-blue-600 bg-slate-50"></th>
+            <td cdk-cell *cdkCellDef="let element; let i = index" class="px-6 py-4 text-center bg-white">
+              <button type="button" (click)="removePermissionAction(i)" class="delete-button">
                 <span class="material-symbols-rounded">delete</span>
               </button>
             </td>
           </ng-container>
-          <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
-          <tr cdk-row *cdkRowDef="let row; columns: displayedColumns"></tr>
+          <tr cdk-header-row *cdkHeaderRowDef="displayedColumns" class="border-b border-slate-300"></tr>
+          <tr cdk-row *cdkRowDef="let row; let i = index; columns: displayedColumns" class="border-b border-slate-300 last:border-b-0"></tr>
         </table>
       </div>
     </div>
