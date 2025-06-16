@@ -1,11 +1,18 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
 import { FormFieldComponent, InputDirective, SelectComponent, OptionComponent } from '@p1kka/ui/src/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, PERMISSIONS_ACTIONS, PERMISSIONS_SECTIONS, Enums } from '@front/supabase';
+import {
+  PERMISSIONS_ACTIONS_DICTIONARY,
+  PERMISSIONS_SECTIONS_DICTIONARY,
+  PERMISSIONS_ACTIONS,
+  PERMISSIONS_SECTIONS,
+  Enums,
+  SUPABASE,
+} from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
 
 @Component({
@@ -19,7 +26,7 @@ import { CdkTableModule } from '@angular/cdk/table';
     SelectComponent,
     OptionComponent,
     InputDirective,
-    CdkTableModule
+    CdkTableModule,
   ],
   templateUrl: './permissions-create.component.html',
   styleUrls: ['./permissions-create.component.scss'],
@@ -37,6 +44,10 @@ export class PermissionsCreateComponent {
   dataSource: Array<{ action: string; section: string }> = [];
   duplicateError = signal(false);
   errorMessage = signal('');
+  loading = signal(false);
+  statusSaveMessage = signal('');
+  private supabase = inject(SUPABASE);
+  private router = inject(Router);
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -54,7 +65,7 @@ export class PermissionsCreateComponent {
       this.errorMessage.set('Por favor, selecciona una acción y una sección.');
       return;
     }
-    const exists = this.dataSource.some(item => item.action === action && item.section === section);
+    const exists = this.dataSource.some((item) => item.action === action && item.section === section);
     if (exists) {
       this.duplicateError.set(true);
       this.errorMessage.set('Esta combinación ya fue agregada.');
@@ -74,5 +85,57 @@ export class PermissionsCreateComponent {
   }
   getSectionLabel(section: Enums<'sections'> | string): string {
     return this.sectionsDictionary[section as Enums<'sections'>] || section;
+  }
+
+  /**
+   * Converts a string to UPPER_SNAKE_CASE.
+   * Example: "admin user" => "ADMIN_USER"
+   */
+  private toUpperSnakeCase(str: string): string {
+    return str
+      .replace(/[^a-zA-Z0-9]+/g, ' ') // Replace non-alphanumeric with space
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(word => word.toUpperCase())
+      .join('_');
+  }
+
+  async saveRole() {
+    this.statusSaveMessage.set('');
+    if (!this.form.get('roleName')?.value || this.form.get('roleName')?.invalid) {
+      this.statusSaveMessage.set('Debes ingresar un nombre de rol válido.');
+      return;
+    }
+    if (this.dataSource.length === 0) {
+      this.statusSaveMessage.set('Debes agregar al menos una combinación de acción y sección.');
+      return;
+    }
+    this.loading.set(true);
+    try {
+      // 1. Crear el rol
+
+      const roleName = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
+      const { error } = await this.supabase.rpc('create_role_with_permissions', {
+        role_name: roleName,
+        permissions: this.dataSource.map((item) => ({
+          action: item.action,
+          section: item.section,
+        })),
+      });
+
+      if (error) {
+        console.log(error);
+        this.statusSaveMessage.set('Error al crear el rol.');
+        this.loading.set(false);
+        return;
+      }
+
+      this.router.navigate(['/home/permissions']);
+    } catch (e) {
+      this.statusSaveMessage.set('Error inesperado al guardar.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }
