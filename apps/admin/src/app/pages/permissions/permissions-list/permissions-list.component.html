@@ -4,5 +4,66 @@
     <button pk-button variant="flat" class="pk-btn-primary" routerLink="/home/permissions/create">Crear role</button>
   </div>
 
-  <p>This is the permissions page. Content coming soon.</p>
+  @if (loading()) {
+    <div class="flex justify-center items-center py-8">
+      <pk-spinner></pk-spinner>
+    </div>
+  }
+  @if (error()) {
+    <div class="text-red-600 text-center py-4">{{ error() }}</div>
+  }
+
+  @if (!loading() && dataSource.length > 0) {
+    <div class="overflow-x-auto rounded-lg border border-slate-300 overflow-hidden mt-14">
+      <table cdk-table [dataSource]="dataSource" class="min-w-full bg-slate-50">
+        <ng-container cdkColumnDef="role">
+          <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700">Rol</th>
+          <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle text-slate-700 bg-white font-medium">
+            {{ row.role.name }}
+          </td>
+        </ng-container>
+        <ng-container cdkColumnDef="permissions">
+          <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700">
+            Permisos y secciones
+          </th>
+          <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle text-slate-700 bg-white">
+            @for (section of getSectionKeys(row.permissions); track section) {
+              <div class="mb-2">
+                <span class="font-semibold text-slate-600">{{ getSectionLabel(section) }}</span>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  @for (perm of getPermissionsBySection(row.permissions)[section]; track perm.id) {
+                    <span class="inline-block rounded-full bg-blue-100 text-blue-800 text-xs px-3 py-1 font-semibold">
+                      {{ getActionLabel(perm.action) }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </td>
+        </ng-container>
+        <ng-container cdkColumnDef="actions">
+          <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-slate-700">Acciones</th>
+          <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
+            <div class="flex justify-center gap-2">
+              <button [routerLink]="['/home/permissions', row.role.id]" class="text-primary">
+                <span class="material-symbols-rounded active"> visibility </span>
+              </button>
+              <button [routerLink]="['/home/permissions', row.role.id, 'edit']">
+                <span class="material-symbols-rounded active"> edit </span>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+        <tr cdk-header-row *cdkHeaderRowDef="displayedColumns" class="bg-slate-100"></tr>
+        <tr
+          cdk-row
+          *cdkRowDef="let row; columns: displayedColumns"
+          class="border-b border-slate-300 last:border-b-0"
+        ></tr>
+      </table>
+    </div>
+  }
+  @if (!loading() && dataSource.length === 0) {
+    <div class="text-center text-slate-500 py-8">No hay roles registrados.</div>
+  }
 </div>
