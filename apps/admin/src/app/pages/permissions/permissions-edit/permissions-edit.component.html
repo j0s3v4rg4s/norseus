@@ -89,7 +89,7 @@
         </table>
       </div>
       <div class="mt-6">
-        <button pk-button class="pk-btn-error">Eliminar rol</button>
+        <button pk-button class="pk-btn-error" (click)="deleteRole()">Eliminar rol</button>
       </div>
     </div>
     <div *ngIf="statusSaveMessage()" class="text-red-400 text-sm mb-2">{{ statusSaveMessage() }}</div>

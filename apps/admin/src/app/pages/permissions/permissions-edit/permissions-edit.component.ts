@@ -15,6 +15,9 @@ import {
   Permission,
 } from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmComponent } from '@ui';
+import { filter, from, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-permissions-edit',
@@ -29,6 +32,7 @@ import { CdkTableModule } from '@angular/cdk/table';
     OptionComponent,
     InputDirective,
     CdkTableModule,
+    MatDialogModule,
   ],
   templateUrl: './permissions-edit.component.html',
   styleUrls: ['./permissions-edit.component.scss'],
@@ -53,6 +57,7 @@ export class PermissionsEditComponent {
   private route = inject(ActivatedRoute);
   private roleId: string | null = null;
   removedPermissions = new Set<string>();
+  private dialog = inject(MatDialog);
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -66,6 +71,25 @@ export class PermissionsEditComponent {
         this.loadRole(this.roleId);
       }
     });
+  }
+
+  deleteRole() {
+    this.dialog
+      .open(ConfirmComponent, {
+        data: { message: '¿Estás seguro de querer eliminar este rol?' },
+      })
+      .afterClosed()
+      .pipe(
+        filter(Boolean),
+        switchMap(() => from(this.supabase.from('role').delete().eq('id', this.roleId))),
+      )
+      .subscribe(({ error }) => {
+        if (error) {
+          this.statusSaveMessage.set('Error al eliminar el rol.');
+        } else {
+          this.router.navigate(['/home/permissions']);
+        }
+      });
   }
 
   async loadRole(roleId: string) {
@@ -135,7 +159,7 @@ export class PermissionsEditComponent {
       .trim()
       .split(/\s+/)
       .filter(Boolean)
-      .map(word => word.toUpperCase())
+      .map((word) => word.toUpperCase())
       .join('_');
   }
 
@@ -152,10 +176,12 @@ export class PermissionsEditComponent {
     this.loading.set(true);
     try {
       const newNameRole = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
-      const newPermissions = this.dataSource.filter((item) => !item.id).map((item) => ({
-        action: item.action,
-        section: item.section,
-      }));
+      const newPermissions = this.dataSource
+        .filter((item) => !item.id)
+        .map((item) => ({
+          action: item.action,
+          section: item.section,
+        }));
       const permissionsToDelete = Array.from(this.removedPermissions);
       const { error } = await this.supabase.rpc('update_role_with_permissions', {
         role_id: this.roleId,

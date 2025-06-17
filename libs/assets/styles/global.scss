@@ -23,3 +23,9 @@ html {
     density: 0
   ));
 }
+
+mat-dialog-container {
+  div.mdc-dialog__surface {
+    --mat-sys-corner-extra-large: 16px;
+  }
+}
