@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
 import { FormFieldComponent, InputDirective, SelectComponent, OptionComponent } from '@p1kka/ui/src/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -12,12 +12,13 @@ import {
   PERMISSIONS_SECTIONS,
   Enums,
   SUPABASE,
+  Permission,
 } from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
-import { ProfileSignalStore } from '@front/core/profile';
 
 @Component({
-  selector: 'app-permissions-create',
+  selector: 'app-permissions-edit',
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -29,27 +30,29 @@ import { ProfileSignalStore } from '@front/core/profile';
     InputDirective,
     CdkTableModule,
   ],
-  templateUrl: './permissions-create.component.html',
-  styleUrls: ['./permissions-create.component.scss'],
+  templateUrl: './permissions-edit.component.html',
+  styleUrls: ['./permissions-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PermissionsCreateComponent {
+export class PermissionsEditComponent {
   form: FormGroup;
   actions = PERMISSIONS_ACTIONS;
   actionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   sections = PERMISSIONS_SECTIONS;
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
 
-  // Table logic
   displayedColumns = ['action', 'section', 'delete'];
-  dataSource: Array<{ action: string; section: string }> = [];
+  dataSource: Array<{ action: string; section: string; id?: string }> = [];
   duplicateError = signal(false);
   errorMessage = signal('');
   loading = signal(false);
   statusSaveMessage = signal('');
-  private profileStore = inject(ProfileSignalStore);
+
   private supabase = inject(SUPABASE);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private roleId: string | null = null;
+  removedPermissions = new Set<string>();
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -57,6 +60,39 @@ export class PermissionsCreateComponent {
       action: ['', Validators.required],
       section: ['', Validators.required],
     });
+    effect(() => {
+      this.roleId = this.route.snapshot.paramMap.get('id');
+      if (this.roleId) {
+        this.loadRole(this.roleId);
+      }
+    });
+  }
+
+  async loadRole(roleId: string) {
+    this.loading.set(true);
+    try {
+      const { data: role, error } = await this.supabase
+        .from('role')
+        .select('*, permissions(*)')
+        .eq('id', roleId)
+        .single();
+      if (error || !role) {
+        this.statusSaveMessage.set('Error loading role.');
+        return;
+      }
+      this.form.patchValue({
+        roleName: role.name,
+      });
+      this.dataSource = (role.permissions || []).map((perm: Permission) => ({
+        action: perm.action,
+        section: perm.section,
+        id: perm.id,
+      }));
+    } catch (e) {
+      this.statusSaveMessage.set('Unexpected error loading role.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   addPermissionAction() {
@@ -79,7 +115,11 @@ export class PermissionsCreateComponent {
   }
 
   removePermissionAction(index: number) {
+    const removed = this.dataSource[index];
     this.dataSource = this.dataSource.filter((_, i) => i !== index);
+    if (removed.id) {
+      this.removedPermissions.add(removed.id);
+    }
   }
 
   getActionLabel(action: Enums<'permission_action'> | string): string {
@@ -89,13 +129,9 @@ export class PermissionsCreateComponent {
     return this.sectionsDictionary[section as Enums<'sections'>] || section;
   }
 
-  /**
-   * Converts a string to UPPER_SNAKE_CASE.
-   * Example: "admin user" => "ADMIN_USER"
-   */
   private toUpperSnakeCase(str: string): string {
     return str
-      .replace(/[^a-zA-Z0-9]+/g, ' ') // Replace non-alphanumeric with space
+      .replace(/[^a-zA-Z0-9]+/g, ' ')
       .trim()
       .split(/\s+/)
       .filter(Boolean)
@@ -115,25 +151,24 @@ export class PermissionsCreateComponent {
     }
     this.loading.set(true);
     try {
-      // 1. Crear el rol
-
-      const roleName = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
-      const { error } = await this.supabase.rpc('create_role_with_permissions', {
-        role_name: roleName,
-        facility_id: this.profileStore.facility()?.id,
-        permissions: this.dataSource.map((item) => ({
-          action: item.action,
-          section: item.section,
-        })),
+      const newNameRole = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
+      const newPermissions = this.dataSource.filter((item) => !item.id).map((item) => ({
+        action: item.action,
+        section: item.section,
+      }));
+      const permissionsToDelete = Array.from(this.removedPermissions);
+      const { error } = await this.supabase.rpc('update_role_with_permissions', {
+        role_id: this.roleId,
+        new_role_name: newNameRole,
+        new_permissions: newPermissions,
+        permissions_to_delete: permissionsToDelete,
       });
-
       if (error) {
         console.log(error);
-        this.statusSaveMessage.set('Error al crear el rol.');
+        this.statusSaveMessage.set('Error al actualizar el rol.');
         this.loading.set(false);
         return;
       }
-
       this.router.navigate(['/home/permissions']);
     } catch (e) {
       this.statusSaveMessage.set('Error inesperado al guardar.');

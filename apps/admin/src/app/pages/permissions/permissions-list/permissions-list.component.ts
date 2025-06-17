@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
 import { RouterModule } from '@angular/router';
@@ -11,6 +11,7 @@ import {
 } from '@front/supabase';
 import { SpinnerComponent } from '@p1kka/ui/src/feedback';
 import { CdkTableModule } from '@angular/cdk/table';
+import { ProfileSignalStore } from '@front/core/profile';
 
 interface RoleWithPermissions {
   role: Role;
@@ -24,7 +25,7 @@ interface RoleWithPermissions {
   styleUrls: ['./permissions-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PermissionsListComponent implements OnInit {
+export class PermissionsListComponent {
   private supabase = inject(SUPABASE);
   rolesWithPermissions = signal<RoleWithPermissions[]>([]);
   loading = signal(true);
@@ -32,13 +33,29 @@ export class PermissionsListComponent implements OnInit {
   permissionsActionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   permissionsSectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
   displayedColumns = ['role', 'permissions', 'actions'];
+  private profileStore = inject(ProfileSignalStore);
 
-  async ngOnInit() {
+  constructor() {
+    this.loading.set(true);
+    this.error.set(null);
+    effect(() => {
+      const loading = this.profileStore.loading();
+      const facility = this.profileStore.facility();
+      if (!loading && facility) {
+        this.loadRoles(facility.id);
+      }
+    });
+  }
+
+  async loadRoles(facilityId: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
       // Fetch all roles with their permissions in a single query
-      const { data: roles, error: rolesError } = await this.supabase.from('role').select('*, permissions(*)');
+      const { data: roles, error: rolesError } = await this.supabase
+        .from('role')
+        .select('*, permissions(*)')
+        .eq('facility_id', facilityId);
 
       if (rolesError) throw rolesError;
       // Map roles and their permissions
@@ -55,7 +72,6 @@ export class PermissionsListComponent implements OnInit {
       this.loading.set(false);
     }
   }
-
   getPermissionsBySection(permissions: Permission[]) {
     // Returns: { [section: string]: Permission[] }
     return permissions.reduce(

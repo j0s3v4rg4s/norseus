@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
       "@front/supabase": ["libs/front/supabase/src/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]
     }

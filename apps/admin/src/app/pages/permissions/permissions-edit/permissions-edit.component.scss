@@ -1,0 +1,10 @@
+.delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  cursor: pointer;
+  .material-symbols-rounded {
+    font-size: 28px;
+  }
+}

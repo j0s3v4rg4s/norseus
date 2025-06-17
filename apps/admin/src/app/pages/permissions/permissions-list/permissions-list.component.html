@@ -45,11 +45,8 @@
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-slate-700">Acciones</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
             <div class="flex justify-center gap-2">
-              <button [routerLink]="['/home/permissions', row.role.id]" class="text-primary">
+              <button [routerLink]="['/home/permissions', row.role.id, 'edit']" class="text-primary">
                 <span class="material-symbols-rounded active"> visibility </span>
-              </button>
-              <button [routerLink]="['/home/permissions', row.role.id, 'edit']">
-                <span class="material-symbols-rounded active"> edit </span>
               </button>
             </div>
           </td>

@@ -1,0 +1,103 @@
+<div class="container">
+  <div class="flex items-center mb-6">
+    <h1 class="text-2xl font-bold">Editar rol</h1>
+  </div>
+
+  <div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+      <form [formGroup]="form" class="mb-8">
+        <pk-form-field [label]="'Nombre del rol'" class="mb-4">
+          <input pkInput formControlName="roleName" class="w-full" />
+        </pk-form-field>
+
+        <div class="flex flex-col gap-4 items-stretch sm:flex-row sm:items-end">
+          <pk-form-field [label]="'Acción'" class="w-full sm:w-auto">
+            <pk-select formControlName="action" [tabIndex]="0">
+              <pk-option *ngFor="let action of actions" [value]="action">
+                {{ actionsDictionary[action] }}
+              </pk-option>
+            </pk-select>
+          </pk-form-field>
+
+          <pk-form-field [label]="'Sección'" class="w-full sm:w-auto">
+            <pk-select formControlName="section">
+              <pk-option *ngFor="let section of sections" [value]="section">
+                {{ sectionsDictionary[section] }}
+              </pk-option>
+            </pk-select>
+          </pk-form-field>
+
+          <div class="w-full sm:grow">
+            <button
+              pk-button
+              variant="outline"
+              class="pk-btn-primary ml-auto block w-full sm:w-auto"
+              type="button"
+              (click)="addPermissionAction()"
+            >
+              Agregar acción
+            </button>
+          </div>
+        </div>
+        <div *ngIf="duplicateError()" class="text-red-600 text-sm mt-2">{{ errorMessage() }}</div>
+      </form>
+
+      <div *ngIf="dataSource.length > 0" class="overflow-x-auto rounded-lg border border-slate-300 overflow-hidden">
+        <table cdk-table [dataSource]="dataSource" class="min-w-full bg-slate-50">
+          <ng-container cdkColumnDef="action">
+            <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50">
+              Acción
+            </th>
+            <td
+              cdk-cell
+              *cdkCellDef="let element; let i = index"
+              class="px-6 py-4 align-middle text-slate-700 bg-white"
+            >
+              {{ getActionLabel(element?.action) }}
+            </td>
+          </ng-container>
+          <ng-container cdkColumnDef="section">
+            <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50">
+              Sección
+            </th>
+            <td
+              cdk-cell
+              *cdkCellDef="let element; let i = index"
+              class="px-6 py-4 align-middle text-slate-700 bg-white"
+            >
+              {{ getSectionLabel(element?.section) }}
+            </td>
+          </ng-container>
+          <ng-container cdkColumnDef="delete">
+            <th
+              cdk-header-cell
+              *cdkHeaderCellDef
+              class="px-6 py-4 text-center font-semibold text-blue-600 bg-slate-50"
+            ></th>
+            <td cdk-cell *cdkCellDef="let element; let i = index" class="px-6 py-4 text-center bg-white">
+              <button type="button" (click)="removePermissionAction(i)" class="delete-button">
+                <span class="material-symbols-rounded">delete</span>
+              </button>
+            </td>
+          </ng-container>
+          <tr cdk-header-row *cdkHeaderRowDef="displayedColumns" class="border-b border-slate-300"></tr>
+          <tr
+            cdk-row
+            *cdkRowDef="let row; let i = index; columns: displayedColumns"
+            class="border-b border-slate-300 last:border-b-0"
+          ></tr>
+        </table>
+      </div>
+      <div class="mt-6">
+        <button pk-button class="pk-btn-error">Eliminar rol</button>
+      </div>
+    </div>
+    <div *ngIf="statusSaveMessage()" class="text-red-400 text-sm mb-2">{{ statusSaveMessage() }}</div>
+    <div class="flex justify-between items-center">
+      <button pk-button variant="flat" class="pk-btn-secondary" routerLink="/home/permissions">Cancelar</button>
+      <button pk-button variant="flat" class="pk-btn-primary" (click)="saveRole()" [loading]="loading()">
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>

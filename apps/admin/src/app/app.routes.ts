@@ -25,6 +25,13 @@ export const appRoutes: Route[] = [
             (m) => m.PermissionsCreateComponent,
           ),
       },
+      {
+        path: 'permissions/:id/edit',
+        loadComponent: () =>
+          import('./pages/permissions/permissions-edit/permissions-edit.component').then(
+            (m) => m.PermissionsEditComponent,
+          ),
+      },
     ],
   },
   {

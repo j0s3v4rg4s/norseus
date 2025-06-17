@@ -2,14 +2,14 @@ drop policy "edit only admin" on "public"."role";
 
 set check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.create_role_with_permissions(role_name text, permissions jsonb)
+CREATE OR REPLACE FUNCTION public.create_role_with_permissions(role_name text, permissions jsonb, facility_id uuid)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
 declare
   new_role_id uuid;
 begin
-  insert into role (name) values (role_name) returning id into new_role_id;
+  insert into role (name, facility_id) values (role_name, facility_id) returning id into new_role_id;
 
   insert into permissions (action, section, role_id)
   select
