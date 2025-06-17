@@ -92,10 +92,14 @@ pnpm nx serve admin
 
 ## 📁 Project Structure
 
-- `apps/admin/` — Main Angular app
-- `libs/front/ui/` — UI components (including wrappers for @p1kka/ui)
-- `libs/front/supabase/` — Supabase types, providers, and interfaces
-- `libs/assets/` — Fonts and global styles
+- `apps/admin/` — Main Angular app (dashboard, pages, authentication, etc.)
+- `libs/front/ui/` — UI components library (wrappers for @p1kka/ui, modals, layout, etc.)
+- `libs/front/core/` — Core frontend libraries (signals, stores, domain logic)
+  - `profile/` — User profile state management
+- `libs/front/supabase/` — Supabase integration (types, providers, interfaces)
+- `libs/assets/` — Shared assets
+  - `fonts/` — Montserrat font files
+  - `styles/` — Global Tailwind and SCSS styles
 - `supabase/` — Database migrations and seed scripts
 
 ---
