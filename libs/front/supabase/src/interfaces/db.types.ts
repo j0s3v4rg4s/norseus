@@ -8,3 +8,6 @@ export type Permission = Database['public']['Tables']['permissions']['Row'];
 
 export const PERMISSIONS_ACTIONS = Constants.public.Enums.permission_action;
 export const PERMISSIONS_SECTIONS = Constants.public.Enums.sections;
+
+export type PermissionAction = Database['public']['Enums']['permission_action'];
+export type Section = Database['public']['Enums']['sections'];

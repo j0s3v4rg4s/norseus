@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -11,13 +11,12 @@ import {
   PERMISSIONS_ACTIONS,
   PERMISSIONS_SECTIONS,
   Enums,
-  SUPABASE,
-  Permission,
 } from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmComponent } from '@ui';
 import { filter, from, switchMap } from 'rxjs';
+import { permissionsEditStore } from '../permissions-edit.store';
 
 @Component({
   selector: 'app-permissions-edit',
@@ -37,6 +36,7 @@ import { filter, from, switchMap } from 'rxjs';
   templateUrl: './permissions-edit.component.html',
   styleUrls: ['./permissions-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [permissionsEditStore],
 })
 export class PermissionsEditComponent {
   form: FormGroup;
@@ -46,17 +46,11 @@ export class PermissionsEditComponent {
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
 
   displayedColumns = ['action', 'section', 'delete'];
-  dataSource: Array<{ action: string; section: string; id?: string }> = [];
-  duplicateError = signal(false);
-  errorMessage = signal('');
-  loading = signal(false);
-  statusSaveMessage = signal('');
+  store = inject(permissionsEditStore);
 
-  private supabase = inject(SUPABASE);
+
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private roleId: string | null = null;
-  removedPermissions = new Set<string>();
   private dialog = inject(MatDialog);
 
   constructor(private fb: FormBuilder) {
@@ -66,9 +60,16 @@ export class PermissionsEditComponent {
       section: ['', Validators.required],
     });
     effect(() => {
-      this.roleId = this.route.snapshot.paramMap.get('id');
-      if (this.roleId) {
-        this.loadRole(this.roleId);
+      const roleId = this.route.snapshot.paramMap.get('id');
+      if (roleId) {
+        this.store.loadRole(roleId);
+      }
+    });
+
+    effect(() => {
+      const { role, isLoading } = this.store;
+      if (role() && !isLoading()) {
+        this.form.patchValue({ roleName: role()?.name });
       }
     });
   }
@@ -81,69 +82,22 @@ export class PermissionsEditComponent {
       .afterClosed()
       .pipe(
         filter(Boolean),
-        switchMap(() => from(this.supabase.from('role').delete().eq('id', this.roleId))),
+        switchMap(() => from(this.store.deleteRole())),
+        filter(Boolean),
       )
-      .subscribe(({ error }) => {
-        if (error) {
-          this.statusSaveMessage.set('Error al eliminar el rol.');
-        } else {
-          this.router.navigate(['/home/permissions']);
-        }
+      .subscribe(() => {
+        this.router.navigate(['/home/permissions']);
       });
-  }
-
-  async loadRole(roleId: string) {
-    this.loading.set(true);
-    try {
-      const { data: role, error } = await this.supabase
-        .from('role')
-        .select('*, permissions(*)')
-        .eq('id', roleId)
-        .single();
-      if (error || !role) {
-        this.statusSaveMessage.set('Error loading role.');
-        return;
-      }
-      this.form.patchValue({
-        roleName: role.name,
-      });
-      this.dataSource = (role.permissions || []).map((perm: Permission) => ({
-        action: perm.action,
-        section: perm.section,
-        id: perm.id,
-      }));
-    } catch (e) {
-      this.statusSaveMessage.set('Unexpected error loading role.');
-    } finally {
-      this.loading.set(false);
-    }
   }
 
   addPermissionAction() {
     const action = this.form.get('action')?.value;
     const section = this.form.get('section')?.value;
-    if (!action || !section) {
-      this.duplicateError.set(true);
-      this.errorMessage.set('Por favor, selecciona una acción y una sección.');
-      return;
-    }
-    const exists = this.dataSource.some((item) => item.action === action && item.section === section);
-    if (exists) {
-      this.duplicateError.set(true);
-      this.errorMessage.set('Esta combinación ya fue agregada.');
-      return;
-    }
-    this.dataSource = [...this.dataSource, { action, section }];
-    this.duplicateError.set(false);
-    this.errorMessage.set('');
+    this.store.addPermission(action, section);
   }
 
   removePermissionAction(index: number) {
-    const removed = this.dataSource[index];
-    this.dataSource = this.dataSource.filter((_, i) => i !== index);
-    if (removed.id) {
-      this.removedPermissions.add(removed.id);
-    }
+    this.store.removePermission(index);
   }
 
   getActionLabel(action: Enums<'permission_action'> | string): string {
@@ -153,53 +107,11 @@ export class PermissionsEditComponent {
     return this.sectionsDictionary[section as Enums<'sections'>] || section;
   }
 
-  private toUpperSnakeCase(str: string): string {
-    return str
-      .replace(/[^a-zA-Z0-9]+/g, ' ')
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((word) => word.toUpperCase())
-      .join('_');
-  }
-
   async saveRole() {
-    this.statusSaveMessage.set('');
-    if (!this.form.get('roleName')?.value || this.form.get('roleName')?.invalid) {
-      this.statusSaveMessage.set('Debes ingresar un nombre de rol válido.');
-      return;
-    }
-    if (this.dataSource.length === 0) {
-      this.statusSaveMessage.set('Debes agregar al menos una combinación de acción y sección.');
-      return;
-    }
-    this.loading.set(true);
-    try {
-      const newNameRole = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
-      const newPermissions = this.dataSource
-        .filter((item) => !item.id)
-        .map((item) => ({
-          action: item.action,
-          section: item.section,
-        }));
-      const permissionsToDelete = Array.from(this.removedPermissions);
-      const { error } = await this.supabase.rpc('update_role_with_permissions', {
-        role_id: this.roleId,
-        new_role_name: newNameRole,
-        new_permissions: newPermissions,
-        permissions_to_delete: permissionsToDelete,
-      });
-      if (error) {
-        console.log(error);
-        this.statusSaveMessage.set('Error al actualizar el rol.');
-        this.loading.set(false);
-        return;
-      }
+    const roleName = this.form.get('roleName')?.value;
+    const success = await this.store.saveRole(roleName);
+    if (success) {
       this.router.navigate(['/home/permissions']);
-    } catch (e) {
-      this.statusSaveMessage.set('Error inesperado al guardar.');
-    } finally {
-      this.loading.set(false);
     }
   }
 }
