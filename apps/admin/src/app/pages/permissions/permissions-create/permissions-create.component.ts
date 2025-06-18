@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -15,6 +15,7 @@ import {
 } from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
 import { ProfileSignalStore } from '@front/core/profile';
+import { permissionsStore } from '../permissions.store';
 
 @Component({
   selector: 'app-permissions-create',
@@ -32,6 +33,7 @@ import { ProfileSignalStore } from '@front/core/profile';
   templateUrl: './permissions-create.component.html',
   styleUrls: ['./permissions-create.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [permissionsStore],
 })
 export class PermissionsCreateComponent {
   form: FormGroup;
@@ -40,15 +42,8 @@ export class PermissionsCreateComponent {
   sections = PERMISSIONS_SECTIONS;
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
 
-  // Table logic
   displayedColumns = ['action', 'section', 'delete'];
-  dataSource: Array<{ action: string; section: string }> = [];
-  duplicateError = signal(false);
-  errorMessage = signal('');
-  loading = signal(false);
-  statusSaveMessage = signal('');
-  private profileStore = inject(ProfileSignalStore);
-  private supabase = inject(SUPABASE);
+  store = inject(permissionsStore);
   private router = inject(Router);
 
   constructor(private fb: FormBuilder) {
@@ -62,24 +57,11 @@ export class PermissionsCreateComponent {
   addPermissionAction() {
     const action = this.form.get('action')?.value;
     const section = this.form.get('section')?.value;
-    if (!action || !section) {
-      this.duplicateError.set(true);
-      this.errorMessage.set('Por favor, selecciona una acción y una sección.');
-      return;
-    }
-    const exists = this.dataSource.some((item) => item.action === action && item.section === section);
-    if (exists) {
-      this.duplicateError.set(true);
-      this.errorMessage.set('Esta combinación ya fue agregada.');
-      return;
-    }
-    this.dataSource = [...this.dataSource, { action, section }];
-    this.duplicateError.set(false);
-    this.errorMessage.set('');
+    this.store.addPermission(action, section);
   }
 
   removePermissionAction(index: number) {
-    this.dataSource = this.dataSource.filter((_, i) => i !== index);
+    this.store.removePermission(index);
   }
 
   getActionLabel(action: Enums<'permission_action'> | string): string {
@@ -104,41 +86,10 @@ export class PermissionsCreateComponent {
   }
 
   async saveRole() {
-    this.statusSaveMessage.set('');
-    if (!this.form.get('roleName')?.value || this.form.get('roleName')?.invalid) {
-      this.statusSaveMessage.set('Debes ingresar un nombre de rol válido.');
-      return;
-    }
-    if (this.dataSource.length === 0) {
-      this.statusSaveMessage.set('Debes agregar al menos una combinación de acción y sección.');
-      return;
-    }
-    this.loading.set(true);
-    try {
-      // 1. Crear el rol
-
-      const roleName = this.toUpperSnakeCase(this.form.get('roleName')?.value as string);
-      const { error } = await this.supabase.rpc('create_role_with_permissions', {
-        role_name: roleName,
-        facility_id: this.profileStore.facility()?.id,
-        permissions: this.dataSource.map((item) => ({
-          action: item.action,
-          section: item.section,
-        })),
-      });
-
-      if (error) {
-        console.log(error);
-        this.statusSaveMessage.set('Error al crear el rol.');
-        this.loading.set(false);
-        return;
-      }
-
+    const roleName = this.form.get('roleName')?.value;
+    const success = await this.store.createRole(roleName);
+    if (success) {
       this.router.navigate(['/home/permissions']);
-    } catch (e) {
-      this.statusSaveMessage.set('Error inesperado al guardar.');
-    } finally {
-      this.loading.set(false);
     }
   }
 }

@@ -16,7 +16,7 @@ import { CdkTableModule } from '@angular/cdk/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmComponent } from '@ui';
 import { filter, from, switchMap } from 'rxjs';
-import { permissionsEditStore } from '../permissions-edit.store';
+import { permissionsStore } from '../permissions.store';
 
 @Component({
   selector: 'app-permissions-edit',
@@ -36,7 +36,7 @@ import { permissionsEditStore } from '../permissions-edit.store';
   templateUrl: './permissions-edit.component.html',
   styleUrls: ['./permissions-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [permissionsEditStore],
+  providers: [permissionsStore],
 })
 export class PermissionsEditComponent {
   form: FormGroup;
@@ -46,7 +46,7 @@ export class PermissionsEditComponent {
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
 
   displayedColumns = ['action', 'section', 'delete'];
-  store = inject(permissionsEditStore);
+  store = inject(permissionsStore);
 
 
   private router = inject(Router);

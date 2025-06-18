@@ -4,22 +4,22 @@
     <button pk-button variant="flat" class="pk-btn-primary" routerLink="/home/permissions/create">Crear role</button>
   </div>
 
-  @if (loading()) {
+  @if (store.isLoading()) {
     <div class="flex justify-center items-center py-8">
       <pk-spinner></pk-spinner>
     </div>
   }
-  @if (error()) {
-    <div class="text-red-600 text-center py-4">{{ error() }}</div>
+  @if (store.errorMessage()) {
+    <div class="text-red-600 text-center py-4">{{ store.errorMessage() }}</div>
   }
 
-  @if (!loading() && dataSource.length > 0) {
+  @if (!store.isLoading() && store.roles().length > 0) {
     <div class="overflow-x-auto rounded-lg border border-slate-300 overflow-hidden mt-14">
-      <table cdk-table [dataSource]="dataSource" class="min-w-full bg-slate-50">
+      <table cdk-table [dataSource]="store.roles()" class="min-w-full bg-slate-50">
         <ng-container cdkColumnDef="role">
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700">Rol</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle text-slate-700 bg-white font-medium">
-            {{ row.role.name }}
+            {{ row.name }}
           </td>
         </ng-container>
         <ng-container cdkColumnDef="permissions">
@@ -45,7 +45,7 @@
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-slate-700">Acciones</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
             <div class="flex justify-center gap-2">
-              <button [routerLink]="['/home/permissions', row.role.id, 'edit']" class="text-primary">
+              <button [routerLink]="['/home/permissions', row.id, 'edit']" class="text-primary">
                 <span class="material-symbols-rounded active"> visibility </span>
               </button>
             </div>
@@ -60,7 +60,7 @@
       </table>
     </div>
   }
-  @if (!loading() && dataSource.length === 0) {
+  @if (!store.isLoading() && store.roles().length === 0) {
     <div class="text-center text-slate-500 py-8">No hay roles registrados.</div>
   }
 </div>

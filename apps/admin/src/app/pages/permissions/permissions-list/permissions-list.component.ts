@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
 import { RouterModule } from '@angular/router';
@@ -12,6 +12,7 @@ import {
 import { SpinnerComponent } from '@p1kka/ui/src/feedback';
 import { CdkTableModule } from '@angular/cdk/table';
 import { ProfileSignalStore } from '@front/core/profile';
+import { permissionsStore } from '../permissions.store';
 
 interface RoleWithPermissions {
   role: Role;
@@ -24,56 +25,26 @@ interface RoleWithPermissions {
   templateUrl: './permissions-list.component.html',
   styleUrls: ['./permissions-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [permissionsStore],
 })
 export class PermissionsListComponent {
-  private supabase = inject(SUPABASE);
-  rolesWithPermissions = signal<RoleWithPermissions[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
   permissionsActionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   permissionsSectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
   displayedColumns = ['role', 'permissions', 'actions'];
+  store = inject(permissionsStore);
   private profileStore = inject(ProfileSignalStore);
 
   constructor() {
-    this.loading.set(true);
-    this.error.set(null);
     effect(() => {
       const loading = this.profileStore.loading();
       const facility = this.profileStore.facility();
       if (!loading && facility) {
-        this.loadRoles(facility.id);
+        this.store.getAllRoles(facility.id);
       }
     });
   }
 
-  async loadRoles(facilityId: string) {
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      // Fetch all roles with their permissions in a single query
-      const { data: roles, error: rolesError } = await this.supabase
-        .from('role')
-        .select('*, permissions(*)')
-        .eq('facility_id', facilityId);
-
-      if (rolesError) throw rolesError;
-      // Map roles and their permissions
-      const grouped: RoleWithPermissions[] = (roles || []).map(
-        ({ permissions, ...role }: Role & { permissions: Permission[] }) => ({
-          role,
-          permissions: permissions || [],
-        }),
-      );
-      this.rolesWithPermissions.set(grouped);
-    } catch (e: any) {
-      this.error.set(e.message || 'Error fetching roles or permissions');
-    } finally {
-      this.loading.set(false);
-    }
-  }
   getPermissionsBySection(permissions: Permission[]) {
-    // Returns: { [section: string]: Permission[] }
     return permissions.reduce(
       (acc, perm) => {
         if (!acc[perm.section]) acc[perm.section] = [];
@@ -97,6 +68,6 @@ export class PermissionsListComponent {
   }
 
   get dataSource() {
-    return this.rolesWithPermissions();
+    return this.store.roles();
   }
 }
