@@ -1,4 +1,7 @@
 {
   "cSpell.words": ["Supabase"],
-  "tailwindCSS.experimental.configFile": "libs/assets/styles/global.css"
+  "tailwindCSS.experimental.configFile": "libs/assets/styles/global.css",
+  "deno.enablePaths": ["./supabase/functions"],
+  "deno.importMap": "./supabase/functions/import_map.json",
+  "deno.enable": true
 }

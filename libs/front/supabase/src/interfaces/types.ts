@@ -123,21 +123,27 @@ export type Database = {
       profile: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           name: string | null
           role_id: string | null
+          type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id: string
           name?: string | null
           role_id?: string | null
+          type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           name?: string | null
           role_id?: string | null
+          type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: [
           {
@@ -186,11 +192,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_role_with_permissions: {
+        Args: { role_name: string; permissions: Json; facility_id: string }
+        Returns: undefined
+      }
+      update_role_with_permissions: {
+        Args: {
+          role_id: string
+          new_role_name: string
+          new_permissions: Json
+          permissions_to_delete: number[]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       permission_action: "read" | "edit" | "delete" | "create"
       sections: "permissions" | "users"
+      user_type: "employer" | "client" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -311,6 +330,7 @@ export const Constants = {
     Enums: {
       permission_action: ["read", "edit", "delete", "create"],
       sections: ["permissions", "users"],
+      user_type: ["employer", "client", "admin"],
     },
   },
 } as const

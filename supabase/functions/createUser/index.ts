@@ -3,44 +3,116 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2';
+import { hasPermission } from '../common/check-permission.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
-
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_KEY")!,
-  );
-
-  const { email, password } = await req.json()
-
-  const { data, error } = await supabase.auth.admin.createUser({
-    email: email,
-    password: password,
-    email_confirm: true,
-  })
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
-  return new Response(
-    JSON.stringify({ message: "User created successfully", data }),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+  try {
+    const supabase: SupabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') as string,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string,
+      {
+        global: { headers: { Authorization: req.headers.get('Authorization') as string } },
+      },
+    );
+    const supabaseAdmin: SupabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') as string,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string,
+    );
 
-/* To invoke locally:
+    const allowed = await hasPermission(supabase, 'users', 'create', corsHeaders);
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({
+          statusCode: 403,
+          error: { message: 'You do not have permission to create users.' },
+          data: null,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
 
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
+    const { email, name, roleId, type } = await req.json();
 
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/createUser' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
+    const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
+      .from('profile')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
 
-*/
+    if (existingProfileError) {
+      throw existingProfileError;
+    }
+
+    if (existingProfile) {
+      return new Response(
+        JSON.stringify({
+          statusCode: 409,
+          error: { message: `User with email ${email} already exists.` },
+          data: null,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    const { data: userData, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: 'http://localhost:4200/verify',
+    });
+    if (error) {
+      throw error;
+    }
+
+    const { error: profileError } = await supabaseAdmin.from('profile').insert({
+      id: userData.user.id,
+      name,
+      role_id: roleId,
+      type,
+      email,
+    });
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    return new Response(
+      JSON.stringify({
+        statusCode: 200,
+        data: { message: 'User created successfully', user: userData },
+        error: null,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+    return new Response(
+      JSON.stringify({
+        statusCode: 500,
+        error,
+        data: null,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
+  }
+});

@@ -15,5 +15,6 @@ export class HomeComponent {
     { label: 'Home', icon: 'home', route: '/home' },
     { label: 'About', icon: 'info', route: '/about' },
     { label: 'Permisos', icon: 'lock', route: '/home/permissions' },
+    { label: 'Usuarios', icon: 'group', route: '/home/users' },
   ];
 }

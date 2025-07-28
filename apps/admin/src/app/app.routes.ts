@@ -13,24 +13,12 @@ export const appRoutes: Route[] = [
     children: [
       {
         path: 'permissions',
-        loadComponent: () =>
-          import('./pages/permissions/permissions-list/permissions-list.component').then(
-            (m) => m.PermissionsListComponent,
-          ),
+        loadChildren: () =>
+          import('./pages/permissions/permissions.routes').then(m => m.PERMISSIONS_ROUTES),
       },
       {
-        path: 'permissions/create',
-        loadComponent: () =>
-          import('./pages/permissions/permissions-create/permissions-create.component').then(
-            (m) => m.PermissionsCreateComponent,
-          ),
-      },
-      {
-        path: 'permissions/:id/edit',
-        loadComponent: () =>
-          import('./pages/permissions/permissions-edit/permissions-edit.component').then(
-            (m) => m.PermissionsEditComponent,
-          ),
+        path: 'users',
+        loadChildren: () => import('./pages/users/users.routes').then(m => m.USERS_ROUTES),
       },
     ],
   },

@@ -1,0 +1,52 @@
+<div class="container">
+  <div class="flex items-center mb-6">
+    <h1 class="text-2xl font-bold">Crear Nuevo Usuario</h1>
+  </div>
+
+  <div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+      <form [formGroup]="form" class="grid grid-cols-2 gap-4">
+        <pk-form-field [label]="'Nombre completo'">
+          <input pkInput formControlName="name" />
+        </pk-form-field>
+        <pk-form-field [label]="'Correo electrónico'">
+          <input pkInput formControlName="email" type="email" />
+        </pk-form-field>
+
+        <pk-form-field [label]="'Rol'">
+          <pk-select formControlName="roleId">
+            @for (role of store.roles(); track role.id) {
+              <pk-option [value]="role.id">
+                {{ role.name }}
+              </pk-option>
+            }
+          </pk-select>
+        </pk-form-field>
+
+        <pk-form-field [label]="'Tipo de usuario'">
+          <pk-select formControlName="type">
+            @for (type of userTypes; track type) {
+              <pk-option [value]="type">{{ userTypesDictionary[type] }}</pk-option>
+            }
+          </pk-select>
+        </pk-form-field>
+      </form>
+    </div>
+    @if (store.statusSaveMessage()) {
+      <div class="text-red-400 text-sm mb-2">{{ store.statusSaveMessage() }}</div>
+    }
+    <div class="flex justify-between items-center">
+      <button pk-button variant="flat" class="pk-btn-secondary" routerLink="/home/users">Cancelar</button>
+      <button
+        pk-button
+        variant="flat"
+        class="pk-btn-primary"
+        (click)="saveUser()"
+        [loading]="store.isLoading()"
+        [disabled]="form.invalid"
+      >
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
