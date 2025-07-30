@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
@@ -14,7 +14,6 @@ import { ConfirmComponent } from '@ui';
   selector: 'app-users-edit',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ButtonComponent,
@@ -22,8 +21,8 @@ import { ConfirmComponent } from '@ui';
     SelectComponent,
     OptionComponent,
     InputDirective,
-    MatDialogModule,
-  ],
+    MatDialogModule
+],
   templateUrl: './users-edit.component.html',
   styleUrls: ['./users-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,8 +36,9 @@ export class UsersEditComponent {
   private profileStore = inject(ProfileSignalStore);
   private dialog = inject(MatDialog);
   private userId: string | null = null;
+  private fb = inject(FormBuilder);
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],

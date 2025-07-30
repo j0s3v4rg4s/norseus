@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
@@ -12,15 +12,14 @@ import { USER_TYPES, USER_TYPES_DICTIONARY } from '@front/supabase';
   selector: 'app-users-create',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ButtonComponent,
     FormFieldComponent,
     SelectComponent,
     OptionComponent,
-    InputDirective,
-  ],
+    InputDirective
+],
   templateUrl: './users-create.component.html',
   styleUrls: ['./users-create.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,9 +32,10 @@ export class UsersCreateComponent {
   private profileStore = inject(ProfileSignalStore);
   readonly userTypes = USER_TYPES;
   readonly userTypesDictionary = USER_TYPES_DICTIONARY;
+  private fb = inject(FormBuilder);
 
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email]],

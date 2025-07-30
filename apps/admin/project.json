@@ -27,11 +27,7 @@
             "output": "assets/fonts"
           }
         ],
-        "styles": [
-          "apps/admin/src/styles.scss",
-          "libs/assets/styles/global.scss",
-          "libs/assets/styles/global.css"
-        ],
+        "styles": ["apps/admin/src/styles.scss", "libs/assets/styles/global.scss", "libs/assets/styles/global.css"],
         "scripts": []
       },
       "configurations": {
@@ -74,7 +70,8 @@
           "buildTarget": "admin:build:development"
         }
       },
-      "defaultConfiguration": "development"
+      "defaultConfiguration": "development",
+      "continuous": true
     },
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",

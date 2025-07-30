@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
@@ -22,7 +22,6 @@ import { permissionsStore } from '../permissions.store';
   selector: 'app-permissions-edit',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ButtonComponent,
@@ -31,8 +30,8 @@ import { permissionsStore } from '../permissions.store';
     OptionComponent,
     InputDirective,
     CdkTableModule,
-    MatDialogModule,
-  ],
+    MatDialogModule
+],
   templateUrl: './permissions-edit.component.html',
   styleUrls: ['./permissions-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,8 +51,9 @@ export class PermissionsEditComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
+  private fb = inject(FormBuilder);
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.form = this.fb.group({
       roleName: ['', [Validators.required, Validators.maxLength(50)]],
       action: ['', Validators.required],

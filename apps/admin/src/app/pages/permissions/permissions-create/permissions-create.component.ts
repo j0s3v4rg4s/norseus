@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonComponent } from '@p1kka/ui/src/actions';
@@ -20,7 +20,6 @@ import { permissionsStore } from '../permissions.store';
 @Component({
   selector: 'app-permissions-create',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ButtonComponent,
@@ -28,8 +27,8 @@ import { permissionsStore } from '../permissions.store';
     SelectComponent,
     OptionComponent,
     InputDirective,
-    CdkTableModule,
-  ],
+    CdkTableModule
+],
   templateUrl: './permissions-create.component.html',
   styleUrls: ['./permissions-create.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,8 +44,9 @@ export class PermissionsCreateComponent {
   displayedColumns = ['action', 'section', 'delete'];
   store = inject(permissionsStore);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.form = this.fb.group({
       roleName: ['', [Validators.required, Validators.maxLength(50)]],
       action: ['', Validators.required],

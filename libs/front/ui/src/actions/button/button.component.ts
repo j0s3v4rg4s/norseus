@@ -1,10 +1,10 @@
 import { Component, effect, ElementRef, inject, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'button[ui-button]',
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div>
       @if (isLoading()) {

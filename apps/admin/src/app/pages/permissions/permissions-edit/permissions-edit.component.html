@@ -13,17 +13,21 @@
         <div class="flex flex-col gap-4 items-stretch sm:flex-row sm:items-end">
           <pk-form-field [label]="'Acción'" class="w-full sm:w-auto">
             <pk-select formControlName="action" [tabIndex]="0">
-              <pk-option *ngFor="let action of actions" [value]="action">
-                {{ actionsDictionary[action] }}
-              </pk-option>
+              @for (action of actions; track action) {
+                <pk-option [value]="action">
+                  {{ actionsDictionary[action] }}
+                </pk-option>
+              }
             </pk-select>
           </pk-form-field>
 
           <pk-form-field [label]="'Sección'" class="w-full sm:w-auto">
             <pk-select formControlName="section">
-              <pk-option *ngFor="let section of sections" [value]="section">
-                {{ sectionsDictionary[section] }}
-              </pk-option>
+              @for (section of sections; track section) {
+                <pk-option [value]="section">
+                  {{ sectionsDictionary[section] }}
+                </pk-option>
+              }
             </pk-select>
           </pk-form-field>
 
@@ -34,7 +38,7 @@
               class="pk-btn-primary ml-auto block w-full sm:w-auto"
               type="button"
               (click)="addPermissionAction()"
-            >
+              >
               Agregar acción
             </button>
           </div>
@@ -52,14 +56,14 @@
                 cdk-header-cell
                 *cdkHeaderCellDef
                 class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50"
-              >
+                >
                 Acción
               </th>
               <td
                 cdk-cell
                 *cdkCellDef="let element; let i = index"
                 class="px-6 py-4 align-middle text-slate-700 bg-white"
-              >
+                >
                 {{ getActionLabel(element?.action) }}
               </td>
             </ng-container>
@@ -68,14 +72,14 @@
                 cdk-header-cell
                 *cdkHeaderCellDef
                 class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50"
-              >
+                >
                 Sección
               </th>
               <td
                 cdk-cell
                 *cdkCellDef="let element; let i = index"
                 class="px-6 py-4 align-middle text-slate-700 bg-white"
-              >
+                >
                 {{ getSectionLabel(element?.section) }}
               </td>
             </ng-container>

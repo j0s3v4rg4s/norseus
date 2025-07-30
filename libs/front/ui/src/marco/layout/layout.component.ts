@@ -5,7 +5,7 @@ import {
   ChangeDetectionStrategy,
   input,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { map } from 'rxjs/operators';
@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'ui-layout',
-  imports: [CommonModule, MatSidenavModule, NavItemComponent],
+  imports: [MatSidenavModule, NavItemComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
