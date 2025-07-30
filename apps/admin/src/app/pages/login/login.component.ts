@@ -1,32 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SUPABASE } from '@front/supabase';
 import { Router } from '@angular/router';
-
-import { FormFieldComponent, InputDirective } from '@p1kka/ui/src/forms';
-import { ButtonComponent } from '@p1kka/ui/src/actions';
+import { ButtonComponent } from '@ui';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormFieldComponent,
-    InputDirective,
-    ButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, ButtonComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,9 +42,7 @@ export class LoginComponent {
           await this.router.navigateByUrl('/home');
         }
       } catch (err: unknown) {
-        this.errorMessage.set(
-          err instanceof Error ? err.message : 'An unexpected error occurred.',
-        );
+        this.errorMessage.set(err instanceof Error ? err.message : 'An unexpected error occurred.');
       } finally {
         this.loading.set(false);
       }

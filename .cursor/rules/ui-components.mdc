@@ -1,0 +1,865 @@
+---
+globs: *.html
+alwaysApply: false
+---
+# UI Components Rules for Cursor
+
+## Purpose
+These rules define the standard UI components and patterns that Cursor should use when generating HTML templates for this Angular project. The primary goal is to maintain consistency across the application by using predefined, reusable components that follow the project's design system and Tailwind CSS v4 styling approach.
+
+## Priority Guidelines
+- **Primary**: Always use the custom UI components described in these rules as the first option
+- **Secondary**: If no specific component exists for the use case, use standard HTML elements with Tailwind CSS classes
+- **Fallback**: Only use other UI libraries or custom SCSS when the above options are insufficient
+
+## Component Categories
+The following sections will define specific UI components organized by their purpose and functionality. Each component will include:
+- Usage scenarios
+- Required properties/attributes
+- Styling guidelines
+- Accessibility considerations
+
+## General Styling Principles
+- Use Tailwind CSS v4 classes as the primary styling approach
+- Follow the project's color scheme and design tokens
+- Ensure responsive design for all components
+- Maintain accessibility standards (ARIA labels, semantic HTML)
+- Use consistent spacing and typography scales
+
+## Input Component
+
+### Description
+Displays a form input field or a component that looks like an input field. The input component provides consistent styling and behavior across the application.
+
+### Base Usage
+Simply add the `input` class to your `<input>` element or have a parent with the `form` class. You can also set the `aria-invalid` attribute to `true` to make the input invalid.
+
+### Basic Implementation
+```html
+<input class="input" type="email" placeholder="Email">
+```
+
+### Variants and Examples
+
+#### 1. Default Input
+```html
+<input class="input" type="email" placeholder="Email">
+```
+
+#### 2. Invalid Input
+Use `aria-invalid="true"` to indicate validation errors:
+```html
+<input class="input" type="email" placeholder="Email" aria-invalid="true">
+```
+
+#### 3. Disabled Input
+```html
+<input class="input" type="email" placeholder="Email" disabled>
+```
+
+#### 4. Input with Label
+```html
+<div class="grid gap-3">
+  <label for="input-with-label" class="label">Label</label>
+  <input class="input" id="input-with-label" type="email" placeholder="Email">
+</div>
+```
+
+#### 5. Input with Helper Text
+```html
+<div class="grid gap-3">
+  <label for="input-with-text" class="label">Label</label>
+  <input class="input" id="input-with-text" type="email" placeholder="Email">
+  <p class="text-muted-foreground text-sm">Fill in your email address.</p>
+</div>
+```
+
+#### 6. Input with Button
+```html
+<div class="flex items-center space-x-2">
+  <input class="input" type="email" placeholder="Email">
+  <button type="submit" class="btn">Submit</button>
+</div>
+```
+
+#### 7. Input in Form Context
+```html
+<form class="form space-y-6 w-full">
+  <div class="grid gap-3">
+    <label for="input-form" class="label">Username</label>
+    <input class="input" id="input-form" type="text" placeholder="hunvreus">
+    <p class="text-muted-foreground text-sm">This is your public display name.</p>
+  </div>
+  <button type="submit" class="btn">Submit</button>
+</form>
+```
+
+### Usage Guidelines
+- **Primary Class**: Always use `input` class for consistent styling
+- **Form Integration**: Use within `form` class containers for proper spacing
+- **Accessibility**: Include proper `id` and `for` attributes when using labels
+- **Validation**: Use `aria-invalid="true"` for error states
+- **Helper Text**: Use `text-muted-foreground text-sm` classes for descriptive text
+- **Layout**: Use `grid gap-3` for vertical layouts and `flex items-center space-x-2` for horizontal layouts
+
+### Accessibility Considerations
+- Always associate labels with inputs using `for` and `id` attributes
+- Use `aria-invalid` for validation states
+- Ensure proper contrast ratios for text and placeholder text
+- Provide meaningful placeholder text
+- Use semantic HTML structure
+
+### Responsive Behavior
+- Inputs should be full-width within their containers
+- Use appropriate max-width constraints when needed (`max-w-sm`, `max-w-md`, etc.)
+- Maintain consistent spacing across different screen sizes
+
+## Button Component
+
+### Description
+Displays a button or a component that looks like a button. The button component provides consistent styling and behavior across the application with multiple variants and sizes.
+
+### Base Usage
+You can use one of the `btn` classes to style any element as a button. The button system supports multiple variants and sizes that can be combined.
+
+### Basic Implementation
+```html
+<button class="btn">Button</button>
+```
+
+### Variants
+
+#### 1. Primary Button (Default)
+```html
+<button class="btn">Primary</button>
+```
+
+#### 2. Secondary Button
+```html
+<button class="btn-secondary">Button</button>
+```
+
+#### 3. Destructive Button
+```html
+<button class="btn-destructive">Destructive</button>
+```
+
+#### 4. Outline Button
+```html
+<button class="btn-outline">Outline</button>
+```
+
+#### 5. Ghost Button
+```html
+<button class="btn-ghost">Ghost</button>
+```
+
+#### 6. Link Button
+```html
+<button class="btn-link">Link</button>
+```
+
+#### 7. Icon Button
+```html
+<button class="btn-icon-outline">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+### Sizes
+
+#### 1. Small Button
+```html
+<button class="btn-sm-icon-destructive">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+#### 2. Large Button
+```html
+<button class="btn-lg">
+  <svg><!-- icon content --></svg>
+  Buy
+</button>
+```
+
+### Advanced Examples
+
+#### 1. Button with Icon
+```html
+<button class="btn">
+  <svg><!-- send icon --></svg>
+  Send email
+</button>
+```
+
+#### 2. Loading Button
+```html
+<button class="btn-outline" disabled>
+  <svg class="animate-spin"><!-- loader icon --></svg>
+  Loading
+</button>
+```
+
+#### 3. Combined Variants
+You can combine sizes with any variant:
+```html
+<button class="btn-lg-destructive">Large Destructive</button>
+<button class="btn-sm-icon-outline">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+### Class Combinations Reference
+
+#### Variants
+- `btn` or `btn-primary` - Primary buttons
+- `btn-secondary` - Secondary buttons
+- `btn-destructive` - Destructive buttons
+- `btn-outline` - Outline buttons
+- `btn-ghost` - Ghost buttons
+- `btn-link` - Link buttons
+- `btn-icon` - Icon buttons (can be combined with other variants)
+
+#### Sizes
+- `btn-sm` - Small buttons
+- `btn-lg` - Large buttons
+- Default size (no size class needed)
+
+#### Combination Examples
+- `btn-lg-destructive` - Large destructive button
+- `btn-sm-icon-outline` - Small icon outline button
+- `btn-icon-destructive` - Icon destructive button
+
+### Usage Guidelines
+- **Primary Actions**: Use `btn` or `btn-primary` for main actions
+- **Secondary Actions**: Use `btn-secondary` for less important actions
+- **Destructive Actions**: Use `btn-destructive` for delete/remove actions
+- **Icon Buttons**: Use `btn-icon` variants for buttons with only icons
+- **Loading States**: Add `disabled` attribute and loading icon for async operations
+- **Size Selection**: Use `btn-sm` for compact spaces, `btn-lg` for prominent actions
+
+### Accessibility Considerations
+- Always provide meaningful text content or aria-labels for icon buttons
+- Use `disabled` attribute for loading states
+- Ensure proper contrast ratios for all button variants
+- Use semantic button elements (`<button>`, `<input type="button">`)
+- Provide focus indicators for keyboard navigation
+
+### Responsive Behavior
+- Buttons should maintain their intended size across screen sizes
+- Icon buttons should remain accessible on mobile devices
+- Text buttons should have sufficient touch targets (minimum 44px)
+- Consider button stacking on small screens for complex layouts
+
+## Select Component
+
+### Description
+Displays a list of options for the user to pick from—triggered by a button. The select component provides both native HTML select functionality and enhanced JavaScript-powered select with popover behavior.
+
+### Base Usage
+If you use a `<select>` element, just add the `select` class to it or have a parent with the `form` class.
+
+### Basic Implementation
+
+#### 1. Native HTML Select
+```html
+<select class="select w-[180px]">
+  <optgroup label="Fruits">
+    <option>Apple</option>
+    <option>Banana</option>
+    <option>Blueberry</option>
+    <option>Grapes</option>
+    <option>Pineapple</option>
+  </optgroup>
+</select>
+```
+
+#### 2. Enhanced JavaScript Select
+```html
+<div class="select">
+  <button type="button" popovertarget="select-popover" id="select-trigger" aria-haspopup="listbox" aria-controls="select-listbox" aria-expanded="false">
+    Select an option
+  </button>
+  <div popover class="popover" id="select-popover">
+    <div role="listbox" id="select-listbox" aria-labelledby="select-trigger">
+      <div role="option" data-value="apple">Apple</div>
+      <div role="option" data-value="banana">Banana</div>
+      <div role="option" data-value="blueberry">Blueberry</div>
+    </div>
+  </div>
+  <input type="hidden" name="fruit" value="">
+</div>
+```
+
+### HTML Structure Reference
+
+#### Main Container
+- `<div class="select">` - Wraps around the entire component
+
+#### Trigger Button
+- `<button type="button" popovertarget="{POPOVER_ID}">` - The trigger to open the popover
+- **Required Attributes**:
+  - `id="{BUTTON_ID}"` - Linked to by the `aria-labelledby` attribute of the listbox
+  - `aria-haspopup="listbox"` - Indicates that the button opens a listbox
+  - `aria-controls="{LISTBOX_ID}"` - Points to the listbox's id
+  - `aria-expanded="false"` - Tracks the popover's state
+  - `aria-activedescendant="{OPTION_ID}"` - Points to the active option's id
+
+#### Popover Container
+- `<div popover class="popover" id="{POPOVER_ID}">` - The popover container
+- **Optional Attributes**:
+  - `data-side` - Sets the side of the popover (top, bottom, left, right)
+  - `data-align` - Sets the alignment of the popover (start, center, end)
+
+#### Listbox
+- `<div role="listbox" id="{LISTBOX_ID}">` - The listbox containing the options
+- **Required Attributes**:
+  - `id="{LISTBOX_ID}"` - Referred to by the `aria-controls` attribute of the trigger
+  - `aria-labelledby="{BUTTON_ID}"` - Linked to by the button's `id` attribute
+
+#### Options
+- `<div role="option" data-value="{VALUE}">` - Option that can be selected
+- **Required Attributes**:
+  - `data-value` - The value of the option
+  - `id` - Unique id if using `aria-activedescendant` attribute
+
+#### Groups (Optional)
+- `<div role="group">` - Group of options
+- `<span role="heading">` - Group heading
+- `<hr role="separator">` - Separator between groups/options
+
+#### Hidden Input (Optional)
+- `<input type="hidden" name="{NAME}" value="{VALUE}">` - The hidden input that holds the value
+
+### JavaScript Implementation
+
+#### Step 1: Include JavaScript
+```html
+<script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/select.min.js" defer></script>
+```
+
+#### Step 2: JavaScript Events
+- `basecoat:initialized` - Dispatched when component is fully initialized
+- `basecoat:popover` - Dispatched when popover opens (on document)
+- `change` - Dispatched when selected value changes (with value in `event.detail`)
+
+#### Step 3: JavaScript Methods
+```javascript
+// Select an option by value after initialization
+const selectComponent = document.querySelector('#my-select');
+selectComponent.addEventListener('basecoat:initialized', () => {
+  selectComponent.selectByValue('apple');
+});
+```
+
+### Variants and Examples
+
+#### 1. Scrollable Select
+```html
+<div class="select">
+  <button type="button" popovertarget="scrollable-select">
+    Select an item
+  </button>
+  <div popover class="popover" id="scrollable-select">
+    <div role="listbox" class="scrollbar overflow-y-auto max-h-64">
+      <div role="option" data-value="item-0">Item 0</div>
+      <div role="option" data-value="item-1">Item 1</div>
+      <!-- ... more items ... -->
+    </div>
+  </div>
+</div>
+```
+
+#### 2. Disabled Select
+```html
+<div class="select">
+  <button type="button" popovertarget="disabled-select" disabled>
+    Disabled
+  </button>
+  <div popover class="popover" id="disabled-select">
+    <div role="listbox">
+      <div role="option" data-value="disabled">Disabled</div>
+    </div>
+  </div>
+</div>
+```
+
+#### 3. Select with Icons
+```html
+<div class="select">
+  <button type="button" popovertarget="icon-select" class="w-[180px]">
+    Select chart type
+  </button>
+  <div popover class="popover" id="icon-select">
+    <div role="listbox">
+      <div role="option" data-value="bar">
+        <span class="flex items-center gap-2">
+          <svg class="text-muted-foreground"><!-- chart-bar icon --></svg>
+          Bar
+        </span>
+      </div>
+      <div role="option" data-value="line">
+        <span class="flex items-center gap-2">
+          <svg class="text-muted-foreground"><!-- chart-line icon --></svg>
+          Line
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+### Usage Guidelines
+- **Native vs Enhanced**: Use native `<select>` for simple cases, enhanced JavaScript select for complex interactions
+- **Accessibility**: Always include proper ARIA attributes for enhanced selects
+- **Grouping**: Use `role="group"` and `role="heading"` for organized options
+- **Scrolling**: Add `scrollbar overflow-y-auto max-h-64` classes for long option lists
+- **Icons**: Use `flex items-center gap-2` layout for options with icons
+- **Width Control**: Use `w-[180px]` or similar classes to control select width
+
+### Accessibility Considerations
+- Always provide proper ARIA attributes for enhanced selects
+- Use semantic HTML structure with appropriate roles
+- Ensure keyboard navigation works correctly
+- Provide focus indicators for all interactive elements
+- Use meaningful labels and descriptions
+
+### Responsive Behavior
+- Selects should maintain their functionality across screen sizes
+- Popover positioning should adapt to available space
+- Touch targets should be sufficient for mobile devices
+- Consider mobile-friendly option layouts
+
+
+
+# UI Components Rules for Cursor
+
+## Purpose
+These rules define the standard UI components and patterns that Cursor should use when generating HTML templates for this Angular project. The primary goal is to maintain consistency across the application by using predefined, reusable components that follow the project's design system and Tailwind CSS v4 styling approach.
+
+## Priority Guidelines
+- **Primary**: Always use the custom UI components described in these rules as the first option
+- **Secondary**: If no specific component exists for the use case, use standard HTML elements with Tailwind CSS classes
+- **Fallback**: Only use other UI libraries or custom SCSS when the above options are insufficient
+
+## Component Categories
+The following sections will define specific UI components organized by their purpose and functionality. Each component will include:
+- Usage scenarios
+- Required properties/attributes
+- Styling guidelines
+- Accessibility considerations
+
+## General Styling Principles
+- Use Tailwind CSS v4 classes as the primary styling approach
+- Follow the project's color scheme and design tokens
+- Ensure responsive design for all components
+- Maintain accessibility standards (ARIA labels, semantic HTML)
+- Use consistent spacing and typography scales
+
+## Input Component
+
+### Description
+Displays a form input field or a component that looks like an input field. The input component provides consistent styling and behavior across the application.
+
+### Base Usage
+Simply add the `input` class to your `<input>` element or have a parent with the `form` class. You can also set the `aria-invalid` attribute to `true` to make the input invalid.
+
+### Basic Implementation
+```html
+<input class="input" type="email" placeholder="Email">
+```
+
+### Variants and Examples
+
+#### 1. Default Input
+```html
+<input class="input" type="email" placeholder="Email">
+```
+
+#### 2. Invalid Input
+Use `aria-invalid="true"` to indicate validation errors:
+```html
+<input class="input" type="email" placeholder="Email" aria-invalid="true">
+```
+
+#### 3. Disabled Input
+```html
+<input class="input" type="email" placeholder="Email" disabled>
+```
+
+#### 4. Input with Label
+```html
+<div class="grid gap-3">
+  <label for="input-with-label" class="label">Label</label>
+  <input class="input" id="input-with-label" type="email" placeholder="Email">
+</div>
+```
+
+#### 5. Input with Helper Text
+```html
+<div class="grid gap-3">
+  <label for="input-with-text" class="label">Label</label>
+  <input class="input" id="input-with-text" type="email" placeholder="Email">
+  <p class="text-muted-foreground text-sm">Fill in your email address.</p>
+</div>
+```
+
+#### 6. Input with Button
+```html
+<div class="flex items-center space-x-2">
+  <input class="input" type="email" placeholder="Email">
+  <button type="submit" class="btn">Submit</button>
+</div>
+```
+
+#### 7. Input in Form Context
+```html
+<form class="form space-y-6 w-full">
+  <div class="grid gap-3">
+    <label for="input-form" class="label">Username</label>
+    <input class="input" id="input-form" type="text" placeholder="hunvreus">
+    <p class="text-muted-foreground text-sm">This is your public display name.</p>
+  </div>
+  <button type="submit" class="btn">Submit</button>
+</form>
+```
+
+### Usage Guidelines
+- **Primary Class**: Always use `input` class for consistent styling
+- **Form Integration**: Use within `form` class containers for proper spacing
+- **Accessibility**: Include proper `id` and `for` attributes when using labels
+- **Validation**: Use `aria-invalid="true"` for error states
+- **Helper Text**: Use `text-muted-foreground text-sm` classes for descriptive text
+- **Layout**: Use `grid gap-3` for vertical layouts and `flex items-center space-x-2` for horizontal layouts
+
+### Accessibility Considerations
+- Always associate labels with inputs using `for` and `id` attributes
+- Use `aria-invalid` for validation states
+- Ensure proper contrast ratios for text and placeholder text
+- Provide meaningful placeholder text
+- Use semantic HTML structure
+
+### Responsive Behavior
+- Inputs should be full-width within their containers
+- Use appropriate max-width constraints when needed (`max-w-sm`, `max-w-md`, etc.)
+- Maintain consistent spacing across different screen sizes
+
+## Button Component
+
+### Description
+Displays a button or a component that looks like a button. The button component provides consistent styling and behavior across the application with multiple variants and sizes.
+
+### Base Usage
+You can use one of the `btn` classes to style any element as a button. The button system supports multiple variants and sizes that can be combined.
+
+### Basic Implementation
+```html
+<button class="btn">Button</button>
+```
+
+### Variants
+
+#### 1. Primary Button (Default)
+```html
+<button class="btn">Primary</button>
+```
+
+#### 2. Secondary Button
+```html
+<button class="btn-secondary">Button</button>
+```
+
+#### 3. Destructive Button
+```html
+<button class="btn-destructive">Destructive</button>
+```
+
+#### 4. Outline Button
+```html
+<button class="btn-outline">Outline</button>
+```
+
+#### 5. Ghost Button
+```html
+<button class="btn-ghost">Ghost</button>
+```
+
+#### 6. Link Button
+```html
+<button class="btn-link">Link</button>
+```
+
+#### 7. Icon Button
+```html
+<button class="btn-icon-outline">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+### Sizes
+
+#### 1. Small Button
+```html
+<button class="btn-sm-icon-destructive">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+#### 2. Large Button
+```html
+<button class="btn-lg">
+  <svg><!-- icon content --></svg>
+  Buy
+</button>
+```
+
+### Advanced Examples
+
+#### 1. Button with Icon
+```html
+<button class="btn">
+  <svg><!-- send icon --></svg>
+  Send email
+</button>
+```
+
+#### 2. Loading Button
+```html
+<button class="btn-outline" disabled>
+  <svg class="animate-spin"><!-- loader icon --></svg>
+  Loading
+</button>
+```
+
+#### 3. Combined Variants
+You can combine sizes with any variant:
+```html
+<button class="btn-lg-destructive">Large Destructive</button>
+<button class="btn-sm-icon-outline">
+  <svg><!-- icon content --></svg>
+</button>
+```
+
+### Class Combinations Reference
+
+#### Variants
+- `btn` or `btn-primary` - Primary buttons
+- `btn-secondary` - Secondary buttons
+- `btn-destructive` - Destructive buttons
+- `btn-outline` - Outline buttons
+- `btn-ghost` - Ghost buttons
+- `btn-link` - Link buttons
+- `btn-icon` - Icon buttons (can be combined with other variants)
+
+#### Sizes
+- `btn-sm` - Small buttons
+- `btn-lg` - Large buttons
+- Default size (no size class needed)
+
+#### Combination Examples
+- `btn-lg-destructive` - Large destructive button
+- `btn-sm-icon-outline` - Small icon outline button
+- `btn-icon-destructive` - Icon destructive button
+
+### Usage Guidelines
+- **Primary Actions**: Use `btn` or `btn-primary` for main actions
+- **Secondary Actions**: Use `btn-secondary` for less important actions
+- **Destructive Actions**: Use `btn-destructive` for delete/remove actions
+- **Icon Buttons**: Use `btn-icon` variants for buttons with only icons
+- **Loading States**: Add `disabled` attribute and loading icon for async operations
+- **Size Selection**: Use `btn-sm` for compact spaces, `btn-lg` for prominent actions
+
+### Accessibility Considerations
+- Always provide meaningful text content or aria-labels for icon buttons
+- Use `disabled` attribute for loading states
+- Ensure proper contrast ratios for all button variants
+- Use semantic button elements (`<button>`, `<input type="button">`)
+- Provide focus indicators for keyboard navigation
+
+### Responsive Behavior
+- Buttons should maintain their intended size across screen sizes
+- Icon buttons should remain accessible on mobile devices
+- Text buttons should have sufficient touch targets (minimum 44px)
+- Consider button stacking on small screens for complex layouts
+
+## Select Component
+
+### Description
+Displays a list of options for the user to pick from—triggered by a button. The select component provides both native HTML select functionality and enhanced JavaScript-powered select with popover behavior.
+
+### Base Usage
+If you use a `<select>` element, just add the `select` class to it or have a parent with the `form` class.
+
+### Basic Implementation
+
+#### 1. Native HTML Select
+```html
+<select class="select w-[180px]">
+  <optgroup label="Fruits">
+    <option>Apple</option>
+    <option>Banana</option>
+    <option>Blueberry</option>
+    <option>Grapes</option>
+    <option>Pineapple</option>
+  </optgroup>
+</select>
+```
+
+#### 2. Enhanced JavaScript Select
+```html
+<div class="select">
+  <button type="button" popovertarget="select-popover" id="select-trigger" aria-haspopup="listbox" aria-controls="select-listbox" aria-expanded="false">
+    Select an option
+  </button>
+  <div popover class="popover" id="select-popover">
+    <div role="listbox" id="select-listbox" aria-labelledby="select-trigger">
+      <div role="option" data-value="apple">Apple</div>
+      <div role="option" data-value="banana">Banana</div>
+      <div role="option" data-value="blueberry">Blueberry</div>
+    </div>
+  </div>
+  <input type="hidden" name="fruit" value="">
+</div>
+```
+
+### HTML Structure Reference
+
+#### Main Container
+- `<div class="select">` - Wraps around the entire component
+
+#### Trigger Button
+- `<button type="button" popovertarget="{POPOVER_ID}">` - The trigger to open the popover
+- **Required Attributes**:
+  - `id="{BUTTON_ID}"` - Linked to by the `aria-labelledby` attribute of the listbox
+  - `aria-haspopup="listbox"` - Indicates that the button opens a listbox
+  - `aria-controls="{LISTBOX_ID}"` - Points to the listbox's id
+  - `aria-expanded="false"` - Tracks the popover's state
+  - `aria-activedescendant="{OPTION_ID}"` - Points to the active option's id
+
+#### Popover Container
+- `<div popover class="popover" id="{POPOVER_ID}">` - The popover container
+- **Optional Attributes**:
+  - `data-side` - Sets the side of the popover (top, bottom, left, right)
+  - `data-align` - Sets the alignment of the popover (start, center, end)
+
+#### Listbox
+- `<div role="listbox" id="{LISTBOX_ID}">` - The listbox containing the options
+- **Required Attributes**:
+  - `id="{LISTBOX_ID}"` - Referred to by the `aria-controls` attribute of the trigger
+  - `aria-labelledby="{BUTTON_ID}"` - Linked to by the button's `id` attribute
+
+#### Options
+- `<div role="option" data-value="{VALUE}">` - Option that can be selected
+- **Required Attributes**:
+  - `data-value` - The value of the option
+  - `id` - Unique id if using `aria-activedescendant` attribute
+
+#### Groups (Optional)
+- `<div role="group">` - Group of options
+- `<span role="heading">` - Group heading
+- `<hr role="separator">` - Separator between groups/options
+
+#### Hidden Input (Optional)
+- `<input type="hidden" name="{NAME}" value="{VALUE}">` - The hidden input that holds the value
+
+### JavaScript Implementation
+
+#### Step 1: Include JavaScript
+```html
+<script src="https://cdn.jsdelivr.net/npm/basecoat-css@latest/dist/js/select.min.js" defer></script>
+```
+
+#### Step 2: JavaScript Events
+- `basecoat:initialized` - Dispatched when component is fully initialized
+- `basecoat:popover` - Dispatched when popover opens (on document)
+- `change` - Dispatched when selected value changes (with value in `event.detail`)
+
+#### Step 3: JavaScript Methods
+```javascript
+// Select an option by value after initialization
+const selectComponent = document.querySelector('#my-select');
+selectComponent.addEventListener('basecoat:initialized', () => {
+  selectComponent.selectByValue('apple');
+});
+```
+
+### Variants and Examples
+
+#### 1. Scrollable Select
+```html
+<div class="select">
+  <button type="button" popovertarget="scrollable-select">
+    Select an item
+  </button>
+  <div popover class="popover" id="scrollable-select">
+    <div role="listbox" class="scrollbar overflow-y-auto max-h-64">
+      <div role="option" data-value="item-0">Item 0</div>
+      <div role="option" data-value="item-1">Item 1</div>
+      <!-- ... more items ... -->
+    </div>
+  </div>
+</div>
+```
+
+#### 2. Disabled Select
+```html
+<div class="select">
+  <button type="button" popovertarget="disabled-select" disabled>
+    Disabled
+  </button>
+  <div popover class="popover" id="disabled-select">
+    <div role="listbox">
+      <div role="option" data-value="disabled">Disabled</div>
+    </div>
+  </div>
+</div>
+```
+
+#### 3. Select with Icons
+```html
+<div class="select">
+  <button type="button" popovertarget="icon-select" class="w-[180px]">
+    Select chart type
+  </button>
+  <div popover class="popover" id="icon-select">
+    <div role="listbox">
+      <div role="option" data-value="bar">
+        <span class="flex items-center gap-2">
+          <svg class="text-muted-foreground"><!-- chart-bar icon --></svg>
+          Bar
+        </span>
+      </div>
+      <div role="option" data-value="line">
+        <span class="flex items-center gap-2">
+          <svg class="text-muted-foreground"><!-- chart-line icon --></svg>
+          Line
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+### Usage Guidelines
+- **Native vs Enhanced**: Use native `<select>` for simple cases, enhanced JavaScript select for complex interactions
+- **Accessibility**: Always include proper ARIA attributes for enhanced selects
+- **Grouping**: Use `role="group"` and `role="heading"` for organized options
+- **Scrolling**: Add `scrollbar overflow-y-auto max-h-64` classes for long option lists
+- **Icons**: Use `flex items-center gap-2` layout for options with icons
+- **Width Control**: Use `w-[180px]` or similar classes to control select width
+
+### Accessibility Considerations
+- Always provide proper ARIA attributes for enhanced selects
+- Use semantic HTML structure with appropriate roles
+- Ensure keyboard navigation works correctly
+- Provide focus indicators for all interactive elements
+- Use meaningful labels and descriptions
+
+### Responsive Behavior
+- Selects should maintain their functionality across screen sizes
+- Popover positioning should adapt to available space
+- Touch targets should be sufficient for mobile devices
+- Consider mobile-friendly option layouts
+
+

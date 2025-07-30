@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import "basecoat-css";
+@import "./theme.css";
 
 @font-face {
   font-family: 'Montserrat';

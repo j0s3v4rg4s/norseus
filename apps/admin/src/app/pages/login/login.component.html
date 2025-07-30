@@ -1,39 +1,37 @@
 <div class="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-  <form
-    class="flex flex-col gap-6"
-    [formGroup]="loginForm"
-    (ngSubmit)="onSubmit()"
-  >
+  <form class="form space-y-6 w-full" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
     <h2 class="text-xl text-center mb-4 text-gray-800">Login</h2>
 
-    <pk-form-field label="Email" class="w-full">
+    <div class="grid gap-3">
+      <label for="email-input" class="label">Email</label>
       <input
-        pkInput
         type="email"
+        class="input"
+        id="email-input"
         formControlName="email"
-        placeholder="Enter your email"
+        [attr.aria-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
       />
-    </pk-form-field>
+    </div>
 
-    <pk-form-field label="Password" class="w-full">
+    <div class="grid gap-3">
+      <label for="password-input" class="label">Password</label>
       <input
-        pkInput
         type="password"
+        class="input"
+        id="password-input"
         formControlName="password"
-        placeholder="Enter your password"
+        [attr.aria-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
       />
-    </pk-form-field>
+    </div>
 
-    <button
-      pk-button
-      class="pk-btn-primary w-full mt-2"
-      [disabled]="loginForm.invalid"
-      [loading]="loading()"
-    >
+    <button type="submit" class="btn w-full" [disabled]="loginForm.invalid" ui-button [isLoading]="loading()">
       Login
     </button>
   </form>
-  <div *ngIf="errorMessage()" class="text-red-600 text-center mt-4">
-    {{ errorMessage() }}
-  </div>
+
+  @if (errorMessage()) {
+    <div class="text-red-600 text-center mt-4">
+      {{ errorMessage() }}
+    </div>
+  }
 </div>
