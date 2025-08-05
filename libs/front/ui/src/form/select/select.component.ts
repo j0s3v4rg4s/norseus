@@ -1,16 +1,18 @@
 import {
   Component,
   ElementRef,
+  HostListener,
+  inject,
+  input,
   OnDestroy,
   OnInit,
   signal,
   viewChild,
-  input,
-  inject,
-  HostListener,
 } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
+
 import 'basecoat-css/select';
 
 @Component({
@@ -20,56 +22,64 @@ import 'basecoat-css/select';
   styleUrl: './select.component.scss',
 })
 export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor {
-  private static nextId = 0;
-  readonly uniqueId = `ui-select-${SelectComponent.nextId++}`;
+  //****************************************************************************
+  //* PUBLIC INPUTS
+  //****************************************************************************
+  placeholder = input<string>('');
 
+  //****************************************************************************
+  //* PUBLIC SIGNALS
+  //****************************************************************************
   popoverSide = signal<'top' | 'bottom'>('bottom');
   value = signal<string>('');
-  placeholder = input<string>('');
   isOpen = signal<boolean>(false);
-
   disabled = signal<boolean>(false);
 
+  //****************************************************************************
+  //* PUBLIC COMPUTED PROPERTIES
+  //****************************************************************************
+  get hasError() {
+    return this.ngControl?.invalid && this.ngControl?.touched;
+  }
+
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   readonly ngControl = inject(NgControl, {
     optional: true,
     self: true,
   });
   private readonly hostElement = inject(ElementRef<HTMLElement>);
 
+  //****************************************************************************
+  //* PRIVATE VIEW CHILDREN
+  //****************************************************************************
   private popoverElement = viewChild<ElementRef<HTMLElement>>('popoverElement');
 
-  get hasError() {
-    return this.ngControl?.invalid && this.ngControl?.touched;
-  }
+  //****************************************************************************
+  //* PRIVATE STATIC PROPERTIES
+  //****************************************************************************
+  private static nextId = 0;
 
+  //****************************************************************************
+  //* PRIVATE INSTANCE PROPERTIES
+  //****************************************************************************
+  readonly uniqueId = `ui-select-${SelectComponent.nextId++}`;
   private onChange?: (value: string) => void;
   private onTouched?: () => void;
 
-  private handlePopoverEvent = (event: Event) => {
-    const source = (event as CustomEvent).detail.source as HTMLElement;
-    if (source.id.includes(this.uniqueId)) {
-      this.isOpen.set(true);
-      const popover = this.popoverElement()?.nativeElement as HTMLElement;
-      const clientRect = popover.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const isBelowTrigger = clientRect.bottom > viewportHeight;
-      this.popoverSide.set(isBelowTrigger ? 'top' : 'bottom');
-    }
-  };
-
-  private handleChangeEvent = (event: Event) => {
-    if ((event.target as HTMLElement).id.includes(this.uniqueId)) {
-      const newValue = (event as CustomEvent).detail.value;
-      this.onValueChange(newValue);
-    }
-  };
-
+  //****************************************************************************
+  //* CONSTRUCTOR
+  //****************************************************************************
   constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
   }
 
+  //****************************************************************************
+  //* LIFECYCLE HOOKS
+  //****************************************************************************
   ngOnInit(): void {
     document.addEventListener('basecoat:popover', this.handlePopoverEvent);
     document.addEventListener('change', this.handleChangeEvent);
@@ -80,6 +90,9 @@ export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor 
     document.removeEventListener('change', this.handleChangeEvent);
   }
 
+  //****************************************************************************
+  //* PUBLIC METHODS (ControlValueAccessor)
+  //****************************************************************************
   writeValue(value: string): void {
     this.value.set(value || '');
     (document.getElementById(this.uniqueId) as HTMLElement & { selectByValue: (value: string) => void })?.selectByValue(
@@ -99,6 +112,9 @@ export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor 
     this.disabled.set(isDisabled);
   }
 
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   onValueChange(newValue: string): void {
     this.value.set(newValue);
     this.onChange?.(newValue);
@@ -112,6 +128,31 @@ export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor 
     }
   }
 
+  //****************************************************************************
+  //* PRIVATE METHODS
+  //****************************************************************************
+  private handlePopoverEvent = (event: Event) => {
+    const source = (event as CustomEvent).detail.source as HTMLElement;
+    if (source.id.includes(this.uniqueId)) {
+      this.isOpen.set(true);
+      const popover = this.popoverElement()?.nativeElement as HTMLElement;
+      const clientRect = popover.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isBelowTrigger = clientRect.bottom > viewportHeight;
+      this.popoverSide.set(isBelowTrigger ? 'top' : 'bottom');
+    }
+  };
+
+  private handleChangeEvent = (event: Event) => {
+    if ((event.target as HTMLElement).id.includes(this.uniqueId)) {
+      const newValue = (event as CustomEvent).detail.value;
+      this.onValueChange(newValue);
+    }
+  };
+
+  //****************************************************************************
+  //* HOST LISTENERS
+  //****************************************************************************
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     if (!this.hostElement.nativeElement.contains(event.target as Node) && this.isOpen()) {

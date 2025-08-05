@@ -1,32 +1,43 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { SUPABASE } from '@front/supabase';
-import { Router } from '@angular/router';
-import { ButtonComponent, SelectComponent } from '@ui';
+import { ButtonComponent } from '@ui';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonComponent, SelectComponent],
+  imports: [ReactiveFormsModule, ButtonComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
+  //****************************************************************************
+  //* PUBLIC SIGNALS
+  //****************************************************************************
+  loading = signal(false);
+  errorMessage = signal<string | null>(null);
+
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   private fb = inject(FormBuilder);
   private supabase = inject(SUPABASE);
   private router = inject(Router);
 
+  //****************************************************************************
+  //* PUBLIC INSTANCE PROPERTIES
+  //****************************************************************************
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-    fruit: ['', [Validators.required]],
+    password: ['', [Validators.required]]
   });
 
-  loading = signal(false);
-  errorMessage = signal<string | null>(null);
-
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   async onSubmit(): Promise<void> {
     if (this.loginForm.valid) {
       this.loading.set(true);
