@@ -27,6 +27,8 @@
     <button type="submit" class="btn w-full" [disabled]="loginForm.invalid" ui-button [isLoading]="loading()">
       Login
     </button>
+
+    <ui-select placeholder="Select a fruit" formControlName="fruit"></ui-select>
   </form>
 
   @if (errorMessage()) {

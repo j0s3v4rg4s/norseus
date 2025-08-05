@@ -1,0 +1,55 @@
+<div [id]="uniqueId" class="select w-full" [attr.disabled]="disabled()">
+  <button
+    #triggerButton
+    type="button"
+    class="btn-outline justify-between font-normal w-full"
+    [id]="uniqueId + '-trigger'"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    [attr.aria-controls]="uniqueId + '-listbox'"
+    (click)="handleClick(triggerButton)"
+    [attr.aria-invalid]="hasError"
+  >
+    <span class="truncate">{{ value() }}</span>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="lucide lucide-chevrons-up-down-icon lucide-chevrons-up-down text-muted-foreground opacity-50 shrink-0"
+    >
+      <path d="m7 15 5 5 5-5" />
+      <path d="m7 9 5-5 5 5" />
+    </svg>
+  </button>
+  <div
+    #popover
+    [id]="uniqueId + '-popover'"
+    data-popover
+    aria-hidden="true"
+    [attr.data-side]="popoverSide()"
+    #popoverElement
+  >
+    <div
+      role="listbox"
+      [id]="uniqueId + '-listbox'"
+      aria-orientation="vertical"
+      [attr.aria-labelledby]="uniqueId + '-trigger'"
+    >
+      @if (placeholder()) {
+        <div role="option" data-value="" aria-selected="true" aria-disabled="true" disabled>{{ placeholder() }}</div>
+      }
+      <div role="option" [id]="uniqueId + '-items-1-1'" data-value="apple" aria-selected="false">Apple</div>
+      <div role="option" [id]="uniqueId + '-items-1-2'" data-value="banana" aria-selected="false">Banana</div>
+      <div role="option" [id]="uniqueId + '-items-1-3'" data-value="blueberry" aria-selected="false">Blueberry</div>
+      <div role="option" [id]="uniqueId + '-items-1-4'" data-value="grapes" aria-selected="false">Grapes</div>
+      <div role="option" [id]="uniqueId + '-items-1-5'" data-value="pineapple" aria-selected="false">Pineapple</div>
+    </div>
+  </div>
+  <input type="hidden" [name]="uniqueId + '-value'" [value]="value()" />
+</div>
