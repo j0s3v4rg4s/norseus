@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+
 import { ButtonComponent } from '@p1kka/ui/src/actions';
-import { FormFieldComponent, InputDirective, SelectComponent, OptionComponent } from '@p1kka/ui/src/forms';
-import { usersStore } from '../users.store';
+import { FormFieldComponent, InputDirective, OptionComponent, SelectComponent } from '@p1kka/ui/src/forms';
 import { ProfileSignalStore } from '@front/core/profile';
 import { USER_TYPES, USER_TYPES_DICTIONARY } from '@front/supabase';
+import { usersStore } from '../users.store';
 
 @Component({
   selector: 'app-users-create',
@@ -26,15 +27,24 @@ import { USER_TYPES, USER_TYPES_DICTIONARY } from '@front/supabase';
   providers: [usersStore],
 })
 export class UsersCreateComponent {
-  form: FormGroup;
-  store = inject(usersStore);
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   private router = inject(Router);
   private profileStore = inject(ProfileSignalStore);
-  readonly userTypes = USER_TYPES;
-  readonly userTypesDictionary = USER_TYPES_DICTIONARY;
   private fb = inject(FormBuilder);
 
+  //****************************************************************************
+  //* PRIVATE INSTANCE PROPERTIES
+  //****************************************************************************
+  form: FormGroup;
+  store = inject(usersStore);
+  readonly userTypes = USER_TYPES;
+  readonly userTypesDictionary = USER_TYPES_DICTIONARY;
 
+  //****************************************************************************
+  //* CONSTRUCTOR
+  //****************************************************************************
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
@@ -51,6 +61,9 @@ export class UsersCreateComponent {
     });
   }
 
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   async saveUser() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();

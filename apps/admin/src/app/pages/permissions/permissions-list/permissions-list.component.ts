@@ -1,39 +1,41 @@
-import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 
-import { ButtonComponent } from '@p1kka/ui/src/actions';
-import { RouterModule } from '@angular/router';
-import {
-  SUPABASE,
-  PERMISSIONS_ACTIONS_DICTIONARY,
-  PERMISSIONS_SECTIONS_DICTIONARY,
-  Permission,
-  Role,
-} from '@front/supabase';
-import { SpinnerComponent } from '@p1kka/ui/src/feedback';
 import { CdkTableModule } from '@angular/cdk/table';
-import { ProfileSignalStore } from '@front/core/profile';
-import { permissionsStore } from '../permissions.store';
+import { RouterModule } from '@angular/router';
 
-interface RoleWithPermissions {
-  role: Role;
-  permissions: Permission[];
-}
+import { ProfileSignalStore } from '@front/core/profile';
+import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, Permission } from '@front/supabase';
+import { permissionsStore } from '../permissions.store';
 
 @Component({
   selector: 'app-permissions-list',
-  imports: [ButtonComponent, RouterModule, SpinnerComponent, CdkTableModule],
+  imports: [RouterModule, CdkTableModule],
   templateUrl: './permissions-list.component.html',
   styleUrls: ['./permissions-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [permissionsStore],
 })
 export class PermissionsListComponent {
+  //****************************************************************************
+  //* PUBLIC INJECTIONS
+  //****************************************************************************
+  store = inject(permissionsStore);
+
+  //****************************************************************************
+  //* PUBLIC INSTANCE PROPERTIES
+  //****************************************************************************
   permissionsActionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   permissionsSectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
   displayedColumns = ['role', 'permissions', 'actions'];
-  store = inject(permissionsStore);
+
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   private profileStore = inject(ProfileSignalStore);
 
+  //****************************************************************************
+  //* CONSTRUCTOR
+  //****************************************************************************
   constructor() {
     effect(() => {
       const loading = this.profileStore.loading();
@@ -44,6 +46,16 @@ export class PermissionsListComponent {
     });
   }
 
+  //****************************************************************************
+  //* PUBLIC COMPUTED PROPERTIES
+  //****************************************************************************
+  get dataSource() {
+    return this.store.roles();
+  }
+
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   getPermissionsBySection(permissions: Permission[]) {
     return permissions.reduce(
       (acc, perm) => {
@@ -65,9 +77,5 @@ export class PermissionsListComponent {
 
   getActionLabel(action: string): string {
     return this.permissionsActionsDictionary[action as keyof typeof this.permissionsActionsDictionary] || action;
-  }
-
-  get dataSource() {
-    return this.store.roles();
   }
 }
