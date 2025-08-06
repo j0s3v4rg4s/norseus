@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { ButtonComponent } from '@p1kka/ui/src/actions';
-import { FormFieldComponent, InputDirective, SelectComponent, OptionComponent } from '@p1kka/ui/src/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+
 import { filter, from, switchMap } from 'rxjs';
-import { usersStore } from '../users.store';
+
 import { ProfileSignalStore } from '@front/core/profile';
-import { ConfirmComponent } from '@ui';
+import { ConfirmComponent, SelectModule } from '@ui';
+import { usersStore } from '../users.store';
 
 @Component({
   selector: 'app-users-edit',
@@ -16,28 +16,42 @@ import { ConfirmComponent } from '@ui';
   imports: [
     ReactiveFormsModule,
     RouterModule,
-    ButtonComponent,
-    FormFieldComponent,
-    SelectComponent,
-    OptionComponent,
-    InputDirective,
+    SelectModule,
     MatDialogModule
-],
+  ],
   templateUrl: './users-edit.component.html',
   styleUrls: ['./users-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [usersStore],
 })
 export class UsersEditComponent {
+  //****************************************************************************
+  //* PUBLIC INSTANCE PROPERTIES
+  //****************************************************************************
   form: FormGroup;
+
+  //****************************************************************************
+  //* PUBLIC INJECTIONS
+  //****************************************************************************
   store = inject(usersStore);
+
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private profileStore = inject(ProfileSignalStore);
   private dialog = inject(MatDialog);
-  private userId: string | null = null;
   private fb = inject(FormBuilder);
 
+  //****************************************************************************
+  //* PRIVATE INSTANCE PROPERTIES
+  //****************************************************************************
+  private userId: string | null = null;
+
+  //****************************************************************************
+  //* CONSTRUCTOR
+  //****************************************************************************
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
@@ -67,6 +81,9 @@ export class UsersEditComponent {
     });
   }
 
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   async saveUser() {
     if (this.form.invalid || !this.userId) {
       this.form.markAllAsTouched();

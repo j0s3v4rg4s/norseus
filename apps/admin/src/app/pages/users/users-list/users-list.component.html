@@ -1,12 +1,12 @@
 <div class="container">
   <div class="flex items-center">
     <h1 class="text-2xl font-bold mb-4 flex-1">Usuarios</h1>
-    <button pk-button variant="flat" class="pk-btn-primary" routerLink="/home/users/create">Crear usuario</button>
+    <button class="btn" routerLink="/home/users/create">Crear usuario</button>
   </div>
 
   @if (store.isLoading()) {
     <div class="flex justify-center items-center py-8">
-      <pk-spinner></pk-spinner>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   }
   @if (store.errorMessage()) {
@@ -36,8 +36,8 @@
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-slate-700">Acciones</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
             <div class="flex justify-center gap-2">
-              <button [routerLink]="['/home/users', row.id, 'edit']" class="text-primary">
-                <span class="material-symbols-rounded active"> visibility </span>
+              <button [routerLink]="['/home/users', row.id, 'edit']" class="cursor-pointer">
+                <span class="material-symbols-rounded">visibility</span>
               </button>
             </div>
           </td>
