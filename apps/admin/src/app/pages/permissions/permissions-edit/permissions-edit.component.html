@@ -6,39 +6,36 @@
   <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
       <form [formGroup]="form" class="mb-8">
-        <pk-form-field [label]="'Nombre del rol'" class="mb-4">
-          <input pkInput formControlName="roleName" class="w-full" />
-        </pk-form-field>
+        <div class="grid gap-3">
+          <label for="role-name" class="label">Nombre del rol</label>
+          <input id="role-name" class="input" formControlName="roleName" type="text" />
+        </div>
 
-        <div class="flex flex-col gap-4 items-stretch sm:flex-row sm:items-end">
-          <pk-form-field [label]="'Acción'" class="w-full sm:w-auto">
-            <pk-select formControlName="action" [tabIndex]="0">
+        <div class="flex flex-col gap-4 items-stretch sm:flex-row sm:items-end mt-4">
+          <div class="grid gap-3 w-full sm:w-auto">
+            <label for="action-select" class="label">Acción</label>
+            <ui-select id="action-select" formControlName="action" placeholder="Seleccionar acción">
               @for (action of actions; track action) {
-                <pk-option [value]="action">
+                <ui-option [value]="action">
                   {{ actionsDictionary[action] }}
-                </pk-option>
+                </ui-option>
               }
-            </pk-select>
-          </pk-form-field>
+            </ui-select>
+          </div>
 
-          <pk-form-field [label]="'Sección'" class="w-full sm:w-auto">
-            <pk-select formControlName="section">
+          <div class="grid gap-3 w-full sm:w-auto">
+            <label for="section-select" class="label">Sección</label>
+            <ui-select id="section-select" formControlName="section" placeholder="Seleccionar sección">
               @for (section of sections; track section) {
-                <pk-option [value]="section">
+                <ui-option [value]="section">
                   {{ sectionsDictionary[section] }}
-                </pk-option>
+                </ui-option>
               }
-            </pk-select>
-          </pk-form-field>
+            </ui-select>
+          </div>
 
           <div class="w-full sm:grow">
-            <button
-              pk-button
-              variant="outline"
-              class="pk-btn-primary ml-auto block w-full sm:w-auto"
-              type="button"
-              (click)="addPermissionAction()"
-              >
+            <button class="btn-outline w-full sm:w-auto" type="button" (click)="addPermissionAction()">
               Agregar acción
             </button>
           </div>
@@ -56,14 +53,14 @@
                 cdk-header-cell
                 *cdkHeaderCellDef
                 class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50"
-                >
+              >
                 Acción
               </th>
               <td
                 cdk-cell
                 *cdkCellDef="let element; let i = index"
                 class="px-6 py-4 align-middle text-slate-700 bg-white"
-                >
+              >
                 {{ getActionLabel(element?.action) }}
               </td>
             </ng-container>
@@ -72,14 +69,14 @@
                 cdk-header-cell
                 *cdkHeaderCellDef
                 class="px-6 py-4 text-left font-semibold text-slate-700 bg-slate-50"
-                >
+              >
                 Sección
               </th>
               <td
                 cdk-cell
                 *cdkCellDef="let element; let i = index"
                 class="px-6 py-4 align-middle text-slate-700 bg-white"
-                >
+              >
                 {{ getSectionLabel(element?.section) }}
               </td>
             </ng-container>
@@ -90,7 +87,12 @@
                 class="px-6 py-4 text-center font-semibold text-blue-600 bg-slate-50"
               ></th>
               <td cdk-cell *cdkCellDef="let element; let i = index" class="px-6 py-4 text-center bg-white">
-                <button type="button" (click)="removePermissionAction(i)" class="delete-button">
+                <button
+                  type="button"
+                  (click)="removePermissionAction(i)"
+                  class="text-destructive"
+                  aria-label="Eliminar permiso"
+                >
                   <span class="material-symbols-rounded">delete</span>
                 </button>
               </td>
@@ -106,15 +108,15 @@
       }
 
       <div class="mt-6">
-        <button pk-button class="pk-btn-error" (click)="deleteRole()">Eliminar rol</button>
+        <button class="btn-ghost text-destructive" (click)="deleteRole()">Eliminar rol</button>
       </div>
     </div>
     @if (store.statusSaveMessage()) {
       <div class="text-red-400 text-sm mb-2">{{ store.statusSaveMessage() }}</div>
     }
     <div class="flex justify-between items-center">
-      <button pk-button variant="flat" class="pk-btn-secondary" routerLink="/home/permissions">Cancelar</button>
-      <button pk-button variant="flat" class="pk-btn-primary" (click)="saveRole()" [loading]="store.isLoading()">
+      <button class="btn-outline" routerLink="/home/permissions">Cancelar</button>
+      <button class="btn" (click)="saveRole()" [disabled]="store.isLoading()" ui-button [isLoading]="store.isLoading()">
         Guardar cambios
       </button>
     </div>

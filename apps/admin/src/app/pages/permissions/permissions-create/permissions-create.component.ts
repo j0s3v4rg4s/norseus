@@ -1,51 +1,52 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { ButtonComponent } from '@p1kka/ui/src/actions';
-import { FormFieldComponent, InputDirective, SelectComponent, OptionComponent } from '@p1kka/ui/src/forms';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {
-  PERMISSIONS_ACTIONS_DICTIONARY,
-  PERMISSIONS_SECTIONS_DICTIONARY,
-  PERMISSIONS_ACTIONS,
-  PERMISSIONS_SECTIONS,
-  Enums,
-  SUPABASE,
-} from '@front/supabase';
 import { CdkTableModule } from '@angular/cdk/table';
-import { ProfileSignalStore } from '@front/core/profile';
+
+import { ButtonComponent, SelectModule } from '@ui';
+import {
+  Enums,
+  PERMISSIONS_ACTIONS,
+  PERMISSIONS_ACTIONS_DICTIONARY,
+  PERMISSIONS_SECTIONS,
+  PERMISSIONS_SECTIONS_DICTIONARY,
+} from '@front/supabase';
 import { permissionsStore } from '../permissions.store';
 
 @Component({
   selector: 'app-permissions-create',
-  imports: [
-    ReactiveFormsModule,
-    RouterModule,
-    ButtonComponent,
-    FormFieldComponent,
-    SelectComponent,
-    OptionComponent,
-    InputDirective,
-    CdkTableModule
-],
+  imports: [ReactiveFormsModule, RouterModule, ButtonComponent, SelectModule, CdkTableModule],
   templateUrl: './permissions-create.component.html',
   styleUrls: ['./permissions-create.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [permissionsStore],
 })
 export class PermissionsCreateComponent {
+  //****************************************************************************
+  //* PUBLIC INJECTIONS
+  //****************************************************************************
+  store = inject(permissionsStore);
+
+  //****************************************************************************
+  //* PUBLIC INSTANCE PROPERTIES
+  //****************************************************************************
   form: FormGroup;
   actions = PERMISSIONS_ACTIONS;
   actionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   sections = PERMISSIONS_SECTIONS;
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
-
   displayedColumns = ['action', 'section', 'delete'];
-  store = inject(permissionsStore);
+
+  //****************************************************************************
+  //* PRIVATE INJECTIONS
+  //****************************************************************************
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
+  //****************************************************************************
+  //* CONSTRUCTOR
+  //****************************************************************************
   constructor() {
     this.form = this.fb.group({
       roleName: ['', [Validators.required, Validators.maxLength(50)]],
@@ -54,6 +55,9 @@ export class PermissionsCreateComponent {
     });
   }
 
+  //****************************************************************************
+  //* PUBLIC METHODS
+  //****************************************************************************
   addPermissionAction() {
     const action = this.form.get('action')?.value;
     const section = this.form.get('section')?.value;
@@ -67,10 +71,22 @@ export class PermissionsCreateComponent {
   getActionLabel(action: Enums<'permission_action'> | string): string {
     return this.actionsDictionary[action as Enums<'permission_action'>] || action;
   }
+
   getSectionLabel(section: Enums<'sections'> | string): string {
     return this.sectionsDictionary[section as Enums<'sections'>] || section;
   }
 
+  async saveRole() {
+    const roleName = this.form.get('roleName')?.value;
+    const success = await this.store.createRole(roleName);
+    if (success) {
+      this.router.navigate(['/home/permissions']);
+    }
+  }
+
+  //****************************************************************************
+  //* PRIVATE METHODS
+  //****************************************************************************
   /**
    * Converts a string to UPPER_SNAKE_CASE.
    * Example: "admin user" => "ADMIN_USER"
@@ -81,15 +97,7 @@ export class PermissionsCreateComponent {
       .trim()
       .split(/\s+/)
       .filter(Boolean)
-      .map(word => word.toUpperCase())
+      .map((word) => word.toUpperCase())
       .join('_');
-  }
-
-  async saveRole() {
-    const roleName = this.form.get('roleName')?.value;
-    const success = await this.store.createRole(roleName);
-    if (success) {
-      this.router.navigate(['/home/permissions']);
-    }
   }
 }
