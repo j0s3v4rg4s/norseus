@@ -1,8 +1,8 @@
 import { Component, input } from '@angular/core';
-
-import { MenuItem } from '../../marco/layout';
 import { RouterModule } from '@angular/router';
 import { MatRippleModule } from '@angular/material/core';
+
+import { MenuItem } from '../../marco/layout';
 
 @Component({
   selector: 'ui-nav-item',
@@ -11,6 +11,10 @@ import { MatRippleModule } from '@angular/material/core';
   styleUrl: './nav-item.component.scss',
 })
 export class NavItemComponent {
+  /* ************************************************************************** */
+  /* * PUBLIC INPUTS AND OUTPUTS                                              * */
+  /* ************************************************************************** */
+
   isActive = input<boolean>(false);
   item = input.required<MenuItem>();
 }

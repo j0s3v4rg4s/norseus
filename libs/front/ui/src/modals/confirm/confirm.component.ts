@@ -10,13 +10,27 @@ import { ButtonComponent } from '@p1kka/ui/src/actions';
   styleUrl: './confirm.component.scss',
 })
 export class ConfirmComponent {
+  /* ************************************************************************** */
+  /* * PUBLIC INJECTIONS                                                      * */
+  /* ************************************************************************** */
+
   readonly data = inject(MAT_DIALOG_DATA) as { message: string };
+
+  /* ************************************************************************** */
+  /* * PRIVATE INJECTIONS                                                     * */
+  /* ************************************************************************** */
+
   private dialogRef = inject(MatDialogRef<ConfirmComponent>);
+
+  /* ************************************************************************** */
+  /* * PUBLIC METHODS                                                         * */
+  /* ************************************************************************** */
+
+  cancel() {
+    this.dialogRef.close(false);
+  }
 
   confirm() {
     this.dialogRef.close(true);
-  }
-  cancel() {
-    this.dialogRef.close(false);
   }
 }

@@ -3,8 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/cor
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
-import { ButtonComponent } from '@p1kka/ui/src/actions';
-import { FormFieldComponent, InputDirective, OptionComponent, SelectComponent } from '@p1kka/ui/src/forms';
+import { SelectModule } from '@ui';
 import { ProfileSignalStore } from '@front/core/profile';
 import { USER_TYPES, USER_TYPES_DICTIONARY } from '@front/supabase';
 import { usersStore } from '../users.store';
@@ -15,11 +14,7 @@ import { usersStore } from '../users.store';
   imports: [
     ReactiveFormsModule,
     RouterModule,
-    ButtonComponent,
-    FormFieldComponent,
-    SelectComponent,
-    OptionComponent,
-    InputDirective
+    SelectModule
 ],
   templateUrl: './users-create.component.html',
   styleUrls: ['./users-create.component.scss'],

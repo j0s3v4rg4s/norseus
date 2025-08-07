@@ -1,18 +1,18 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
+  ChangeDetectionStrategy,
   Component,
   inject,
-  viewChild,
-  ChangeDetectionStrategy,
   input,
+  viewChild,
 } from '@angular/core';
-
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { map } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { MenuItem } from './models/menu.model';
-import { NavItemComponent } from '../../actions';
 import { Router } from '@angular/router';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
+
+import { NavItemComponent } from '../../actions';
+import { MenuItem } from './models/menu.model';
 
 @Component({
   selector: 'ui-layout',
@@ -22,13 +22,29 @@ import { Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LayoutComponent {
+  /* ************************************************************************** */
+  /* * PUBLIC INPUTS AND OUTPUTS                                              * */
+  /* ************************************************************************** */
+
   readonly menuTitle = input<string>('');
   readonly menuItems = input<MenuItem[]>([]);
+
+  /* ************************************************************************** */
+  /* * PRIVATE VIEW QUERIES                                                   * */
+  /* ************************************************************************** */
+
+  private readonly sideNav = viewChild<MatSidenav>('sideNav');
+
+  /* ************************************************************************** */
+  /* * PRIVATE INJECTIONS                                                     * */
+  /* ************************************************************************** */
 
   private breakpointObserver = inject(BreakpointObserver);
   private router = inject(Router);
 
-  private readonly sideNav = viewChild<MatSidenav>('sideNav');
+  /* ************************************************************************** */
+  /* * PUBLIC SIGNALS                                                         * */
+  /* ************************************************************************** */
 
   readonly isHandset = toSignal(
     this.breakpointObserver
@@ -42,24 +58,30 @@ export class LayoutComponent {
     { initialValue: this.router.url },
   );
 
-  isMenuItemActive = (item: MenuItem) => {
-    const url = this.currentUrl();
-    return url.includes(item.route);
-  };
+  /* ************************************************************************** */
+  /* * PUBLIC METHODS                                                         * */
+  /* ************************************************************************** */
 
-  toggleSidenav() {
-    if (this.isHandset()) {
-      this.sideNav()?.toggle();
-    }
-  }
   closeSidenav() {
     if (this.isHandset()) {
       this.sideNav()?.close();
     }
   }
+
+  isMenuItemActive = (item: MenuItem) => {
+    const url = this.currentUrl();
+    return url.includes(item.route);
+  };
+
   openSidenav() {
     if (this.isHandset()) {
       this.sideNav()?.open();
+    }
+  }
+
+  toggleSidenav() {
+    if (this.isHandset()) {
+      this.sideNav()?.toggle();
     }
   }
 }

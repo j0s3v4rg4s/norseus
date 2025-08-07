@@ -6,45 +6,79 @@
   <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
       <form [formGroup]="form" class="grid grid-cols-2 gap-4">
-        <pk-form-field [label]="'Nombre completo'">
-          <input pkInput formControlName="name" />
-        </pk-form-field>
-        <pk-form-field [label]="'Correo electrónico'">
-          <input pkInput formControlName="email" type="email" />
-        </pk-form-field>
+        <div class="grid gap-3">
+          <label for="name" class="label">Nombre completo</label>
+          <input 
+            class="input" 
+            id="name" 
+            formControlName="name" 
+            type="text" 
+            placeholder="Ingrese el nombre completo"
+            [attr.aria-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+          />
+        </div>
+        
+        <div class="grid gap-3">
+          <label for="email" class="label">Correo electrónico</label>
+          <input 
+            class="input" 
+            id="email" 
+            formControlName="email" 
+            type="email" 
+            placeholder="Ingrese el correo electrónico"
+            [attr.aria-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+          />
+        </div>
 
-        <pk-form-field [label]="'Rol'">
-          <pk-select formControlName="roleId">
+        <div class="grid gap-3">
+          <label for="role-select" class="label">Rol</label>
+          <ui-select 
+            id="role-select"
+            formControlName="roleId" 
+            placeholder="Seleccionar rol"
+          >
             @for (role of store.roles(); track role.id) {
-              <pk-option [value]="role.id">
+              <ui-option [value]="role.id">
                 {{ role.name }}
-              </pk-option>
+              </ui-option>
             }
-          </pk-select>
-        </pk-form-field>
+          </ui-select>
+        </div>
 
-        <pk-form-field [label]="'Tipo de usuario'">
-          <pk-select formControlName="type">
+        <div class="grid gap-3">
+          <label for="type-select" class="label">Tipo de usuario</label>
+          <ui-select 
+            id="type-select"
+            formControlName="type" 
+            placeholder="Seleccionar tipo de usuario"
+          >
             @for (type of userTypes; track type) {
-              <pk-option [value]="type">{{ userTypesDictionary[type] }}</pk-option>
+              <ui-option [value]="type">{{ userTypesDictionary[type] }}</ui-option>
             }
-          </pk-select>
-        </pk-form-field>
+          </ui-select>
+        </div>
       </form>
     </div>
     @if (store.statusSaveMessage()) {
       <div class="text-red-400 text-sm mb-2">{{ store.statusSaveMessage() }}</div>
     }
     <div class="flex justify-between items-center">
-      <button pk-button variant="flat" class="pk-btn-secondary" routerLink="/home/users">Cancelar</button>
+      <button class="btn-secondary" routerLink="/home/users">Cancelar</button>
       <button
-        pk-button
-        variant="flat"
-        class="pk-btn-primary"
+        class="btn"
         (click)="saveUser()"
-        [loading]="store.isLoading()"
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || store.isLoading()"
       >
+        @if (store.isLoading()) {
+          <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        }
         Guardar
       </button>
     </div>
