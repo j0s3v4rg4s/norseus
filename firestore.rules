@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSuperAdmin(request) {
+      return request.auth != null && request.auth.token.role == 'super_admin';
+    }
+
+    function isAuth(request) {
+      return request.auth != null;
+    }
+
+    function isFacilityAdmin(request, facilityId) {
+      return isAuth(request) && 
+      exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)) &&
+      get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function isFacilityEmployee(request, facilityId) {
+      return isAuth(request) && 
+      exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid));
+    }
+
+    function isFacilityClient(request, facilityId) {
+      return isAuth(request) && 
+      exists(/databases/$(database)/documents/facilities/$(facilityId)/clients/$(request.auth.uid));
+    }
+
+    function belongsToFacility(request, facilityId) {
+      return isFacilityEmployee(request, facilityId) || isFacilityClient(request, facilityId);
+    }
+
+    match /facilities/{facilityId} {
+      allow create: if isSuperAdmin(request);
+      allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
+      allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+      allow delete: if isSuperAdmin(request);
+
+      match /employees/{uid} {
+        allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+      }
+
+      match /clients/{uid} {
+        allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+      }
+    }
+
+    match /{document=**} {
+      allow read: if isAuth(request) && 
+      (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
+
+      allow write: if false;
+    }
+  }
+}
