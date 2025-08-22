@@ -3,9 +3,10 @@ import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/cor
 import { CdkTableModule } from '@angular/cdk/table';
 import { RouterModule } from '@angular/router';
 
-import { ProfileSignalStore } from '@front/core/profile';
-import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, Permission } from '@front/supabase';
+
+import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, PermissionsBySection, PermissionSection, PermissionAction } from '@front/core/roles';
 import { permissionsStore } from '../permissions.store';
+import { SessionSignalStore } from '@front/state/session';
 
 @Component({
   selector: 'app-permissions-list',
@@ -31,17 +32,17 @@ export class PermissionsListComponent {
   //****************************************************************************
   //* PRIVATE INJECTIONS
   //****************************************************************************
-  private profileStore = inject(ProfileSignalStore);
+  private sessionStore = inject(SessionSignalStore);
 
   //****************************************************************************
   //* CONSTRUCTOR
   //****************************************************************************
   constructor() {
     effect(() => {
-      const loading = this.profileStore.loading();
-      const facility = this.profileStore.facility();
+      const loading = this.sessionStore.loading();
+      const facility = this.sessionStore.selectedFacility();
       if (!loading && facility) {
-        this.store.getAllRoles(facility.id);
+        this.store.getAllRoles(facility.id as string);
       }
     });
   }
@@ -56,26 +57,19 @@ export class PermissionsListComponent {
   //****************************************************************************
   //* PUBLIC METHODS
   //****************************************************************************
-  getPermissionsBySection(permissions: Permission[]) {
-    return permissions.reduce(
-      (acc, perm) => {
-        if (!acc[perm.section]) acc[perm.section] = [];
-        acc[perm.section].push(perm);
-        return acc;
-      },
-      {} as Record<string, Permission[]>,
-    );
+  getPermissionsBySection(permissions: PermissionsBySection): PermissionsBySection {
+    return permissions || {};
   }
 
-  getSectionKeys(permissions: Permission[]): string[] {
-    return Object.keys(this.getPermissionsBySection(permissions));
+  getSectionKeys(permissions: PermissionsBySection): PermissionSection[] {
+    return Object.keys(permissions || {}) as PermissionSection[];
   }
 
   getSectionLabel(section: string): string {
     return this.permissionsSectionsDictionary[section as keyof typeof this.permissionsSectionsDictionary] || section;
   }
 
-  getActionLabel(action: string): string {
-    return this.permissionsActionsDictionary[action as keyof typeof this.permissionsActionsDictionary] || action;
+  getActionLabel(action: string | PermissionAction): string {
+    return this.permissionsActionsDictionary[action as keyof typeof this.permissionsActionsDictionary] || String(action);
   }
 }

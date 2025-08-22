@@ -31,10 +31,8 @@
               <div class="mb-2">
                 <span class="font-semibold text-slate-600">{{ getSectionLabel(section) }}</span>
                 <div class="flex flex-wrap gap-2 mt-1">
-                  @for (perm of getPermissionsBySection(row.permissions)[section]; track perm.id) {
-                    <span class="inline-block rounded-full bg-blue-100 text-blue-800 text-xs px-3 py-1 font-semibold">
-                      {{ getActionLabel(perm.action) }}
-                    </span>
+                  @for (action of getPermissionsBySection(row.permissions)[section]; track action) {
+                    <span class="inline-block rounded-full bg-blue-100 text-blue-800 text-xs px-3 py-1 font-semibold">{{ getActionLabel(action) }}</span>
                   }
                 </div>
               </div>

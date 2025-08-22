@@ -17,6 +17,7 @@
     "paths": {
       "@front/core/facility": ["libs/front/core/facility/src/index.ts"],
       "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
+      "@front/core/roles": ["libs/front/core/roles/src/index.ts"],
       "@front/state/session": ["libs/front/state/session/src/index.ts"],
       "@front/supabase": ["libs/front/supabase/src/index.ts"],
       "@front/utils/logger": ["libs/front/utils/logger/src/index.ts"],

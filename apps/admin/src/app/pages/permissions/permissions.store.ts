@@ -1,19 +1,22 @@
 import { inject } from '@angular/core';
-import { Permission, PermissionAction, Role, Section, SUPABASE } from '@front/supabase';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
-import { ProfileSignalStore } from '@front/core/profile';
+import { firstValueFrom } from 'rxjs';
 
-type RoleWithPermissions = Role & { permissions: Permission[] };
+import { RolesService } from '@front/core/roles';
+import { PermissionAction, PermissionSection, Role as RolesLibRole, PermissionsBySection } from '@front/core/roles';
+import { SessionSignalStore } from '@front/state/session';
+import { LoggerService } from '@front/utils/logger';
+
+type UiPermission = { action: PermissionAction; section: PermissionSection };
 
 type permissionState = {
   isLoading: boolean;
   duplicateError: boolean;
   errorMessage: string;
   statusSaveMessage: string;
-  removedPermissions: Set<string>;
-  role: RoleWithPermissions | null;
-  permissions: Array<{ action: PermissionAction; section: Section; id?: string }>;
-  roles: RoleWithPermissions[];
+  role: RolesLibRole | null;
+  permissions: UiPermission[];
+  roles: RolesLibRole[];
 };
 
 export const initialState: permissionState = {
@@ -21,7 +24,6 @@ export const initialState: permissionState = {
   duplicateError: false,
   errorMessage: '',
   statusSaveMessage: '',
-  removedPermissions: new Set(),
   role: null,
   permissions: [],
   roles: [],
@@ -30,32 +32,36 @@ export const initialState: permissionState = {
 export const permissionsStore = signalStore(
   withState(initialState),
   withMethods((store) => {
-    const supabase = inject(SUPABASE);
-    const profileStore = inject(ProfileSignalStore);
+    const rolesService = inject(RolesService);
+    const sessionStore = inject(SessionSignalStore);
+    const loggerService = inject(LoggerService);
+
     const loadRole = async (roleId: string) => {
       patchState(store, { isLoading: true });
       try {
-        const { data: role, error } = await supabase.from('role').select('*, permissions(*)').eq('id', roleId).single();
-        if (error || !role) {
-          patchState(store, {
-            statusSaveMessage: 'Error loading role.',
-            isLoading: false,
-          });
+        const facility = sessionStore.selectedFacility();
+        const facilityId = facility ? facility.id : undefined;
+        if (!facilityId) {
+          patchState(store, { statusSaveMessage: 'No facility selected.', isLoading: false });
+          return;
         }
-        const permissions = (role.permissions || []).map((perm: Permission) => ({
-          action: perm.action,
-          section: perm.section,
-          id: perm.id,
-        }));
+        const role = await firstValueFrom(rolesService.getRoleById(facilityId, roleId));
+        if (!role) {
+          patchState(store, { statusSaveMessage: 'Role not found.', isLoading: false });
+          return;
+        }
+        const permissions: UiPermission[] = Object.entries(role.permissions || {}).flatMap(([section, actions]) =>
+          (actions || []).map((action) => ({ section: section as PermissionSection, action })),
+        );
         patchState(store, { role, isLoading: false, permissions });
-      } catch (e) {
+      } catch {
         patchState(store, {
           statusSaveMessage: 'Unexpected error loading role.',
           isLoading: false,
         });
       }
     };
-    const addPermission = async (action?: PermissionAction, section?: Section) => {
+    const addPermission = async (action?: PermissionAction, section?: PermissionSection) => {
       if (!action || !section) {
         patchState(store, { duplicateError: true, errorMessage: 'Debes seleccionar una acción y una sección.' });
         return;
@@ -66,25 +72,28 @@ export const permissionsStore = signalStore(
         return;
       }
       patchState(store, {
-        permissions: [...store.permissions(), { action: action as PermissionAction, section: section as Section }],
+        permissions: [...store.permissions(), { action, section }],
         duplicateError: false,
         errorMessage: '',
       });
     };
     const removePermission = (index: number) => {
-      const removed = store.permissions()[index];
       patchState(store, { permissions: store.permissions().filter((_, i) => i !== index) });
-      if (removed.id) {
-        store.removedPermissions().add(removed.id);
-      }
     };
     const deleteRole = async () => {
-      const { error } = await supabase.from('role').delete().eq('id', store.role()?.id);
-      if (error) {
+      try {
+        const facility = sessionStore.selectedFacility();
+        const facilityId = facility ? facility.id : undefined;
+        const roleId = store.role()?.id;
+        if (!facilityId || !roleId) {
+          patchState(store, { statusSaveMessage: 'Missing facility or role id.' });
+          return false;
+        }
+        await firstValueFrom(rolesService.deleteRole(facilityId, roleId));
+        return true;
+      } catch {
         patchState(store, { statusSaveMessage: 'Error al eliminar el rol.' });
         return false;
-      } else {
-        return true;
       }
     };
     const saveRole = async (roleName?: string) => {
@@ -98,7 +107,6 @@ export const permissionsStore = signalStore(
       }
       patchState(store, { isLoading: true, statusSaveMessage: '' });
       try {
-        // Convert roleName to UPPER_SNAKE_CASE
         const newNameRole = roleName
           .replace(/[^a-zA-Z0-9]+/g, ' ')
           .trim()
@@ -106,27 +114,29 @@ export const permissionsStore = signalStore(
           .filter(Boolean)
           .map((word) => word.toUpperCase())
           .join('_');
-        const newPermissions = store
-          .permissions()
-          .filter((item) => !item.id)
-          .map((item) => ({
-            action: item.action,
-            section: item.section,
-          }));
-        const permissionsToDelete = Array.from(store.removedPermissions());
-        const { error } = await supabase.rpc('update_role_with_permissions', {
-          role_id: store.role()?.id,
-          new_role_name: newNameRole,
-          new_permissions: newPermissions,
-          permissions_to_delete: permissionsToDelete,
-        });
-        if (error) {
-          patchState(store, { statusSaveMessage: 'Error al actualizar el rol.', isLoading: false });
+        const facility = sessionStore.selectedFacility();
+        const facilityId = facility ? facility.id : undefined;
+        const roleId = store.role()?.id;
+        if (!facilityId || !roleId) {
+          patchState(store, { statusSaveMessage: 'Missing facility or role id.', isLoading: false });
           return false;
         }
+        const permissionsMap = store.permissions().reduce<PermissionsBySection>((acc, item) => {
+          const section = item.section;
+          if (!acc[section]) acc[section] = [];
+          (acc[section] as PermissionAction[]).push(item.action);
+          return acc;
+        }, {});
+        await firstValueFrom(
+          rolesService.updateRole(facilityId, {
+            id: roleId,
+            name: newNameRole,
+            permissions: permissionsMap,
+          } as RolesLibRole),
+        );
         patchState(store, { isLoading: false });
         return true;
-      } catch (e) {
+      } catch {
         patchState(store, { statusSaveMessage: 'Error inesperado al guardar.', isLoading: false });
         return false;
       }
@@ -142,7 +152,6 @@ export const permissionsStore = signalStore(
       }
       patchState(store, { isLoading: true, statusSaveMessage: '' });
       try {
-        // Convert roleName to UPPER_SNAKE_CASE
         const newNameRole = roleName
           .replace(/[^a-zA-Z0-9]+/g, ' ')
           .trim()
@@ -150,24 +159,28 @@ export const permissionsStore = signalStore(
           .filter(Boolean)
           .map((word) => word.toUpperCase())
           .join('_');
-        const facility = profileStore.facility();
+        const facility = sessionStore.selectedFacility();
         const facilityId = facility ? facility.id : undefined;
-        const permissions = store.permissions().map((item) => ({
-          action: item.action,
-          section: item.section,
-        }));
-        const { error } = await supabase.rpc('create_role_with_permissions', {
-          role_name: newNameRole,
-          facility_id: facilityId,
-          permissions,
-        });
-        if (error) {
-          patchState(store, { statusSaveMessage: 'Error al crear el rol.', isLoading: false });
+        if (!facilityId) {
+          patchState(store, { statusSaveMessage: 'No facility selected.', isLoading: false });
           return false;
         }
+        const permissionsMap = store.permissions().reduce<PermissionsBySection>((acc, item) => {
+          const section = item.section;
+          if (!acc[section]) acc[section] = [];
+          (acc[section] as PermissionAction[]).push(item.action);
+          return acc;
+        }, {});
+        await firstValueFrom(
+          rolesService.createRole(facilityId, {
+            name: newNameRole,
+            permissions: permissionsMap,
+          }),
+        );
         patchState(store, { isLoading: false });
         return true;
       } catch (e) {
+        loggerService.error(`Error creating role`, e);
         patchState(store, { statusSaveMessage: 'Error inesperado al guardar.', isLoading: false });
         return false;
       }
@@ -175,13 +188,9 @@ export const permissionsStore = signalStore(
     const getAllRoles = async (facilityId: string) => {
       patchState(store, { isLoading: true, errorMessage: '' });
       try {
-        const { data: roles, error: rolesError } = await supabase
-          .from('role')
-          .select('*, permissions(*)')
-          .eq('facility_id', facilityId);
-        if (rolesError) throw rolesError;
+        const roles = await firstValueFrom(rolesService.getAllRoles(facilityId));
         patchState(store, { isLoading: false, roles });
-      } catch (error) {
+      } catch {
         patchState(store, { isLoading: false, errorMessage: 'Error al cargar los roles.' });
       }
     };

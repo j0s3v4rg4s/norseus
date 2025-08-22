@@ -34,15 +34,22 @@ service cloud.firestore {
     match /facilities/{facilityId} {
       allow create: if isSuperAdmin(request);
       allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
+
+      match /roles/{roleId} {
+        allow create: if isFacilityAdmin(request, facilityId)
+        allow update: if isFacilityAdmin(request, facilityId)
+        allow delete: if isFacilityAdmin(request, facilityId)
+        allow read: if isFacilityEmployee(request, facilityId)
+      }
     }
 
     match /{path=**}/employees/{uid} {
       allow read: if isAuth(request);
     }
 
-    // match /profiles/{uid} {
-    //   allow read, write: if isAuth(request) && request.auth.uid == uid;
-    // }
+    match /profiles/{uid} {
+      allow read, write: if isAuth(request) && request.auth.uid == uid;
+    }
 
 
   // match /facilities/{facilityId} {

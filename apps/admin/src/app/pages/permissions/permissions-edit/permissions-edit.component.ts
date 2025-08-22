@@ -8,13 +8,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { filter, from, switchMap } from 'rxjs';
 
 import { ButtonComponent, ConfirmComponent, SelectModule } from '@ui';
-import {
-  Enums,
-  PERMISSIONS_ACTIONS,
-  PERMISSIONS_ACTIONS_DICTIONARY,
-  PERMISSIONS_SECTIONS,
-  PERMISSIONS_SECTIONS_DICTIONARY,
-} from '@front/supabase';
+import { PERMISSIONS_ACTIONS, PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS, PERMISSIONS_SECTIONS_DICTIONARY } from '@front/core/roles';
 import { permissionsStore } from '../permissions.store';
 
 @Component({
@@ -110,12 +104,12 @@ export class PermissionsEditComponent {
     this.store.removePermission(index);
   }
 
-  getActionLabel(action: Enums<'permission_action'> | string): string {
-    return this.actionsDictionary[action as Enums<'permission_action'>] || action;
+  getActionLabel(action: string): string {
+    return this.actionsDictionary[action as keyof typeof this.actionsDictionary] || action;
   }
 
-  getSectionLabel(section: Enums<'sections'> | string): string {
-    return this.sectionsDictionary[section as Enums<'sections'>] || section;
+  getSectionLabel(section: string): string {
+    return this.sectionsDictionary[section as keyof typeof this.sectionsDictionary] || section;
   }
 
   async saveRole() {
