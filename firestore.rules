@@ -47,16 +47,20 @@ service cloud.firestore {
       get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.roleId == roleId;
     }
 
+    match /facilities/{facilityId}/{document=**} {
+      allow read, write: if isFacilityAdmin(request, facilityId);
+    }
+
     match /facilities/{facilityId} {
       allow create: if isSuperAdmin(request);
-      allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
-      allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+      allow read: if isSuperAdmin(request) || belongsToFacility(request, facilityId);
+      allow update: if isSuperAdmin(request);
       allow delete: if isSuperAdmin(request);
 
       match /roles/{roleId} {
-        allow create: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'create');
-        allow update: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'update');
-        allow delete: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'delete');
+        allow create: if hasPermission(request, facilityId, 'roles', 'create');
+        allow update: if hasPermission(request, facilityId, 'roles', 'update');
+        allow delete: if hasPermission(request, facilityId, 'roles', 'delete');
         allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'roles', 'read') || hasRoleAssigned(request, facilityId, roleId);
       }
     }
