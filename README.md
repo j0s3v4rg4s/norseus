@@ -131,35 +131,8 @@ pnpm nx serve admin
 - **Types not generated**: Double-check your DB URL and Supabase credentials
 - **Port conflicts**: Default Supabase ports are 54321 (API) and 54322 (Postgres)
 - **UI issues**: Make sure you are using @p1kka/ui components and Tailwind classes
-
----
-
-## 📚 Useful Commands
-
-- `pnpm nx serve admin` — Start the Angular app
-- `pnpm nx build admin` — Build the Angular app
-- `supabase start` — Start local Supabase
-- `supabase db reset` — Reset DB, run all migrations, and seed data
-
----
-
-## 📦 Additional Notes
-
-- **Fonts**: Montserrat is included and loaded from `libs/assets/fonts/`
-- **Material Icons**: Loaded via CDN in `index.html`
-- **Global Styles**: Tailwind and custom styles in `libs/assets/styles/global.css` and `global.scss`
-- **RLS**: Supabase uses Row Level Security (RLS) — policies are defined in migrations
-
----
-
-## 🤝 Contributing
-
-- Please follow the coding standards and commit message guidelines
-- Open issues or pull requests for bugs, features, or questions
-
----
-
-## 📬 Contact
-
-For help, reach out to the project maintainer or open an issue in the repository.
-
+- **LoggerService shows incorrect source location**: When an error is logged using `LoggerService`, the browser console may point to `logger.service.ts` instead of the actual call site. To fix this and improve the debugging experience, you should add the logger script to your browser's "Ignore List".
+  - **How to fix**:
+    1. Open your browser's DevTools (F12).
+    2. Go to **Settings** (the ⚙️ icon) > **Ignore List**.
+    3. Click **"Add pattern..."** and add the following path: `/libs/front/utils/logger/src/services/logger.service.ts`.

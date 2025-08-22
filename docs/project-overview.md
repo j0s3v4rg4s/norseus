@@ -56,6 +56,7 @@ This document contains the basic information and structure of the Norseus projec
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `uid` | `string` | ✅ | User ID of the employee |
 | `joined` | `timestamp` | ✅ | When the employee joined the facility |
 | `roleId` | `string` | ❌ | ID of the employee's role in this facility |
 | `isAdmin` | `boolean` | ✅ | Whether the employee is an admin of this facility |
@@ -74,6 +75,7 @@ This document contains the basic information and structure of the Norseus projec
 
 ```json
 {
+  "uid": "user-123",
   "joined": "2024-01-15T10:30:00Z",
   "roleId": "role-123",
   "isAdmin": true,
@@ -96,6 +98,7 @@ This document contains the basic information and structure of the Norseus projec
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `uid` | `string` | ✅ | User ID of the client |
 | `joined` | `timestamp` | ✅ | When the client joined the facility |
 | `membershipType` | `string` | ❌ | Type of membership (e.g., 'basic', 'premium', 'vip') |
 | `isActive` | `boolean` | ✅ | Whether the client membership is active |
@@ -114,6 +117,7 @@ This document contains the basic information and structure of the Norseus projec
 
 ```json
 {
+  "uid": "user-456",
   "joined": "2024-02-01T09:00:00Z",
   "membershipType": "premium",
   "isActive": true,

@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase/firestore';
  * Path: facilities/{facilityId}
  */
 export interface FacilityModel {
+  id?: string;
   createdAt: Timestamp;
   name: string;
   logo: string | null;

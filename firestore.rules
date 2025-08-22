@@ -34,23 +34,37 @@ service cloud.firestore {
     match /facilities/{facilityId} {
       allow create: if isSuperAdmin(request);
       allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
-      allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-      allow delete: if isSuperAdmin(request);
-
-      match /employees/{uid} {
-        allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-      }
-
-      match /clients/{uid} {
-        allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-      }
     }
 
-    match /{document=**} {
-      allow read: if isAuth(request) && 
-      (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
-
-      allow write: if false;
+    match /{path=**}/employees/{uid} {
+      allow read: if isAuth(request);
     }
+
+    // match /profiles/{uid} {
+    //   allow read, write: if isAuth(request) && request.auth.uid == uid;
+    // }
+
+
+  // match /facilities/{facilityId} {
+    //   allow create: if isSuperAdmin(request);
+    //   allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
+    //   allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+    //   allow delete: if isSuperAdmin(request);
+
+  //   match /employees/{uid} {
+    //     allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+    //   }
+
+  //   match /clients/{uid} {
+    //     allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+    //   }
+    // }
+
+  // match /{document=**} {
+    //   allow read: if isAuth(request) && 
+    //   (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
+
+    //   allow write: if false;
+    // }
   }
 }

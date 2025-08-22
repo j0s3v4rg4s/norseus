@@ -15,9 +15,11 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@facility": ["libs/front/core/facility/src/index.ts"],
+      "@front/core/facility": ["libs/front/core/facility/src/index.ts"],
       "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
+      "@front/state/session": ["libs/front/state/session/src/index.ts"],
       "@front/supabase": ["libs/front/supabase/src/index.ts"],
+      "@front/utils/logger": ["libs/front/utils/logger/src/index.ts"],
       "@models/facility": ["libs/models/src/facility/index.ts"],
       "@models/user": ["libs/models/src/user/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]

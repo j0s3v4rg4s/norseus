@@ -6,6 +6,7 @@ import { ProfileModel } from '../../user';
  * Path: facilities/{facilityId}/clients/{uid}
  */
 export interface ClientModel {
+  uid: string;
   joined: Timestamp;
   isActive: boolean;
   profile: ProfileModel;

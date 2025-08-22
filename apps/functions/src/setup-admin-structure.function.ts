@@ -51,6 +51,7 @@ export const setupAdminStructure = onRequest(async (request, response) => {
       // 3. Create Facility Admin
       const facilityAdmin = await _createUser('Facility Admin', Role.ADMIN);
       const adminEmployee: Omit<EmployeeModel, 'joined'> & { joined: FieldValue } = {
+        uid: facilityAdmin.uid,
         joined: FieldValue.serverTimestamp(),
         roleId: null, // Assign a role if you have a roles collection
         isAdmin: true,
@@ -61,6 +62,7 @@ export const setupAdminStructure = onRequest(async (request, response) => {
       // 4. Create Facility Employer
       const facilityEmployer = await _createUser('Facility Employer', Role.USER);
       const employerEmployee: Omit<EmployeeModel, 'joined'> & { joined: FieldValue } = {
+        uid: facilityEmployer.uid,
         joined: FieldValue.serverTimestamp(),
         roleId: null, // Assign a role if you have a roles collection
         isAdmin: false,

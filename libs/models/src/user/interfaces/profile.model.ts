@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase/firestore';
  * Path: profiles/{uid}
  */
 export interface ProfileModel {
+  id?: string;
   createdAt: Timestamp;
   name: string;
   img: string | null;

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { SUPABASE } from '@front/supabase';
-import { ProfileSignalStore } from '@front/core/profile';
+import { Router, RouterModule } from '@angular/router';
+import { Auth, user } from '@angular/fire/auth';
+import { SessionSignalStore } from '@front/state/session';
 
 @Component({
   imports: [RouterModule],
@@ -10,18 +10,20 @@ import { ProfileSignalStore } from '@front/core/profile';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  private supabase = inject(SUPABASE);
-  private profileStore = inject(ProfileSignalStore);
+  private auth = inject(Auth);
+  private sessionStore = inject(SessionSignalStore);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.loadUserData();
   }
 
-  async loadUserData() {
-    this.supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION' && session) {
-        const userId = session.user.id;
-        this.profileStore.loadProfile(userId);
+  private loadUserData() {
+    user(this.auth).subscribe((user) => {
+      if (user) {
+        this.sessionStore.initAsEmployer(user.uid);
+      } else {
+        this.router.navigate(['/login']);
       }
     });
   }

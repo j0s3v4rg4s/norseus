@@ -6,6 +6,7 @@ import { ProfileModel } from '../../user';
  * Path: facilities/{facilityId}/employees/{uid}
  */
 export interface EmployeeModel {
+  uid: string;
   joined: Timestamp;
   roleId: string | null;
   isAdmin: boolean;

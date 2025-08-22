@@ -1,6 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collectionGroup, query, where, getDocs, doc, getDoc } from '@angular/fire/firestore';
+import { Firestore, collectionGroup, query, where, getDocs, doc, docData } from '@angular/fire/firestore';
 import { FacilityModel, FACILITY_COLLECTION, EMPLOYEE_COLLECTION, CLIENT_COLLECTION } from '@models/facility';
+import { combineLatest, filter, from, map, mergeMap, Observable, catchError, throwError } from 'rxjs';
+
+// Custom error for FacilityService
+export class FacilityServiceError extends Error {
+  constructor(
+    message: string,
+    public originalError: unknown,
+    public userId: string,
+    public method: 'getEmployeeFacilities' | 'getClientFacilities',
+  ) {
+    super(message);
+    this.name = 'FacilityServiceError';
+  }
+}
 
 @Injectable({
   providedIn: 'root',
@@ -8,33 +22,43 @@ import { FacilityModel, FACILITY_COLLECTION, EMPLOYEE_COLLECTION, CLIENT_COLLECT
 export class FacilityService {
   private firestore = inject(Firestore);
 
-  async getEmployeeFacilities(uid: string) {
-    const facilities: FacilityModel[] = [];
-    const employeeDocs = await getDocs(
-      query(collectionGroup(this.firestore, EMPLOYEE_COLLECTION), where('__name__', '==', uid)),
+  getEmployeeFacilities(uid: string) {
+    const queryDb = query(collectionGroup(this.firestore, EMPLOYEE_COLLECTION), where('uid', '==', uid));
+
+    return from(getDocs(queryDb)).pipe(
+      map((docu) => docu.docs.map((doc) => doc.ref.parent.parent?.path).filter((path) => !!path) as string[]),
+      filter((paths) => paths.length > 0),
+      mergeMap((paths) =>
+        combineLatest(
+          paths.map((path) => docData(doc(this.firestore, path), { idField: 'id' }) as Observable<FacilityModel>),
+        ),
+      ),
+      catchError((error) =>
+        throwError(
+          () => new FacilityServiceError('Failed to fetch employee facilities', error, uid, 'getEmployeeFacilities'),
+        ),
+      ),
     );
-    for (const document of employeeDocs.docs) {
-      const parent = document.ref.parent;
-      const facilityDoc = await getDoc(doc(this.firestore, FACILITY_COLLECTION, parent.id));
-      if (facilityDoc.exists()) {
-        facilities.push(facilityDoc.data() as FacilityModel);
-      }
-    }
-    return facilities;
   }
 
-  async getClientFacilities(uid: string) {
-    const facilities: FacilityModel[] = [];
-    const clientDocs = await getDocs(
-      query(collectionGroup(this.firestore, CLIENT_COLLECTION), where('__name__', '==', uid)),
+  getClientFacilities(uid: string) {
+    const queryDb = query(collectionGroup(this.firestore, CLIENT_COLLECTION), where('uid', '==', uid));
+    return from(getDocs(queryDb)).pipe(
+      map((docu) => docu.docs.map((doc) => doc.ref.parent?.id).filter((id): id is string => !!id)),
+      filter((ids) => ids.length > 0),
+      mergeMap((ids) =>
+        combineLatest(
+          ids.map(
+            (id) =>
+              docData(doc(this.firestore, FACILITY_COLLECTION, id), { idField: 'id' }) as Observable<FacilityModel>,
+          ),
+        ),
+      ),
+      catchError((error) =>
+        throwError(
+          () => new FacilityServiceError('Failed to fetch client facilities', error, uid, 'getClientFacilities'),
+        ),
+      ),
     );
-    for (const document of clientDocs.docs) {
-      const parent = document.ref.parent;
-      const facilityDoc = await getDoc(doc(this.firestore, FACILITY_COLLECTION, parent.id));
-      if (facilityDoc.exists()) {
-        facilities.push(facilityDoc.data() as FacilityModel);
-      }
-    }
-    return facilities;
   }
 }

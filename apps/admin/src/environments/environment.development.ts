@@ -14,4 +14,5 @@ export const environment = {
     measurementId: 'G-XG75NWGZ15',
   },
   useEmulators: true,
+  production: false,
 };
