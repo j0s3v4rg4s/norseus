@@ -8,7 +8,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { filter, from, switchMap } from 'rxjs';
 
 import { ButtonComponent, ConfirmComponent, SelectModule } from '@ui';
-import { PERMISSIONS_ACTIONS, PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS, PERMISSIONS_SECTIONS_DICTIONARY } from '@front/core/roles';
+import {
+  PERMISSIONS_ACTIONS,
+  PERMISSIONS_ACTIONS_DICTIONARY,
+  PERMISSIONS_SECTIONS,
+  PERMISSIONS_SECTIONS_DICTIONARY,
+  PermissionAction,
+  PermissionSection,
+} from '@front/core/roles';
 import { permissionsStore } from '../permissions.store';
 
 @Component({
@@ -41,7 +48,6 @@ export class PermissionsEditComponent {
   actionsDictionary = PERMISSIONS_ACTIONS_DICTIONARY;
   sections = PERMISSIONS_SECTIONS;
   sectionsDictionary = PERMISSIONS_SECTIONS_DICTIONARY;
-  displayedColumns = ['action', 'section', 'delete'];
 
   //****************************************************************************
   //* PRIVATE INJECTIONS
@@ -57,8 +63,6 @@ export class PermissionsEditComponent {
   constructor() {
     this.form = this.fb.group({
       roleName: ['', [Validators.required, Validators.maxLength(50)]],
-      action: ['', Validators.required],
-      section: ['', Validators.required],
     });
     effect(() => {
       const roleId = this.route.snapshot.paramMap.get('id');
@@ -94,14 +98,20 @@ export class PermissionsEditComponent {
       });
   }
 
-  addPermissionAction() {
-    const action = this.form.get('action')?.value;
-    const section = this.form.get('section')?.value;
-    this.store.addPermission(action, section);
+  hasPermission(section: PermissionSection, action: PermissionAction): boolean {
+    return this.store.permissions().some((p) => p.section === section && p.action === action);
   }
 
-  removePermissionAction(index: number) {
-    this.store.removePermission(index);
+  onPermissionChange(event: Event, section: PermissionSection, action: PermissionAction) {
+    const input = event.target as HTMLInputElement;
+    if (input.checked) {
+      this.store.addPermission(action, section);
+    } else {
+      const index = this.store.permissions().findIndex((p) => p.section === section && p.action === action);
+      if (index > -1) {
+        this.store.removePermission(index);
+      }
+    }
   }
 
   getActionLabel(action: string): string {

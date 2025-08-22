@@ -1,12 +1,12 @@
 import { PermissionAction, PermissionSection } from '../enums/permissions.enums';
 
-export const PERMISSIONS_SECTIONS = [PermissionSection.EMPLOYEES, PermissionSection.ROLES] as const;
+export const PERMISSIONS_SECTIONS: PermissionSection[] = [PermissionSection.EMPLOYEES, PermissionSection.ROLES] as const;
 
-export const PERMISSIONS_ACTIONS = [
+export const PERMISSIONS_ACTIONS: PermissionAction[] = [
   PermissionAction.CREATE,
-  PermissionAction.READ,
   PermissionAction.UPDATE,
   PermissionAction.DELETE,
+  PermissionAction.READ,
 ] as const;
 
 export const PERMISSIONS_SECTIONS_DICTIONARY: Record<string, string> = {

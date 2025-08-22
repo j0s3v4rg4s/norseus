@@ -13,6 +13,7 @@ import {
 import { Observable, catchError, from, map, throwError } from 'rxjs';
 
 import { Role } from '../models/role.model';
+import { FACILITY_COLLECTION, ROLE_COLLECTION } from '@models/facility';
 
 export class RolesServiceError extends Error {
   constructor(
@@ -38,7 +39,7 @@ export class RolesService {
   /* ************************************************************************** */
 
   private getRolesCollectionRef(facilityId: string): CollectionReference<Role> {
-    return collection(this.firestore, `facilities/${facilityId}/roles`) as CollectionReference<Role>;
+    return collection(this.firestore, `${FACILITY_COLLECTION}/${facilityId}/${ROLE_COLLECTION}`) as CollectionReference<Role>;
   }
 
   /* ************************************************************************** */

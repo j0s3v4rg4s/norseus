@@ -88,7 +88,56 @@ This document contains the basic information and structure of the Norseus projec
 }
 ```
 
-##### 2.2 Clients Subcollection
+##### 2.2 Roles Subcollection
+
+**Path:** `facilities/{facilityId}/roles/{roleId}`
+
+**Description:** Roles that define permissions for employees within a specific facility. Each role contains a set of permissions organized by sections.
+
+#### Role Document Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | ✅ | Unique identifier for the role |
+| `name` | `string` | ✅ | Display name of the role |
+| `permissions` | `object` | ✅ | Permissions organized by section |
+
+#### Permissions Structure
+
+The `permissions` field is an object where:
+- **Keys** are permission sections (e.g., 'roles', 'employees')
+- **Values** are arrays of permission actions (e.g., ['create', 'read', 'update', 'delete'])
+
+#### Available Permission Sections
+
+| Section | Description |
+|---------|-------------|
+| `roles` | Permissions for managing roles within the facility |
+| `employees` | Permissions for managing employees within the facility |
+
+#### Available Permission Actions
+
+| Action | Description |
+|--------|-------------|
+| `create` | Ability to create new resources |
+| `read` | Ability to view resources |
+| `update` | Ability to modify existing resources |
+| `delete` | Ability to remove resources |
+
+#### Example Role Document
+
+```json
+{
+  "id": "role-123",
+  "name": "Manager",
+  "permissions": {
+    "roles": ["create", "read", "update", "delete"],
+    "employees": ["create", "read", "update"]
+  }
+}
+```
+
+##### 2.3 Clients Subcollection
 
 **Path:** `facilities/{facilityId}/clients/{uid}`
 
@@ -139,5 +188,48 @@ This document contains the basic information and structure of the Norseus projec
   "logo": "https://example.com/logo.png"
 }
 ```
+
+---
+
+## Security Rules - Firestore
+
+### Access Control Functions
+
+The Firestore security rules include several helper functions to control access:
+
+#### Authentication Functions
+
+| Function | Description |
+|----------|-------------|
+| `isSuperAdmin(request)` | Checks if the user has super admin role |
+| `isAuth(request)` | Checks if the user is authenticated |
+| `isFacilityAdmin(request, facilityId)` | Checks if the user is an admin of the specific facility |
+| `isFacilityEmployee(request, facilityId)` | Checks if the user is an employee of the specific facility |
+| `isFacilityClient(request, facilityId)` | Checks if the user is a client of the specific facility |
+| `belongsToFacility(request, facilityId)` | Checks if the user belongs to the facility (employee or client) |
+
+#### Permission Functions
+
+| Function | Description |
+|----------|-------------|
+| `getRoleData(request, facilityId)` | Retrieves the role data for the authenticated user in the facility |
+| `hasPermission(request, facilityId, section, permission)` | Checks if the user has a specific permission for a section |
+| `hasRoleAssigned(request, facilityId, roleId)` | Checks if the user has a specific role assigned in the facility |
+
+### Access Rules
+
+#### Facilities Collection
+- **Create**: Only super admins
+- **Read**: Super admins, facility admins, or facility members (employees/clients)
+
+#### Roles Subcollection
+- **Create/Update/Delete**: Facility admins OR users with specific role permissions
+- **Read**: Facility employees OR users with read permission for roles OR users with the specific role assigned
+
+#### Employees Subcollection
+- **Read**: Any authenticated user (for profile projections)
+
+#### Profiles Collection
+- **Read/Write**: Users can only access their own profile
 
 

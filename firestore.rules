@@ -31,15 +31,33 @@ service cloud.firestore {
       return isFacilityEmployee(request, facilityId) || isFacilityClient(request, facilityId);
     }
 
+    function getRoleData(request, facilityId) {
+      let employeeDoc = get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data;
+      return get(/databases/$(database)/documents/facilities/$(facilityId)/roles/$(employeeDoc.roleId)).data;
+    }
+
+    function hasPermission(request, facilityId, section, permission) {
+      return isFacilityEmployee(request, facilityId) &&
+      (section in getRoleData(request, facilityId).permissions) &&
+      (permission in getRoleData(request, facilityId).permissions[section]);
+    }
+
+    function hasRoleAssigned(request, facilityId, roleId) {
+      return isFacilityEmployee(request, facilityId) &&
+      get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.roleId == roleId;
+    }
+
     match /facilities/{facilityId} {
       allow create: if isSuperAdmin(request);
       allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
+      allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
+      allow delete: if isSuperAdmin(request);
 
       match /roles/{roleId} {
-        allow create: if isFacilityAdmin(request, facilityId)
-        allow update: if isFacilityAdmin(request, facilityId)
-        allow delete: if isFacilityAdmin(request, facilityId)
-        allow read: if isFacilityEmployee(request, facilityId)
+        allow create: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'create');
+        allow update: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'update');
+        allow delete: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'roles', 'delete');
+        allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'roles', 'read') || hasRoleAssigned(request, facilityId, roleId);
       }
     }
 
@@ -50,28 +68,5 @@ service cloud.firestore {
     match /profiles/{uid} {
       allow read, write: if isAuth(request) && request.auth.uid == uid;
     }
-
-
-  // match /facilities/{facilityId} {
-    //   allow create: if isSuperAdmin(request);
-    //   allow read: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId) || belongsToFacility(request, facilityId);
-    //   allow update: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-    //   allow delete: if isSuperAdmin(request);
-
-  //   match /employees/{uid} {
-    //     allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-    //   }
-
-  //   match /clients/{uid} {
-    //     allow read, write: if isSuperAdmin(request) || isFacilityAdmin(request, facilityId);
-    //   }
-    // }
-
-  // match /{document=**} {
-    //   allow read: if isAuth(request) && 
-    //   (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
-
-    //   allow write: if false;
-    // }
   }
 }

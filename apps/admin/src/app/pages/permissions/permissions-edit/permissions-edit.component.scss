@@ -1,10 +1,23 @@
-.delete-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  cursor: pointer;
-  .material-symbols-rounded {
-    font-size: 28px;
+:host {
+  .permissions-matrix {
+    th,
+    td {
+      min-width: 100px;
+    }
+
+    th:first-child,
+    td:first-child {
+      min-width: 120px;
+      font-weight: 500;
+      text-align: left;
+    }
+
+    th {
+      white-space: nowrap;
+    }
+
+    input[type='checkbox'] {
+      cursor: pointer;
+    }
   }
 }
