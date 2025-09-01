@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
-
 import { CdkTableModule } from '@angular/cdk/table';
 import { RouterModule } from '@angular/router';
 
-import { ProfileSignalStore } from '@front/core/profile';
-import { Role } from '@front/supabase';
-import { usersStore } from './../users.store';
+import { SessionSignalStore } from '@front/state/session';
+import { UsersStore } from './../users.store';
 
 @Component({
   selector: 'app-users-list',
@@ -14,41 +12,20 @@ import { usersStore } from './../users.store';
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [usersStore],
+  providers: [UsersStore],
 })
 export class UsersListComponent {
-  //****************************************************************************
-  //* PUBLIC INSTANCE PROPERTIES
-  //****************************************************************************
   displayedColumns = ['name', 'role', 'actions'];
+  store = inject(UsersStore);
+  private sessionStore = inject(SessionSignalStore);
 
-  //****************************************************************************
-  //* PUBLIC INJECTIONS
-  //****************************************************************************
-  store = inject(usersStore);
-
-  //****************************************************************************
-  //* PRIVATE INJECTIONS
-  //****************************************************************************
-  private profileStore = inject(ProfileSignalStore);
-
-  //****************************************************************************
-  //* CONSTRUCTOR
-  //****************************************************************************
   constructor() {
     effect(() => {
-      const loading = this.profileStore.loading();
-      const facility = this.profileStore.facility();
+      const loading = this.sessionStore.loading();
+      const facility = this.sessionStore.selectedFacility();
       if (!loading && facility) {
-        this.store.loadUsers(facility.id);
+        this.store.loadEmployees(facility.id as string);
       }
     });
-  }
-
-  //****************************************************************************
-  //* PUBLIC METHODS
-  //****************************************************************************
-  getRoleName(role: Role | null): string {
-    return role?.name ?? 'N/A';
   }
 }

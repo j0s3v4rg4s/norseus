@@ -1,96 +1,69 @@
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
-
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-
 import { filter, from, switchMap } from 'rxjs';
 
-import { ProfileSignalStore } from '@front/core/profile';
+import { SessionSignalStore } from '@front/state/session';
 import { ConfirmComponent, SelectModule } from '@ui';
-import { usersStore } from '../users.store';
+import { UsersStore } from '../users.store';
 
 @Component({
   selector: 'app-users-edit',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterModule,
-    SelectModule,
-    MatDialogModule
-  ],
+  imports: [ReactiveFormsModule, RouterModule, SelectModule, MatDialogModule],
   templateUrl: './users-edit.component.html',
   styleUrls: ['./users-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [usersStore],
+  providers: [UsersStore],
 })
 export class UsersEditComponent {
-  //****************************************************************************
-  //* PUBLIC INSTANCE PROPERTIES
-  //****************************************************************************
   form: FormGroup;
-
-  //****************************************************************************
-  //* PUBLIC INJECTIONS
-  //****************************************************************************
-  store = inject(usersStore);
-
-  //****************************************************************************
-  //* PRIVATE INJECTIONS
-  //****************************************************************************
+  store = inject(UsersStore);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private profileStore = inject(ProfileSignalStore);
+  private sessionStore = inject(SessionSignalStore);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
-
-  //****************************************************************************
-  //* PRIVATE INSTANCE PROPERTIES
-  //****************************************************************************
   private userId: string | null = null;
 
-  //****************************************************************************
-  //* CONSTRUCTOR
-  //****************************************************************************
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
-      role_id: ['', Validators.required],
+      roleId: ['', Validators.required],
     });
 
     effect(() => {
-      const facility = this.profileStore.facility();
+      const facility = this.sessionStore.selectedFacility();
       if (facility) {
-        this.store.loadRoles(facility.id);
+        this.store.loadRoles(facility.id as string);
       }
     });
 
     effect(() => {
       this.userId = this.route.snapshot.paramMap.get('id');
       if (this.userId) {
-        this.store.loadUser(this.userId);
+        this.store.loadEmployee(this.userId);
       }
     });
 
     effect(() => {
-      const { user, isLoading } = this.store;
-      if (user() && !isLoading()) {
-        this.form.patchValue({ name: user()?.name, role_id: user()?.role_id, email: user()?.email });
+      const { employee, isLoading } = this.store;
+      if (employee() && !isLoading()) {
+        const emp = employee();
+        this.form.patchValue({ name: emp?.profile.name, roleId: emp?.roleId, email: emp?.profile.email });
       }
     });
   }
 
-  //****************************************************************************
-  //* PUBLIC METHODS
-  //****************************************************************************
   async saveUser() {
     if (this.form.invalid || !this.userId) {
       this.form.markAllAsTouched();
       return;
     }
-    const { name, role_id } = this.form.value;
-    const success = await this.store.updateUser(this.userId, { name, role_id });
+    const { name, roleId } = this.form.value;
+    const success = await this.store.updateEmployee(this.userId, { name, roleId });
     if (success) {
       this.router.navigate(['/home/users']);
     }
@@ -106,7 +79,7 @@ export class UsersEditComponent {
       .afterClosed()
       .pipe(
         filter(Boolean),
-        switchMap(() => from(this.store.deleteUser(this.userId!))),
+        switchMap(() => from(this.store.deleteEmployee(this.userId!))),
         filter(Boolean)
       )
       .subscribe(() => {

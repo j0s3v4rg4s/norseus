@@ -8,6 +8,7 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
 import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 import { provideLogger, GlobalErrorHandler } from '@front/utils/logger';
+import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -34,6 +35,13 @@ export const appConfig: ApplicationConfig = {
         connectFirestoreEmulator(firestore, 'localhost', 8080);
       }
       return firestore;
+    }),
+    provideFunctions(() => {
+      const functions = getFunctions();
+      if (environment.useEmulators) {
+        connectFunctionsEmulator(functions, 'localhost', 5001);
+      }
+      return functions;
     }),
   ],
 };

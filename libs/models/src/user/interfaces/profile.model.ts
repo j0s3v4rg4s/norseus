@@ -8,5 +8,6 @@ export interface ProfileModel {
   id?: string;
   createdAt: Timestamp;
   name: string;
+  email: string;
   img: string | null;
 }

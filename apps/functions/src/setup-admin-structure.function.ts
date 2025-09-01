@@ -21,7 +21,7 @@ const _createUser = async (name: string, role: Role): Promise<UserRecord> => {
 
   await auth.setCustomUserClaims(userRecord.uid, { role });
 
-  const profile: Omit<ProfileModel, 'createdAt'> & { createdAt: FieldValue } = {
+  const profile: Omit<ProfileModel, 'createdAt' | 'email'> & { createdAt: FieldValue} = {
     createdAt: FieldValue.serverTimestamp(),
     name,
     img: `https://i.pravatar.cc/150?u=${email}`,

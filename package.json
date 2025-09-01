@@ -30,6 +30,7 @@
     "postcss": "^8.5.3",
     "rxjs": "~7.8.2",
     "tailwindcss": "^4.1.4",
+    "zod": "^4.0.17",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

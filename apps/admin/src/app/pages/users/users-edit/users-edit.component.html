@@ -16,7 +16,7 @@
         </div>
         <div class="grid gap-3">
           <label for="role" class="label">Rol</label>
-          <ui-select formControlName="role_id" placeholder="Seleccionar rol">
+          <ui-select formControlName="roleId" placeholder="Seleccionar rol">
             @for(role of store.roles(); track role.id){
             <ui-option [value]="role.id">
               {{ role.name }}

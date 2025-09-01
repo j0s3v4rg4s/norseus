@@ -1,167 +1,168 @@
-import { inject } from '@angular/core';
-import { Role, SUPABASE, Profile, UserType } from '@front/supabase';
-import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import { computed, inject } from '@angular/core';
+import { patchState, signalStore, withMethods, withState, withComputed } from '@ngrx/signals';
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import { pipe, switchMap, tap, catchError, EMPTY } from 'rxjs';
 
-// TODO: move to a shared interface
-export type UserProfile = Profile & {
-  role: Role | null;
+import { EmployeeService } from '@front/core/employee';
+import { EmployeeModel } from '@models/facility';
+import { Role } from '@front/core/roles';
+import { RolesService } from '@front/core/roles';
+import { CreateEmployeeRequest, DeleteEmployeeRequest } from '@models/facility';
+import { SessionSignalStore } from '@front/state/session';
+
+export type EmployeeProfile = EmployeeModel & {
+  role?: Role | null;
   email?: string;
 };
 
-type UserState = {
+type EmployeeState = {
   isLoading: boolean;
   errorMessage: string;
   statusSaveMessage: string;
-  users: UserProfile[];
-  user: UserProfile | null;
+  employees: EmployeeProfile[];
+  employee: EmployeeProfile | null;
   roles: Role[];
 };
 
-export const initialState: UserState = {
+export const initialState: EmployeeState = {
   isLoading: false,
   errorMessage: '',
   statusSaveMessage: '',
-  users: [],
-  user: null,
+  employees: [],
+  employee: null,
   roles: [],
 };
 
-export const usersStore = signalStore(
+export const UsersStore = signalStore(
   withState(initialState),
+  withComputed((store) => ({
+    employeesWithRoles: computed(() => {
+      const rolesMap = new Map(store.roles().map((role) => [role.id, role]));
+      return store.employees().map((employee) => ({
+        ...employee,
+        role: rolesMap.get(employee.roleId || ''),
+      }));
+    }),
+  })),
   withMethods((store) => {
-    const supabase = inject(SUPABASE);
+    const employeeService = inject(EmployeeService);
+    const rolesService = inject(RolesService);
+    const sessionStore = inject(SessionSignalStore);
+    const facilityId = computed(() => sessionStore.selectedFacility()?.id);
 
-    const loadUser = async (userId: string) => {
-      patchState(store, { isLoading: true });
-      try {
-        const { data, error } = await supabase.from('profile').select('*, role(*)').eq('id', userId).single();
-        if (error) throw error;
+    const loadRoles = rxMethod<string>(
+      pipe(
+        tap(() => patchState(store, { isLoading: true })),
+        switchMap((id) =>
+          rolesService.getAllRoles(id).pipe(
+            tap({
+              next: (roles: Role[]) => patchState(store, { roles }),
+              finalize: () => patchState(store, { isLoading: false }),
+            }),
+            catchError(() => {
+              patchState(store, { isLoading: false, errorMessage: 'Error loading roles.' });
+              return EMPTY;
+            })
+          )
+        )
+      )
+    );
 
-        // We need to get the email from the auth user
-        // This requires admin privileges and should be done in a secure environment.
-        // For now, we'll leave it out, but in a real app, you'd call a server-side function.
-        const userWithRole = data as UserProfile;
-        patchState(store, { user: userWithRole, isLoading: false });
-      } catch (e) {
-        patchState(store, {
-          isLoading: false,
-          errorMessage: 'Error cargando el usuario.',
-        });
-      }
-    };
+    const loadEmployees = rxMethod<string>(
+      pipe(
+        switchMap((id) =>
+          employeeService.getEmployees(id).pipe(
+            tap({
+              next: (employees: EmployeeModel[]) => patchState(store, { employees }),
+              finalize: () => patchState(store, { isLoading: false }),
+            }),
+            catchError(() => {
+              patchState(store, { isLoading: false, errorMessage: 'Error loading employees.' });
+              return EMPTY;
+            })
+          )
+        )
+      ) 
+    );
 
-    const loadRoles = async (facilityId: string) => {
-      patchState(store, { isLoading: true });
-      try {
-        const { data, error } = await supabase.from('role').select('*').eq('facility_id', facilityId);
-        if (error) throw error;
-        patchState(store, { roles: data || [], isLoading: false });
-      } catch (e) {
-        patchState(store, {
-          isLoading: false,
-          errorMessage: 'Error cargando los roles.',
-        });
-      }
-    };
+    const loadEmployee = rxMethod<string>(
+      pipe(
+        tap(() => patchState(store, { isLoading: true })),
+        switchMap((employeeId) =>
+          employeeService.getEmployee(facilityId() || '', employeeId).pipe(
+            tap({
+              next: (employee: EmployeeModel | undefined) => patchState(store, { employee: employee as EmployeeProfile }),
+              finalize: () => patchState(store, { isLoading: false }),
+            }),
+            catchError(() => {
+              patchState(store, { isLoading: false, errorMessage: 'Error loading employee.' });
+              return EMPTY;
+            })
+          )
+        )
+      )
+    );
 
-    const loadUsers = async (facilityId: string) => {
-      patchState(store, { isLoading: true, errorMessage: '' });
-      try {
-        const { data, error } = await supabase
-          .from('facility_user')
-          .select('profile(*, role(*))')
-          .eq('facility_id', facilityId);
-
-        if (error) throw error;
-
-        const users = (data || [])
-          .map((item) => item.profile)
-          .filter((profile) => profile !== null) as unknown as UserProfile[];
-
-        patchState(store, { users, isLoading: false });
-      } catch (error) {
-        patchState(store, { isLoading: false, errorMessage: 'Error al cargar los usuarios.' });
-      }
-    };
-
-    const createUser = async (payload: { name: string; email: string; roleId: string; type: UserType }) => {
+    const createEmployee = async (payload: Omit<CreateEmployeeRequest, 'facilityId'>) => {
       patchState(store, { isLoading: true, statusSaveMessage: '' });
+      const currentFacilityId = facilityId();
+      if (!currentFacilityId) {
+        patchState(store, { isLoading: false, statusSaveMessage: 'No facility selected.' });
+        return false;
+      }
+
       try {
-        const { data, error } = await supabase.functions.invoke('createUser', {
-          body: { email: payload.email, name: payload.name, roleId: payload.roleId, type: payload.type },
-          method: 'POST',
-        });
-
-        if (error) throw error;
-
-        const { statusCode, error: errorFunction } = data;
-
-        if (statusCode === 409) {
-          patchState(store, {
-            isLoading: false,
-            statusSaveMessage: 'El usuario ya existe.',
-          });
-          return false;
-        }
-
-        if (statusCode === 500) {
-          patchState(store, {
-            isLoading: false,
-            statusSaveMessage: errorFunction.message || 'Error al crear el usuario.',
-          });
-          return false;
-        }
-
+        await employeeService.createEmployee({ ...payload, facilityId: currentFacilityId });
         patchState(store, { isLoading: false });
         return true;
-      } catch (e: any) {
+      } catch (e: unknown) {
         patchState(store, {
           isLoading: false,
-          statusSaveMessage: e.message || 'Error al crear el usuario.',
+          statusSaveMessage: (e as Error).message || 'Error creating employee.',
         });
         return false;
       }
     };
 
-    const updateUser = async (userId: string, payload: { name: string; role_id: string }) => {
+    const updateEmployee = async (employeeId: string, payload: { name: string; roleId: string }) => {
       patchState(store, { isLoading: true, statusSaveMessage: '' });
+      const currentFacilityId = facilityId();
+      if (!currentFacilityId) {
+        patchState(store, { isLoading: false, statusSaveMessage: 'No facility selected.' });
+        return false;
+      }
+
       try {
-        const { error } = await supabase
-          .from('profile')
-          .update({ name: payload.name, role_id: payload.role_id })
-          .eq('id', userId);
-        if (error) throw error;
+        await employeeService.updateEmployee(currentFacilityId, employeeId, payload);
         patchState(store, { isLoading: false });
         return true;
-      } catch (e: any) {
+      } catch (e: unknown) {
         patchState(store, {
           isLoading: false,
-          statusSaveMessage: e.message || 'Error al actualizar el usuario.',
+          statusSaveMessage: (e as Error).message || 'Error updating employee.',
         });
         return false;
       }
     };
 
-    const deleteUser = async (userId: string) => {
+    const deleteEmployee = async (userId: string) => {
       patchState(store, { isLoading: true, statusSaveMessage: '' });
+      const currentFacilityId = facilityId();
+      if (!currentFacilityId) {
+        patchState(store, { isLoading: false, statusSaveMessage: 'No facility selected.' });
+        return false;
+      }
+
+      const payload: DeleteEmployeeRequest = { userId, facilityId: currentFacilityId };
+
       try {
-        // This should be a transaction or a single RPC call to ensure atomicity
-        const { error: facilityUserError } = await supabase.from('facility_user').delete().eq('profile_id', userId);
-        if (facilityUserError) throw facilityUserError;
-
-        const { error: profileError } = await supabase.from('profile').delete().eq('id', userId);
-        if (profileError) throw profileError;
-
-        // Deleting from auth.users requires admin rights and should be an RPC call
-        // const { error: authError } = await supabase.rpc('delete_user_by_id', { user_id: userId });
-        // if (authError) throw authError;
-
+        await employeeService.deleteEmployee(payload);
         patchState(store, { isLoading: false });
         return true;
-      } catch (e: any) {
+      } catch (e: unknown) {
         patchState(store, {
           isLoading: false,
-          statusSaveMessage: e.message || 'Error al eliminar el usuario.',
+          statusSaveMessage: (e as Error).message || 'Error deleting employee.',
         });
         return false;
       }
@@ -169,11 +170,11 @@ export const usersStore = signalStore(
 
     return {
       loadRoles,
-      loadUsers,
-      loadUser,
-      createUser,
-      updateUser,
-      deleteUser,
+      loadEmployees,
+      loadEmployee,
+      createEmployee,
+      updateEmployee,
+      deleteEmployee,
     };
-  }),
+  })
 );

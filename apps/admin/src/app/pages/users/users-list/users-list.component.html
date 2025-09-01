@@ -13,13 +13,13 @@
     <div class="text-red-600 text-center py-4">{{ store.errorMessage() }}</div>
   }
 
-  @if (!store.isLoading() && store.users().length > 0) {
+  @if (!store.isLoading() && store.employeesWithRoles().length > 0) {
     <div class="overflow-x-auto rounded-lg border border-slate-300 overflow-hidden mt-14">
-      <table cdk-table [dataSource]="store.users()" class="min-w-full bg-slate-50">
+      <table cdk-table [dataSource]="store.employeesWithRoles()" class="min-w-full bg-slate-50">
         <ng-container cdkColumnDef="name">
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-left font-semibold text-slate-700">Nombre</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle text-slate-700 bg-white font-medium">
-            {{ row.name }}
+            {{ row.profile.name }}
           </td>
         </ng-container>
         <ng-container cdkColumnDef="role">
@@ -28,7 +28,7 @@
           </th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle text-slate-700 bg-white">
             <span class="inline-block rounded-full bg-blue-100 text-blue-800 text-xs px-3 py-1 font-semibold">
-              {{ getRoleName(row.role) }}
+              {{ row.role?.name ?? 'N/A' }}
             </span>
           </td>
         </ng-container>
@@ -36,7 +36,7 @@
           <th cdk-header-cell *cdkHeaderCellDef class="px-6 py-4 text-center font-semibold text-slate-700">Acciones</th>
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
             <div class="flex justify-center gap-2">
-              <button [routerLink]="['/home/users', row.id, 'edit']" class="cursor-pointer">
+              <button [routerLink]="['/home/users', row.uid, 'edit']" class="cursor-pointer">
                 <span class="material-symbols-rounded">visibility</span>
               </button>
             </div>
@@ -51,7 +51,7 @@
       </table>
     </div>
   }
-  @if (!store.isLoading() && store.users().length === 0) {
+  @if (!store.isLoading() && store.employees().length === 0) {
     <div class="text-center text-slate-500 py-8">No hay usuarios registrados.</div>
   }
 </div>
