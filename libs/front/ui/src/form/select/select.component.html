@@ -27,9 +27,9 @@
       aria-orientation="vertical"
       [attr.aria-labelledby]="uniqueId + '-trigger'"
     >
-      @if (placeholder()) {
+      <!-- @if (placeholder()) {
         <div role="option" data-value="" aria-selected="true" aria-disabled="true" disabled data-placeholder>{{ placeholder() }}</div>
-      }
+      } -->
       <ng-content select="ui-option"></ng-content>
     </div>
   </div>

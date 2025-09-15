@@ -3,74 +3,78 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSuperAdmin(request) {
-      return request.auth != null && request.auth.token.role == 'super_admin';
+    match /{document=**} {
+      allow read, write: if true;
     }
 
-    function isAuth(request) {
-      return request.auth != null;
-    }
+  //   function isSuperAdmin(request) {
+  //     return request.auth != null && request.auth.token.role == 'super_admin';
+  //   }
 
-    function isFacilityAdmin(request, facilityId) {
-      return isAuth(request) && 
-      exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)) &&
-      get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.isAdmin == true;
-    }
+  //   function isAuth(request) {
+  //     return request.auth != null;
+  //   }
 
-    function isFacilityEmployee(request, facilityId) {
-      return isAuth(request) && 
-      exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid));
-    }
+  //   function isFacilityAdmin(request, facilityId) {
+  //     return isAuth(request) &&
+  //     exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)) &&
+  //     get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.isAdmin == true;
+  //   }
 
-    function isFacilityClient(request, facilityId) {
-      return isAuth(request) && 
-      exists(/databases/$(database)/documents/facilities/$(facilityId)/clients/$(request.auth.uid));
-    }
+  //   function isFacilityEmployee(request, facilityId) {
+  //     return isAuth(request) &&
+  //     exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid));
+  //   }
 
-    function belongsToFacility(request, facilityId) {
-      return isFacilityEmployee(request, facilityId) || isFacilityClient(request, facilityId);
-    }
+  //   function isFacilityClient(request, facilityId) {
+  //     return isAuth(request) &&
+  //     exists(/databases/$(database)/documents/facilities/$(facilityId)/clients/$(request.auth.uid));
+  //   }
 
-    function getRoleData(request, facilityId) {
-      let employeeDoc = get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data;
-      return get(/databases/$(database)/documents/facilities/$(facilityId)/roles/$(employeeDoc.roleId)).data;
-    }
+  //   function belongsToFacility(request, facilityId) {
+  //     return isFacilityEmployee(request, facilityId) || isFacilityClient(request, facilityId);
+  //   }
 
-    function hasPermission(request, facilityId, section, permission) {
-      return isFacilityEmployee(request, facilityId) &&
-      (section in getRoleData(request, facilityId).permissions) &&
-      (permission in getRoleData(request, facilityId).permissions[section]);
-    }
+  //   function getRoleData(request, facilityId) {
+  //     let employeeDoc = get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data;
+  //     return get(/databases/$(database)/documents/facilities/$(facilityId)/roles/$(employeeDoc.roleId)).data;
+  //   }
 
-    function hasRoleAssigned(request, facilityId, roleId) {
-      return isFacilityEmployee(request, facilityId) &&
-      get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.roleId == roleId;
-    }
+  //   function hasPermission(request, facilityId, section, permission) {
+  //     return isFacilityEmployee(request, facilityId) &&
+  //     (section in getRoleData(request, facilityId).permissions) &&
+  //     (permission in getRoleData(request, facilityId).permissions[section]);
+  //   }
 
-    match /facilities/{facilityId}/{document=**} {
-      allow read, write: if isFacilityAdmin(request, facilityId);
-    }
+  //   function hasRoleAssigned(request, facilityId, roleId) {
+  //     return isFacilityEmployee(request, facilityId) &&
+  //     get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.roleId == roleId;
+  //   }
 
-    match /facilities/{facilityId} {
-      allow create: if isSuperAdmin(request);
-      allow read: if isSuperAdmin(request) || belongsToFacility(request, facilityId);
-      allow update: if isSuperAdmin(request);
-      allow delete: if isSuperAdmin(request);
+  //   match /facilities/{facilityId}/{document=**} {
+  //     allow read, write: if isFacilityAdmin(request, facilityId);
+  //   }
 
-      match /roles/{roleId} {
-        allow create: if hasPermission(request, facilityId, 'roles', 'create');
-        allow update: if hasPermission(request, facilityId, 'roles', 'update');
-        allow delete: if hasPermission(request, facilityId, 'roles', 'delete');
-        allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'roles', 'read') || hasRoleAssigned(request, facilityId, roleId);
-      }
-    }
+  //   match /facilities/{facilityId} {
+  //     allow create: if isSuperAdmin(request);
+  //     allow read: if isSuperAdmin(request) || belongsToFacility(request, facilityId);
+  //     allow update: if isSuperAdmin(request);
+  //     allow delete: if isSuperAdmin(request);
 
-    match /{path=**}/employees/{uid} {
-      allow read: if isAuth(request);
-    }
+  //     match /roles/{roleId} {
+  //       allow create: if hasPermission(request, facilityId, 'roles', 'create');
+  //       allow update: if hasPermission(request, facilityId, 'roles', 'update');
+  //       allow delete: if hasPermission(request, facilityId, 'roles', 'delete');
+  //       allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'roles', 'read') || hasRoleAssigned(request, facilityId, roleId);
+  //     }
+  //   }
 
-    match /profiles/{uid} {
-      allow read, write: if isAuth(request) && request.auth.uid == uid;
-    }
+  //   match /{path=**}/employees/{uid} {
+  //     allow read: if isAuth(request);
+  //   }
+
+  //   match /profiles/{uid} {
+  //     allow read, write: if isAuth(request) && request.auth.uid == uid;
+  //   }
   }
 }

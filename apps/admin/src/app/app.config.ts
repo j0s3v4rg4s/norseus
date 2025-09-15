@@ -1,7 +1,6 @@
 import { ApplicationConfig, provideZoneChangeDetection, ErrorHandler } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
-import { supabaseProvider } from '@front/supabase';
 import { environment } from '../environments/environment';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
@@ -16,10 +15,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes),
     provideLogger({ production: environment.production }),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
-    supabaseProvider({
-      url: environment.supabase.url,
-      key: environment.supabase.apiKey,
-    }),
     provideAnimations(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => {

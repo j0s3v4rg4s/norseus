@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "format:changed": "(git diff --name-only --diff-filter=ACM; git ls-files --others --exclude-standard) | sort -u | grep -v \"$(cat .prettierignore | tr '\\n' '|' | sed 's/|$//')\" | xargs -r npx prettier --write"
+    "format:changed": "(git diff --name-only --diff-filter=ACM; git ls-files --others --exclude-standard) | sort -u | grep -v \"$(cat .prettierignore | tr '\\n' '|' | sed 's/|$//')\" | xargs -r npx prettier --write",
+    "firebase:emulators": "firebase emulators:start --import=./firebase-export"
   },
   "private": true,
   "dependencies": {

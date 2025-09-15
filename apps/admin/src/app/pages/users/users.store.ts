@@ -1,7 +1,7 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState, withComputed } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { pipe, switchMap, tap, catchError, EMPTY } from 'rxjs';
+import { pipe, switchMap, tap, catchError, EMPTY, filter, distinctUntilChanged, combineLatest } from 'rxjs';
 
 import { EmployeeService } from '@front/core/employee';
 import { EmployeeModel } from '@models/facility';
@@ -9,6 +9,7 @@ import { Role } from '@front/core/roles';
 import { RolesService } from '@front/core/roles';
 import { CreateEmployeeRequest, DeleteEmployeeRequest } from '@models/facility';
 import { SessionSignalStore } from '@front/state/session';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 export type EmployeeProfile = EmployeeModel & {
   role?: Role | null;
@@ -50,22 +51,42 @@ export const UsersStore = signalStore(
     const sessionStore = inject(SessionSignalStore);
     const facilityId = computed(() => sessionStore.selectedFacility()?.id);
 
+    const facilityId$ = toObservable(facilityId).pipe(
+      filter((id): id is string => !!id),
+      distinctUntilChanged(),
+    );
+
+    const loadEmployee = rxMethod<string>((clientId$) =>
+      combineLatest([clientId$, facilityId$]).pipe(
+        tap(() => {
+          patchState(store, { isLoading: true })
+        }),
+        switchMap(([clientId, facilityId]) => employeeService.getEmployee(facilityId, clientId)),
+        tap((employee) => {
+          patchState(store, { employee: employee, isLoading: false })
+        }),
+        catchError((err) => {
+           console.error(err);
+          patchState(store, { isLoading: false, errorMessage: 'Error loading employee.' });
+          return EMPTY;
+        }),
+      ),
+    );
+
     const loadRoles = rxMethod<string>(
       pipe(
-        tap(() => patchState(store, { isLoading: true })),
         switchMap((id) =>
           rolesService.getAllRoles(id).pipe(
             tap({
               next: (roles: Role[]) => patchState(store, { roles }),
-              finalize: () => patchState(store, { isLoading: false }),
             }),
             catchError(() => {
-              patchState(store, { isLoading: false, errorMessage: 'Error loading roles.' });
+              patchState(store, { errorMessage: 'Error loading roles.' });
               return EMPTY;
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     );
 
     const loadEmployees = rxMethod<string>(
@@ -79,28 +100,10 @@ export const UsersStore = signalStore(
             catchError(() => {
               patchState(store, { isLoading: false, errorMessage: 'Error loading employees.' });
               return EMPTY;
-            })
-          )
-        )
-      ) 
-    );
-
-    const loadEmployee = rxMethod<string>(
-      pipe(
-        tap(() => patchState(store, { isLoading: true })),
-        switchMap((employeeId) =>
-          employeeService.getEmployee(facilityId() || '', employeeId).pipe(
-            tap({
-              next: (employee: EmployeeModel | undefined) => patchState(store, { employee: employee as EmployeeProfile }),
-              finalize: () => patchState(store, { isLoading: false }),
             }),
-            catchError(() => {
-              patchState(store, { isLoading: false, errorMessage: 'Error loading employee.' });
-              return EMPTY;
-            })
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
 
     const createEmployee = async (payload: Omit<CreateEmployeeRequest, 'facilityId'>) => {
@@ -176,5 +179,5 @@ export const UsersStore = signalStore(
       updateEmployee,
       deleteEmployee,
     };
-  })
+  }),
 );

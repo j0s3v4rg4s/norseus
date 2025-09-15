@@ -1,4 +1,4 @@
-import { PermissionAction, PermissionSection } from '../enums/permissions.enums';
+import { PermissionAction, PermissionSection } from '@models/permissions';
 
 export interface Permission {
   section: PermissionSection;

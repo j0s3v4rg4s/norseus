@@ -3,7 +3,8 @@ import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { firstValueFrom } from 'rxjs';
 
 import { RolesService } from '@front/core/roles';
-import { PermissionAction, PermissionSection, Role as RolesLibRole, PermissionsBySection } from '@front/core/roles';
+import { PermissionAction, PermissionSection } from '@models/permissions';
+import { Role as RolesLibRole, PermissionsBySection } from '@front/core/roles';
 import { SessionSignalStore } from '@front/state/session';
 import { LoggerService } from '@front/utils/logger';
 

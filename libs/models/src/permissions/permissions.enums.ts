@@ -9,5 +9,3 @@ export enum PermissionAction {
   UPDATE = 'update',
   DELETE = 'delete',
 }
-
-

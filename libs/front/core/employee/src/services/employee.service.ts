@@ -7,9 +7,10 @@ import {
   doc,
   docData,
   updateDoc,
+  getDoc,
 } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { Observable } from 'rxjs';
+import { catchError, from, map, Observable, throwError } from 'rxjs';
 
 import {
   CreateEmployeeRequest,
@@ -48,7 +49,9 @@ export class EmployeeService {
 
   getEmployee(facilityId: string, employeeId: string) {
     const employeeDocRef = doc(this.employeeCollection(facilityId), employeeId);
-    return docData(employeeDocRef);
+    return from(getDoc(employeeDocRef)).pipe(
+      map((doc) => doc.data() as EmployeeModel),
+    );
   }
 
   async createEmployee(payload: CreateEmployeeRequest): Promise<unknown> {

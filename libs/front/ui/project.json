@@ -4,7 +4,7 @@
   "sourceRoot": "libs/front/ui/src",
   "prefix": "ui",
   "projectType": "library",
-  "tags": [],
+  "tags": ["front"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

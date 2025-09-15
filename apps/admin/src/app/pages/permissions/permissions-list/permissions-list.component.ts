@@ -4,7 +4,8 @@ import { CdkTableModule } from '@angular/cdk/table';
 import { RouterModule } from '@angular/router';
 
 
-import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, PermissionsBySection, PermissionSection, PermissionAction } from '@front/core/roles';
+import { PERMISSIONS_ACTIONS_DICTIONARY, PERMISSIONS_SECTIONS_DICTIONARY, PermissionsBySection } from '@front/core/roles';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { permissionsStore } from '../permissions.store';
 import { SessionSignalStore } from '@front/state/session';
 

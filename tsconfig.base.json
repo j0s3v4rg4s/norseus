@@ -24,6 +24,7 @@
       "@front/utils/logger": ["libs/front/utils/logger/src/index.ts"],
       "@models/facility": ["libs/models/src/facility/index.ts"],
       "@models/user": ["libs/models/src/user/index.ts"],
+      "@models/permissions": ["libs/models/src/permissions/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]
     }
   },

@@ -13,9 +13,8 @@ import {
   PERMISSIONS_ACTIONS_DICTIONARY,
   PERMISSIONS_SECTIONS,
   PERMISSIONS_SECTIONS_DICTIONARY,
-  PermissionAction,
-  PermissionSection,
 } from '@front/core/roles';
+import { PermissionAction, PermissionSection } from '@models/permissions';
 import { permissionsStore } from '../permissions.store';
 
 @Component({

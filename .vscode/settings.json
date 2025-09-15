@@ -4,5 +4,6 @@
   "deno.enablePaths": ["./supabase/functions"],
   "deno.importMap": "./supabase/functions/import_map.json",
   "deno.enable": true,
-  "nxConsole.generateAiAgentRules": true
+  "nxConsole.generateAiAgentRules": true,
+  "angular.enable-strict-mode-prompt": false
 }

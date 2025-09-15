@@ -1,6 +1,6 @@
 import { EMPLOYEE_COLLECTION, FACILITY_COLLECTION, ROLE_COLLECTION } from '@models/facility';
 import { EmployeeModel } from '@models/facility';
-import { PermissionSection, PermissionAction } from '@front/core/roles';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 
 /**
  * Check if the user has a specific permission in a facility

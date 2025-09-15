@@ -65,5 +65,5 @@
       "command": "firebase deploy --only functions"
     }
   },
-  "tags": []
+  "tags": ["back"]
 }

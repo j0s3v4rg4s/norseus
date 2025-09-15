@@ -100,5 +100,9 @@
         "targetName": "eslint:lint"
       }
     }
-  ]
+  ],
+  "workspaceLayout": {
+    "appsDir": "apps",
+    "libsDir": "libs"
+  }
 }

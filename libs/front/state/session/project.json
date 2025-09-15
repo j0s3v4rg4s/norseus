@@ -4,7 +4,7 @@
   "sourceRoot": "libs/front/state/session/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": ["type:state", "scope:shared"],
+  "tags": ["front", "type:state", "scope:shared"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

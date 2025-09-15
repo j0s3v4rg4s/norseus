@@ -17,8 +17,20 @@ export default [
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?js$'],
           depConstraints: [
             {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
+              sourceTag: 'front',
+              onlyDependOnLibsWithTags: ['front', 'front:shared'],
+            },
+            {
+              sourceTag: 'back',
+              onlyDependOnLibsWithTags: ['back', 'back:shared'],
+            },
+            {
+              sourceTag: 'front:shared',
+              onlyDependOnLibsWithTags: ['front:shared'],
+            },
+            {
+              sourceTag: 'back:shared',
+              onlyDependOnLibsWithTags: ['back:shared'],
             },
           ],
         },

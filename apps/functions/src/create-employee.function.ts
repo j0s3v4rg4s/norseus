@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { CreateEmployeeRequest, EMPLOYEE_COLLECTION, EmployeeModel, FACILITY_COLLECTION } from '@models/facility';
 import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
 import { Timestamp } from 'firebase/firestore';
-import { PermissionSection, PermissionAction } from '@front/core/roles';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { z } from 'zod';
 import { checkUserPermission } from './utilities/permissions';
 

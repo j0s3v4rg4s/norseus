@@ -30,7 +30,7 @@ export class UsersEditComponent {
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
-      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
+      email: [{ value: '' , disabled: true}],
       roleId: ['', Validators.required],
     });
 

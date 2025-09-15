@@ -8,7 +8,7 @@
       <form [formGroup]="form" class="mb-8 grid gap-4">
         <div class="grid gap-3">
           <label for="name" class="label">Nombre completo</label>
-          <input class="input" id="name" formControlName="name" />
+          <input class="input" id="name" formControlName="name" type="text" />
         </div>
         <div class="grid gap-3">
           <label for="email" class="label">Correo electrónico</label>
@@ -16,13 +16,11 @@
         </div>
         <div class="grid gap-3">
           <label for="role" class="label">Rol</label>
-          <ui-select formControlName="roleId" placeholder="Seleccionar rol">
-            @for(role of store.roles(); track role.id){
-            <ui-option [value]="role.id">
-              {{ role.name }}
-            </ui-option>
+          <select class="select" id="role" formControlName="roleId">
+            @for (role of store.roles(); track role.id) {
+              <option [value]="role.id">{{ role.name }}</option>
             }
-          </ui-select>
+          </select>
         </div>
       </form>
       <div class="mt-6">
@@ -30,15 +28,11 @@
       </div>
     </div>
     @if (store.statusSaveMessage()) {
-    <div class="text-red-400 text-sm mb-2">{{ store.statusSaveMessage() }}</div>
+      <div class="text-red-400 text-sm mb-2">{{ store.statusSaveMessage() }}</div>
     }
     <div class="flex justify-between items-center">
       <button class="btn-secondary" routerLink="/home/users">Cancelar</button>
-      <button
-        class="btn"
-        (click)="saveUser()"
-        [disabled]="form.invalid || store.isLoading()"
-      >
+      <button class="btn" (click)="saveUser()" [disabled]="form.invalid || store.isLoading()">
         @if (store.isLoading()) {
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
         }

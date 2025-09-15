@@ -47,3 +47,5 @@ Thumbs.db
 .github/instructions/nx.instructions.md
 .cursor/mcp.json
 *.log
+
+firebase-export
