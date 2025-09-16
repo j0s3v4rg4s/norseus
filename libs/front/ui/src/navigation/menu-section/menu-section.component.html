@@ -1,0 +1,43 @@
+<nav class="flex flex-col gap-2">
+  <h2
+    class="text-xs uppercase flex text-gray-500 font-bold"
+    [class]="{
+      'xl:justify-center': !isExpanded(),
+      'justify-start': isExpanded(),
+    }"
+  >
+    @if (isExpanded()) {
+      {{ title() }}
+    } @else {
+      <i class="material-symbols-rounded size-6">more_horiz</i>
+    }
+  </h2>
+  <ul class="flex flex-col gap-1">
+    @for (item of items(); track $index; let i = $index) {
+      @if (item.subItems) {
+        <button
+          class="menu-item group cursor-pointer menu-item-inactive"
+          (click)="handleToggleSubmenu(i)"
+          [class.menu-item-active]="openSubmenu() === section() + '-' + i"
+          [class.menu-item-inactive]="openSubmenu() !== section() + '-' + i"
+        >
+          <i class="material-symbols-rounded menu-item-icon">{{ item.icon }}</i>
+          <span>{{ item.label }}</span>
+          <i
+            class="material-symbols-rounded menu-item-icon ml-auto transition-transform duration-200"
+            [class.rotate-0]="openSubmenu() !== section() + '-' + i"
+            [class.rotate-90]="openSubmenu() === section() + '-' + i"
+          >
+            chevron_right
+          </i>
+        </button>
+        <ui-sub-menu-container
+          [isOpen]="openSubmenu() === section() + '-' + i"
+          [items]="item.subItems">
+        </ui-sub-menu-container>
+      } @else {
+        <ui-menu-item-link [item]="item"></ui-menu-item-link>
+      }
+    }
+  </ul>
+</nav>

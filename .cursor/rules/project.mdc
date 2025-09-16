@@ -3,8 +3,17 @@ description:
 globs:
 alwaysApply: true
 ---
-# General rules for this project
+# General Rules for All Projects
 
-* This project is build on nx monorepo
-* The apps of this projects is build with angular v19
-* This project already have installed tailwindcss v4, try to use tailwindcss classes like first options always that you can, if is not the best option use scss when geenrate code
+1. **Check the `AGENTS.md` file first**
+   - If an `AGENTS.md` file exists in the root of the project, it is considered the **first source of truth**.
+   - Before asking or making assumptions, **always review this file** carefully.
+   - Every instruction, convention, or process described there **must be followed exactly as written**.
+
+2. **Follow AGENTS.md over everything else**
+   - In case of conflicts between `AGENTS.md` and other documentation, the content of `AGENTS.md` takes priority.
+   - Only deviate if there is explicit approval from the project maintainers.
+
+3. **Keep it updated**
+   - If you notice outdated information or missing details, raise it to the team.
+   - Updates to `AGENTS.md` must be reviewed and approved before merging.

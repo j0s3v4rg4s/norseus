@@ -1,0 +1,12 @@
+<div
+  class="overflow-hidden sub-menu-container relative"
+  [class]="{ 'h-max': isOpen(), 'h-0': !isOpen() }"
+>
+  <ul class="mt-2 space-y-1 ml-9">
+    @for (subItem of items(); track $index; let j = $index) {
+      <li>
+        <ui-menu-item-link [item]="subItem"></ui-menu-item-link>
+      </li>
+    }
+  </ul>
+</div>
