@@ -1,6 +1,7 @@
 export interface MenuItem {
   label: string;
   icon: string;
-  route: string;
+  route?: string;
   isExternal?: boolean;
+  subItems?: MenuItem[];
 }

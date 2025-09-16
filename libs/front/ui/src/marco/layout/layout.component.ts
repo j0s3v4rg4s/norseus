@@ -6,17 +6,19 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 
-import { NavItemComponent } from '../../actions';
 import { MenuItem } from './models/menu.model';
+import { LayoutStore } from './layout.store';
+import { CommonModule } from '@angular/common';
+import { SidebarComponent } from "../../navigation";
 
 @Component({
   selector: 'ui-layout',
-  imports: [MatSidenavModule, NavItemComponent],
+  imports: [MatSidenavModule, CommonModule, SidebarComponent, RouterModule],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,9 +27,6 @@ export class LayoutComponent {
   /* ************************************************************************** */
   /* * PUBLIC INPUTS AND OUTPUTS                                              * */
   /* ************************************************************************** */
-
-  readonly menuTitle = input<string>('');
-  readonly menuItems = input<MenuItem[]>([]);
 
   /* ************************************************************************** */
   /* * PRIVATE VIEW QUERIES                                                   * */
@@ -41,6 +40,7 @@ export class LayoutComponent {
 
   private breakpointObserver = inject(BreakpointObserver);
   private router = inject(Router);
+  layoutStore = inject(LayoutStore);
 
   /* ************************************************************************** */
   /* * PUBLIC SIGNALS                                                         * */
@@ -67,11 +67,6 @@ export class LayoutComponent {
       this.sideNav()?.close();
     }
   }
-
-  isMenuItemActive = (item: MenuItem) => {
-    const url = this.currentUrl();
-    return url.includes(item.route);
-  };
 
   openSidenav() {
     if (this.isHandset()) {

@@ -30,7 +30,11 @@ const initialState: SessionState = {
 export const SessionSignalStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withMethods((store, profileService = inject(ProfileService), facilityService = inject(FacilityService), loggerService = inject(LoggerService)) => {
+  withMethods((store) => {
+    const profileService = inject(ProfileService);
+    const facilityService = inject(FacilityService);
+    const loggerService = inject(LoggerService);
+
     const handleServiceError = (error: unknown, methodName: string) => {
       loggerService.error(`🚨 Session Store Error (${methodName}):`, {
         message: error instanceof Error ? error.message : String(error),

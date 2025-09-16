@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, ErrorHandler } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection, ErrorHandler } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -11,7 +11,7 @@ import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angul
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideZonelessChangeDetection(),
     provideRouter(appRoutes),
     provideLogger({ production: environment.production }),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },

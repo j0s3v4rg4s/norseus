@@ -1,0 +1,33 @@
+.menu-item {
+  @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-sm transition-colors duration-200;
+}
+
+.menu-item-inactive {
+  @apply text-neutral-500;
+}
+
+.menu-item-inactive:hover {
+  background-color: var(--sidebar-accent);
+  @apply text-gray-800;
+}
+
+.menu-item-active {
+  background-color: var(--sidebar-primary-foreground);
+  color: var(--sidebar-primary);
+}
+
+.menu-item-active:hover {
+  background-color: var(--sidebar-primary-foreground);
+  color: var(--sidebar-primary);
+}
+
+.menu-item-icon {
+  @apply w-6 h-6;
+}
+
+.sub-menu-container::before {
+  content: '';
+  @apply absolute top-2 bottom-0 w-px;
+  left: 9%;
+  background-color: var(--sidebar-border);
+}

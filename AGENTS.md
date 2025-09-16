@@ -34,24 +34,103 @@ norseus/
 
 ### Angular 20.1.3 Best Practices
 
+#### TypeScript Best Practices
+- **Strict Type Checking**: Use strict type checking configuration
+- **Type Inference**: Prefer type inference when the type is obvious
+- **Avoid `any` Type**: Avoid the `any` type; use `unknown` when type is uncertain
+- **Type Safety**: Ensure proper TypeScript typing with interfaces and models
+
 #### Component Architecture
 - **Standalone Components**: All components are standalone by default (no `standalone: true` needed in v20.1.3)
-- **File Structure**: Separate `.ts`, `.html`, and `.scss` files for components
+- **Single Responsibility**: Keep components small and focused on a single responsibility
+- **File Structure**: Separate `.ts`, `.html`, and `.scss` files for components (prefer inline templates for small components)
 - **Dependency Injection**: Use `inject()` function instead of constructor injection
-- **Signals**: Prefer signal-based inputs (`input()`) and outputs (`output()`) over decorators
+- **Change Detection**: Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
+- **Host Bindings**: Do NOT use `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
+
+#### Component File Structure and Index Files
+
+**CRITICAL**: Every Angular component, directive, pipe, or service MUST have its corresponding `index.ts` file for proper module organization and clean imports.
+
+##### Standard Component Structure
+```
+component-name/
+├── component-name.component.ts
+├── component-name.component.html
+├── component-name.component.scss
+└── index.ts                    # REQUIRED - Export file
+```
+
+##### Index.ts File Requirements
+- **Purpose**: Centralizes exports for clean import statements
+- **Location**: Must be placed in the same directory as the component files
+- **Content**: Export the main component class and any related types/interfaces
+- **Naming**: Always named `index.ts` (lowercase)
+
+##### Import Benefits
+- **Clean Imports**: Enables `import { ComponentNameComponent } from './component-name'` instead of `import { ComponentNameComponent } from './component-name.component'`
+- **Module Organization**: Essential for proper library structure in Nx monorepo
+- **Tree Shaking**: Improves bundle optimization
+- **Consistency**: Maintains uniform import patterns across the project
+
+##### Library-Level Index Files
+Each library should have a main `index.ts` that exports all public components:
+
+```typescript
+// libs/front/ui/src/index.ts
+export * from './button';
+export * from './select';
+export * from './input';
+// ... other components
+```
+
+##### AI Agent Guidelines for Index Files
+1. **Always Create**: Never create a component without its `index.ts` file
+2. **Export Everything**: Export the main class and any related types/interfaces
+3. **Consistent Naming**: Use the same naming pattern as the component file
+4. **Update Parent**: When adding new components, update the parent library's `index.ts`
+5. **Type Exports**: Export TypeScript interfaces and types used by the component
+6. **Clean Structure**: Keep exports organized and well-documented
+
+##### Common Mistakes to Avoid
+- ❌ Creating components without `index.ts` files
+- ❌ Forgetting to update parent `index.ts` files when adding new components
+- ❌ Not exporting related types and interfaces
+- ❌ Inconsistent naming between component files and index exports
+
+#### Signal-Based Development
+- **Inputs/Outputs**: Use `input()` and `output()` functions instead of decorators
+- **Computed State**: Use `computed()` for derived state
 - **State Management**: Use Angular Signals for reactive state management
+- **Signal Updates**: Do NOT use `mutate` on signals, use `update` or `set` instead
+- **Pure Transformations**: Keep state transformations pure and predictable
 
 #### Template Standards
-- **Control Flow**: Use built-in control flow (`@if`, `@for`, `@switch`) instead of structural directives
+- **Control Flow**: Use built-in control flow (`@if`, `@for`, `@switch`) instead of structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`)
 - **Track Expressions**: Always include `track` in `@for` loops for performance
 - **Template Variables**: Use `@let` for local variables and `#var` for template references
 - **Empty States**: Include `@empty` blocks with `@for` loops
+- **Template Logic**: Keep templates simple and avoid complex logic
+- **Async Pipe**: Use the async pipe to handle observables
+- **Class Bindings**: Do NOT use `ngClass`, use `class` bindings instead
+- **Style Bindings**: Do NOT use `ngStyle`, use `style` bindings instead
+
+#### Forms and Images
+- **Reactive Forms**: Prefer Reactive forms instead of Template-driven ones
+- **Image Optimization**: Use `NgOptimizedImage` for all static images (does not work for inline base64 images)
 
 #### Naming Conventions
 - **Files**: `feature.type.ts` pattern (e.g., `user-profile.component.ts`)
 - **Classes**: PascalCase with descriptive names
 - **Variables/Methods**: camelCase
 - **Constants**: UPPER_SNAKE_CASE
+
+#### Comment Standards
+- **No Inline Comments**: Do NOT add inline comments (`//` or `/* */`) in any files
+- **JSDoc Only**: The ONLY comments allowed are JSDoc comments (`/** */`) in `.ts` files
+- **JSDoc Purpose**: Use JSDoc for documenting functions, classes, interfaces, and public APIs
+- **Clean Code**: Write self-documenting code with clear variable and function names instead of relying on comments
+- **Documentation**: For complex logic, prefer clear code structure and meaningful names over explanatory comments
 
 ### Styling Guidelines
 
@@ -98,9 +177,11 @@ The project includes a custom UI component library with the following components
 ### Code Organization
 
 #### Services
-- Use `@Injectable({ providedIn: 'root' })` for singleton services
-- Delegate data operations to dedicated services
-- Keep components lean by moving complex logic to services
+- **Single Responsibility**: Design services around a single responsibility
+- **Singleton Services**: Use `@Injectable({ providedIn: 'root' })` for singleton services
+- **Dependency Injection**: Use the `inject()` function instead of constructor injection
+- **Data Operations**: Delegate data operations to dedicated services
+- **Component Logic**: Keep components lean by moving complex logic to services
 
 #### Models and Interfaces
 - All model definitions reside under `@models/` namespace
@@ -167,43 +248,7 @@ pnpm nx build functions
 - Rules are defined in `firestore.rules`
 - Indexes are configured in `firestore.indexes.json`
 
-### Development Workflow
 
-1. **Start Services**: Run Firebase emulators
-2. **Build Application**: Use `pnpm nx build app-name` or `pnpm nx serve app-name`
-3. **Access Applications**:
-   - Frontend Apps: `http://localhost:4200` (default port, may vary)
-   - Firebase UI: `http://localhost:4000`
-
-### Common Nx Commands
-
-These commands work for any app in the monorepo (replace `app-name` with the actual app name):
-
-```bash
-# Generate new component
-pnpm nx generate @nx/angular:component component-name --project=app-name
-
-# Generate new service
-pnpm nx generate @nx/angular:service service-name --project=app-name
-
-# Generate new library
-pnpm nx generate @nx/angular:library library-name
-
-# Lint code
-pnpm nx lint app-name
-
-# Build for production
-pnpm nx build app-name --configuration=production
-
-# Run tests
-pnpm nx test app-name
-
-# Show project graph
-pnpm nx graph
-
-# List all projects
-pnpm nx show projects
-```
 
 
 ## Library Management and Validation
@@ -227,19 +272,50 @@ grep "library-name" package.json
 # - Use get-library-docs with the specific version
 ```
 
-### Current Key Dependencies
-- `@angular/*`: Angular 20.1.3 framework
-- `@angular/fire`: Firebase integration
-- `@ngrx/signals`: State management
-- `tailwindcss`: CSS framework
-- `basecoat-css`: UI component foundation
-- `firebase`: Backend services
-- `@nx/*`: Nx monorepo tools
+## MCP (Model Context Protocol) Integration
 
-### Development Dependencies
-- `@nx/*`: Nx monorepo tools
-- `firebase-tools`: Firebase CLI
-- `typescript`: TypeScript compiler
+### Angular MCP for Nx Workspace Management
+
+The project is configured with MCP servers that provide real-time access to Angular and Nx documentation and workspace information. This ensures AI agents always have access to the most current information about Angular best practices and Nx monorepo management.
+
+#### Available MCP Tools
+
+**Nx MCP Server (`nx-mcp`)**
+- **Workspace Analysis**: Get comprehensive workspace information including project graph, dependencies, and configuration
+- **Project Details**: Retrieve detailed project configuration for any app or library in the monorepo
+- **Generator Management**: Access available generators and their schemas for code generation
+- **Task Management**: Monitor running tasks and their outputs
+- **Visualization**: Generate project and task dependency graphs
+- **Documentation**: Access up-to-date Nx documentation for configuration and best practices
+
+**Angular MCP Server (`angular-cli`)**
+- **Best Practices**: Retrieve current Angular best practices and style guide recommendations
+- **Project Listing**: List all Angular applications and libraries in the workspace
+- **Documentation Search**: Search official Angular documentation for specific topics and APIs
+
+**Context7 MCP Server (`context7`)**
+- **Library Documentation**: Get comprehensive documentation for any library or framework
+- **Version-Specific Information**: Access documentation for specific library versions
+- **API References**: Retrieve detailed API documentation and usage examples
+
+#### Usage Guidelines for AI Agents
+
+1. **Always Use MCP First**: Before making assumptions about Angular or Nx functionality or any other installer library, use the MCP tools to get current information
+2. **Workspace Analysis**: Use `nx_workspace` to understand the current workspace structure and any configuration issues
+3. **Project-Specific Help**: Use `nx_project_details` to get detailed information about specific projects before making changes
+4. **Generator Discovery**: Use `nx_generators` and `nx_generator_schema` to find the right generators for code generation tasks
+5. **Documentation Lookup**: Use `nx_docs` and `angular_search_documentation` for current best practices and API information
+6. **Real-Time Monitoring**: Use `nx_current_running_tasks_details` to monitor build, test, or other running processes
+
+
+#### Benefits of MCP Integration
+
+- **Always Current**: Access to the latest Angular and Nx documentation and features
+- **Workspace-Aware**: Real-time information about the specific workspace configuration
+- **Error Prevention**: Up-to-date information helps prevent configuration and compatibility issues
+- **Best Practices**: Access to current Angular style guide and Nx best practices
+- **Efficient Development**: Faster code generation and project management with accurate tooling
+
 
 ## Important Notes for AI Agents
 
@@ -256,6 +332,19 @@ grep "library-name" package.json
 11. **Check package.json first** before suggesting new libraries
 12. **Use Context7 MCP** for library documentation when version is unknown
 13. **Be app-agnostic** - commands and examples should work for any app in the monorepo
+14. **Use OnPush change detection** for all components
+15. **Prefer reactive forms** over template-driven forms
+16. **Use NgOptimizedImage** for all static images
+17. **Avoid ngClass and ngStyle** - use class and style bindings instead
+18. **Use computed() for derived state** in components
+19. **Keep templates simple** and avoid complex logic
+20. **Use host object** instead of @HostBinding and @HostListener decorators
+21. **Use MCP tools first** - Always consult nx_workspace, nx_docs, and angular_search_documentation before making assumptions
+22. **Leverage real-time workspace info** - Use nx_project_details and nx_current_running_tasks_details for accurate project state
+23. **Follow MCP workflow** - Use generators through nx_run_generator with proper schemas from nx_generator_schema
+24. **CRITICAL: Always create index.ts files** - Every component, directive, pipe, or service MUST have its corresponding `index.ts` file for proper module organization and clean imports
+25. **Update parent index files** - When creating new components, always update the parent library's `index.ts` file to export the new component
+26. **NO inline comments** - Do NOT add inline comments (`//` or `/* */`) in any files. Only JSDoc comments (`/** */`) are allowed in `.ts` files
 
 ## Project-Specific Patterns
 

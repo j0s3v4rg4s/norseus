@@ -1,20 +1,15 @@
-<mat-sidenav-container class="h-dvh" autosize>
-  <mat-sidenav
-    [mode]="isHandset() ? 'over' : 'side'"
-    [opened]="isHandset() ? false : true"
-    #sideNav
-    class=""
+<div class="min-h-screen">
+  <div>
+    <ui-sidebar></ui-sidebar>
+  </div>
+  <div
+    class="transition-all duration-300 ease-in-out"
+    [ngClass]="{
+      'xl:ml-[290px]': layoutStore.isExpanded(),
+      'xl:ml-[90px]': !layoutStore.isExpanded(),
+      'ml-0': layoutStore.isMobileOpen(),
+    }"
   >
-    <div class="p-4 flex flex-col gap-1.5">
-      @if (menuTitle()) {
-        <span class="font-medium text-neutral-900 block mb-4 mt-5">{{ menuTitle() }}</span>
-      }
-      @for (item of menuItems(); track item.route) {
-        <ui-nav-item [item]="item" [isActive]="isMenuItemActive(item)"></ui-nav-item>
-      }
-    </div>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <ng-content></ng-content>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+    <router-outlet></router-outlet>
+  </div>
+</div>
