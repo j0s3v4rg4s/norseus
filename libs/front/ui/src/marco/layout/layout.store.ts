@@ -8,14 +8,16 @@ type LayoutState = {
   title: string | null;
   menuItems: MenuItem[];
   logo: string | null;
+  icon: string | null;
 }
 
 const initialState: LayoutState  ={
-  isExpanded: true,
+  isExpanded: false,
   isMobileOpen: false,
   menuItems: [],
   logo: null,
   title: null,
+  icon: null,
 }
 
 export const LayoutStore = signalStore(
@@ -32,5 +34,6 @@ export const LayoutStore = signalStore(
     setTitle: (value: string) => patchState(store, { title: value }),
     setMenuItems: (value: MenuItem[]) => patchState(store, { menuItems: value }),
     setLogo: (value: string) => patchState(store, { logo: value }),
+    setIcon: (value: string) => patchState(store, { icon: value }),
   }))
 )

@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuItem } from '../../marco/layout/models/menu.model';
 import { MenuItemLinkComponent } from '../menu-item-link';
+import { LayoutStore } from '../../marco/layout/layout.store';
 
 @Component({
   selector: 'ui-sub-menu-container',
@@ -12,7 +13,11 @@ import { MenuItemLinkComponent } from '../menu-item-link';
   standalone: true,
 })
 export class SubMenuContainerComponent {
-  // Inputs usando signals
   isOpen = input.required<boolean>();
   items = input.required<MenuItem[]>();
+  layoutStore = inject(LayoutStore);
+
+  get isExpanded(): boolean {
+    return this.layoutStore.visibleLargeMenu();
+  }
 }

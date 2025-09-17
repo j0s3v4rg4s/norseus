@@ -24,10 +24,3 @@
 .menu-item-icon {
   @apply w-6 h-6;
 }
-
-.sub-menu-container::before {
-  content: '';
-  @apply absolute top-2 bottom-0 w-px;
-  left: 9%;
-  background-color: var(--sidebar-border);
-}

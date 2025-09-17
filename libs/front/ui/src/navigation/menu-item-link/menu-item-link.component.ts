@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from '../../marco/layout/models/menu.model';
+import { LayoutStore } from '../../marco/layout/layout.store';
 
 @Component({
   selector: 'ui-menu-item-link',
@@ -12,11 +13,14 @@ import { MenuItem } from '../../marco/layout/models/menu.model';
   standalone: true,
 })
 export class MenuItemLinkComponent {
-  // Inputs usando signals
   item = input.required<MenuItem>();
   isActive = input<boolean>(false);
+  layoutStore = inject(LayoutStore);
 
-  // Computed properties para facilitar el template
+  get isExpanded(): boolean {
+    return this.layoutStore.visibleLargeMenu();
+  }
+
   get isExternal(): boolean {
     return this.item().isExternal ?? false;
   }

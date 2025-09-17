@@ -1,20 +1,26 @@
 @if (isExternal) {
   <a
     class="menu-item group cursor-pointer menu-item-inactive"
+    [class.justify-center]="!isExpanded"
     [href]="route"
     target="_blank"
     routerLinkActive="menu-item-active"
   >
     <i class="material-symbols-rounded menu-item-icon">{{ icon }}</i>
-    <span>{{ label }}</span>
+    @if (isExpanded) {
+      <span>{{ label }}</span>
+    }
   </a>
 } @else {
   <a
     class="menu-item group cursor-pointer menu-item-inactive"
     [routerLink]="route"
     routerLinkActive="menu-item-active"
+    [class.justify-center]="!isExpanded"
   >
     <i class="material-symbols-rounded menu-item-icon">{{ icon }}</i>
-    <span>{{ label }}</span>
+    @if (isExpanded) {
+      <span>{{ label }}</span>
+    }
   </a>
 }

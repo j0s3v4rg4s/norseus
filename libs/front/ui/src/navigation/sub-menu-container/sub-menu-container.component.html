@@ -1,8 +1,8 @@
 <div
-  class="overflow-hidden sub-menu-container relative"
-  [class]="{ 'h-max': isOpen(), 'h-0': !isOpen() }"
+  class="overflow-hidden relative"
+  [class]="{ 'h-max': isOpen(), 'h-0': !isOpen(), 'sub-menu-container': isExpanded }"
 >
-  <ul class="mt-2 space-y-1 ml-9">
+  <ul class="space-y-1" [class]="{ 'ml-9': isExpanded }">
     @for (subItem of items(); track $index; let j = $index) {
       <li>
         <ui-menu-item-link [item]="subItem"></ui-menu-item-link>

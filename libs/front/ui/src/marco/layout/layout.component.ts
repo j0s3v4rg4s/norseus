@@ -1,24 +1,17 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 
-import { MenuItem } from './models/menu.model';
 import { LayoutStore } from './layout.store';
 import { CommonModule } from '@angular/common';
-import { SidebarComponent } from "../../navigation";
+import { SidebarComponent, UiHeaderComponent } from '../../navigation';
 
 @Component({
   selector: 'ui-layout',
-  imports: [MatSidenavModule, CommonModule, SidebarComponent, RouterModule],
+  imports: [MatSidenavModule, CommonModule, SidebarComponent, RouterModule, UiHeaderComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,16 +40,13 @@ export class LayoutComponent {
   /* ************************************************************************** */
 
   readonly isHandset = toSignal(
-    this.breakpointObserver
-      .observe(Breakpoints.Handset)
-      .pipe(map((result) => result.matches)),
+    this.breakpointObserver.observe(Breakpoints.Handset).pipe(map((result) => result.matches)),
     { initialValue: false },
   );
 
-  readonly currentUrl = toSignal(
-    this.router.events.pipe(map(() => this.router.url)),
-    { initialValue: this.router.url },
-  );
+  readonly currentUrl = toSignal(this.router.events.pipe(map(() => this.router.url)), {
+    initialValue: this.router.url,
+  });
 
   /* ************************************************************************** */
   /* * PUBLIC METHODS                                                         * */

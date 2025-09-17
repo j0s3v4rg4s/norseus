@@ -1,0 +1,9 @@
+.sub-menu-container::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0;
+  width: 1px;
+  left: 9%;
+  background-color: var(--sidebar-border);
+}

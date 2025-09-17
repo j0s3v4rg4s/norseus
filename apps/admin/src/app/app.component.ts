@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
     this.loadUserData();
     this.layoutStore.setMenuItems(this.menuItems);
     this.layoutStore.setLogo('logos/logo_name.svg');
+    this.layoutStore.setIcon('logos/icon.svg');
   }
 
   private loadUserData() {

@@ -5,11 +5,14 @@
   <div
     class="transition-all duration-300 ease-in-out"
     [ngClass]="{
-      'xl:ml-[290px]': layoutStore.isExpanded(),
+      'xl:ml-[250px]': layoutStore.isExpanded(),
       'xl:ml-[90px]': !layoutStore.isExpanded(),
       'ml-0': layoutStore.isMobileOpen(),
     }"
   >
-    <router-outlet></router-outlet>
+    <ui-header></ui-header>
+    <div class="p-4">
+      <router-outlet></router-outlet>
+    </div>
   </div>
 </div>
