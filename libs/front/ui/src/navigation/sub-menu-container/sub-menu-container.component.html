@@ -1,8 +1,9 @@
 <div
-  class="overflow-hidden relative"
-  [class]="{ 'h-max': isOpen(), 'h-0': !isOpen(), 'sub-menu-container': isExpanded }"
+  class="overflow-hidden relative transition-all duration-300 ease-in-out"
+  [style.height.px]="isOpen() ? subMenuListHeight() : 0"
+  [class.sub-menu-container]="isExpanded"
 >
-  <ul class="space-y-1" [class]="{ 'ml-9': isExpanded }">
+  <ul class="space-y-1" [class]="{ 'ml-9': isExpanded }" #subMenuList>
     @for (subItem of items(); track $index; let j = $index) {
       <li>
         <ui-menu-item-link [item]="subItem"></ui-menu-item-link>
