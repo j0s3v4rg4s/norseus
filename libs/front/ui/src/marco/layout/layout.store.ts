@@ -12,7 +12,7 @@ type LayoutState = {
 }
 
 const initialState: LayoutState  ={
-  isExpanded: false,
+  isExpanded: true,
   isMobileOpen: false,
   menuItems: [],
   logo: null,

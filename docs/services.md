@@ -1,6 +1,6 @@
 # Services — Feature Specification
 
-This document describes the new “Services” functionality for the admin app. A service represents something users can book at a facility (e.g., classes, therapy sessions). We start with the data model to enable creation and management of services and their weekly schedules. Bookings and permissions will be added later.
+This document describes the new "Services" functionality for the admin app. A service represents something users can book at a facility (e.g., classes, therapy sessions). We start with the data model to enable creation and management of services and their weekly schedules. The system integrates with Firebase Firestore and uses the existing RBAC (Role-Based Access Control) system for permissions.
 
 ## Purpose and main needs
 - Define services per facility with basic information and activation state.
@@ -21,78 +21,121 @@ This document describes the new “Services” functionality for the admin app. 
 
 ---
 
-## Solution: Database Design (MVP)
+## Solution: Firebase Firestore Design (MVP)
 
-Scope: Only entities for services and their weekly schedules with per-schedule rules. No bookings yet. Permissions/RLS will be defined later.
+Scope: Only entities for services and their weekly schedules with per-schedule rules. No bookings yet. Permissions are enforced through Firestore Security Rules using the existing RBAC system.
 
-### Enums
+### Data Types
 
-- **day_of_week**: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`
+- **day_of_week**: `DayOfWeek` enum (`'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'`)
 
-### Tables
+### Firestore Collections
 
-- **service**
-  - Columns: `id uuid PK default gen_random_uuid()`, `created_at timestamptz default now()`, `facility_id uuid not null` (FK → `facility(id)`), `name text not null`, `description text`, `is_active boolean not null default true`
+#### Services Collection
+**Path:** `facilities/{facilityId}/services/{serviceId}`
 
-- **service_schedule**
-  - Columns:
-    - `id uuid PK default gen_random_uuid()`
-    - `service_id uuid not null` (FK → `service(id)` on delete cascade)
-    - `day_of_week day_of_week not null`
-    - `start_time time not null`
-    - `duration_minutes integer not null check (duration_minutes > 0)`
-    - `employee_id uuid not null` (FK → `profile(id)`) — encargado del horario
-    - `capacity integer not null check (capacity > 0)`
-    - `min_reserve_minutes integer not null default 0 check (min_reserve_minutes >= 0)`
-    - `min_cancel_minutes integer not null default 0 check (min_cancel_minutes >= 0)`
-    - `is_active boolean not null default true`
+**Document Fields:**
+```typescript
+interface Service {
+  name: string;                    // Service name (e.g., "Yoga Class")
+  description?: string;            // Optional description
+  isActive: boolean;              // Service activation state (default: true)
+  createdAt: Timestamp;           // Creation timestamp
+  updatedAt: Timestamp;           // Last update timestamp
+}
+```
 
-### Relationships
+#### Service Schedules Subcollection
+**Path:** `facilities/{facilityId}/services/{serviceId}/schedules/{scheduleId}`
 
-- `service(facility_id)` → `facility(id)` (N–1)
-- `service_schedule(service_id)` → `service(id)` (N–1, cascade on delete)
-- `service_schedule(employee_id)` → `profile(id)` (N–1)
+**Document Fields:**
+```typescript
+interface ServiceSchedule {
+  dayOfWeek: DayOfWeek;           // Day of the week enum
+  startTime: string;              // Time in HH:MM format (e.g., "09:00")
+  durationMinutes: number;        // Duration in minutes (must be > 0)
+  employeeId: string;             // UID of responsible employee
+  capacity: number;               // Number of seats (must be > 0)
+  minReserveMinutes: number;      // Minimum minutes in advance to reserve (default: 0)
+  minCancelMinutes: number;       // Minimum minutes in advance to cancel (default: 0)
+  isActive: boolean;              // Schedule activation state (default: true)
+  createdAt: Timestamp;           // Creation timestamp
+  updatedAt: Timestamp;           // Last update timestamp
+}
+```
 
-### Recommended Constraints & Indexes
+### Data Relationships
 
-- `service_schedule`: optional unique to avoid exact duplicate weekly schedules
-  - `unique (service_id, day_of_week, start_time)`
-- Common indexes for filtering:
-  - `index service_schedule(service_id, day_of_week)`
-  - `index service(facility_id)`
+- Services belong to a facility via the collection path structure
+- Service schedules belong to a service via the subcollection path structure
+- Service schedules reference employees via `employeeId` (must be facility employees)
+- When a service is deleted, all its schedules are automatically deleted (subcollection behavior)
+
+### Data Validation
+
+- **Duration validation**: `durationMinutes > 0`
+- **Capacity validation**: `capacity > 0`
+- **Time validation**: `minReserveMinutes >= 0` and `minCancelMinutes >= 0`
+- **Duplicate prevention**: Application-level validation to prevent exact duplicate schedules (same service, day, and start time)
 
 
 ---
 
-## Future: RLS policies (high‑level requirements)
+## Firestore Security Rules Implementation
 
-The goal is to guarantee tenant isolation by facility and least‑privilege access. RLS will be enabled on `service` and `service_schedule` and will enforce two layers: membership and permissions.
+The goal is to guarantee tenant isolation by facility and least-privilege access. Security rules are implemented in `firestore.rules` using the existing RBAC system with the `hasPermission` helper function.
 
-- General
-  - Enable RLS on both tables.
-  - Tenant = `facility`. Every row in `service` is bound to a facility via `facility_id`. Rows in `service_schedule` inherit the facility via their parent `service`.
-  - Membership is determined by `facility_user (facility_id, profile_id)`.
-  - Authorization is determined by the existing roles/permissions model: `permissions(section='services', action in {read, create, edit, delete})` tied to the user’s role under the same facility.
-  - The backend `service_role` (Supabase service key) bypasses RLS for RPCs and background jobs.
+### Security Rules Structure
 
-- Read access (SELECT)
-  - A user can read `service` if they belong to the service’s facility.
-  - A user can read `service_schedule` if they belong to the facility of the parent `service`.
-  - Business flags such as `is_active` are not enforced via RLS; they are handled by application logic (e.g., do not show inactive items to end users).
+Services and schedules are protected under the facility path structure:
+- Services: `facilities/{facilityId}/services/{serviceId}`
+- Schedules: `facilities/{facilityId}/services/{serviceId}/schedules/{scheduleId}`
 
-- Write access (INSERT/UPDATE/DELETE)
-  - Always requires membership to the facility AND proper permission in the `services` section.
-  - `service`:
-    - INSERT/UPDATE/DELETE require `services:create|edit|delete` respectively.
-    - WITH CHECK must ensure the `facility_id` of the row matches a facility the user belongs to (prevents cross‑facility writes).
-  - `service_schedule`:
-    - INSERT/UPDATE/DELETE require `services:create|edit|delete` (create or edit for insert; edit for update; delete for delete) for the facility resolved through the parent `service`.
-    - WITH CHECK must ensure: (1) the referenced `service_id` belongs to a facility the user belongs to; (2) `employee_id` assigned is a member of the same facility (exists in `facility_user`). This avoids schedules pointing to staff in other facilities.
+### Permission Model
 
-- Integrity and consistency enforced by RLS
-  - No cross‑facility references can be created or updated.
-  - Only members with the right permission can mutate data; members without permission can still read (if you decide to restrict read further, require `services:read`).
-  - The system remains compatible with global/admin roles (where `role.facility_id is null`) if the permission checks allow it for any facility.
+The system uses the existing RBAC permissions model with the `services` section:
+- **Read permission**: `services:read`
+- **Create permission**: `services:create`
+- **Update permission**: `services:update`
+- **Delete permission**: `services:delete`
+
+### Security Rules Implementation
+
+```javascript
+// firestore.rules
+
+match /facilities/{facilityId} {
+  // Services collection rules
+  match /services/{serviceId} {
+    allow create: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'create');
+    allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'services', 'read');
+    allow update: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'update');
+    allow delete: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'delete');
+    
+    // Service schedules subcollection rules
+    match /schedules/{scheduleId} {
+      allow create: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'create');
+      allow read: if isFacilityEmployee(request, facilityId) || hasPermission(request, facilityId, 'services', 'read');
+      allow update: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'update');
+      allow delete: if isFacilityAdmin(request, facilityId) || hasPermission(request, facilityId, 'services', 'delete');
+    }
+  }
+}
+```
+
+### Access Control Details
+
+- **Facility Isolation**: Services and schedules are automatically isolated by facility through the collection path structure
+- **Employee Validation**: The `employeeId` in schedules must reference a valid facility employee (enforced by application logic)
+- **Admin Override**: Facility admins have full access to all services and schedules within their facility
+- **Permission-Based Access**: Non-admin users require specific permissions in the `services` section
+- **Business Logic**: The `isActive` flags are handled by application logic, not security rules
+
+### Data Integrity
+
+- **Cross-facility Prevention**: The path structure prevents cross-facility data access
+- **Employee Validation**: Application-level validation ensures `employeeId` references valid facility employees
+- **Cascade Deletion**: When a service is deleted, all its schedules are automatically removed (subcollection behavior)
 
 
 ---
@@ -111,21 +154,6 @@ Goal: decouple Service management from Schedule management while keeping an easy
 
 These routes se cargan bajo `home` como en `users` y `permissions`.
 
-### Pages and components
-- `services-list` (CdkTable)
-  - Columns: name, is_active, schedules_count, actions (view/edit, activate/deactivate, delete)
-- `services-create` / `services-edit`
-  - `service-form` subcomponent: name, description, is_active
-  - Tab “Schedules” dentro de `services-edit`:
-    - Vista calendario (semana) con los horarios del servicio
-    - CTA “Create schedules” → navega a `/home/services/:id/schedules/create`
-- `schedules-create` (wizard — batch; página propia en `/home/services/:id/schedules/create`)
-  - Paso 1: seleccionar días de la semana (multi‑select) y uno o más time slots (start_time + duration_minutes)
-  - Paso 2: seleccionar empleado (MVP: 1 empleado)
-  - Paso 3: reglas comunes del lote: capacity, min_reserve_minutes, min_cancel_minutes, is_active
-  - Confirmar: crea N horarios asociados al servicio
-- `schedule-edit` (pagina propia en `/home/services/:id/schedules/:scheduleId/edit`)
-  - Mismos campos del wizard pero para un único horario
 
 ### Reuse of existing UI library
 - Use `ui-layout`, `ui-button`, `ui-select`, `ConfirmComponent`, and CdkTable to stay consistent with `users` and `permissions` features.

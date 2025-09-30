@@ -74,7 +74,7 @@ Update `libs/front/supabase` to expose types and helpers for the new entities.
 
 1. Types
    - Add to `libs/front/supabase/src/interfaces/types.ts` (or a new `services.types.ts`) the TS interfaces aligned with DB:
-     - `DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'`
+     - `DayOfWeek` enum (imported from `@models/common`)
      - `Service { id, created_at, facility_id, name, description?, is_active }`
      - `ServiceSchedule { id, service_id, day_of_week: DayOfWeek, start_time: string, duration_minutes: number, employee_id: string, capacity: number, min_reserve_minutes: number, min_cancel_minutes: number, is_active: boolean }`
    - Export them via the package index.

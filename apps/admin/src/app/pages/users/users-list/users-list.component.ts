@@ -23,8 +23,9 @@ export class UsersListComponent {
     effect(() => {
       const loading = this.sessionStore.loading();
       const facility = this.sessionStore.selectedFacility();
-      if (!loading && facility) {
-        this.store.loadEmployees(facility.id as string);
+      if (!loading && facility && facility.id) {
+        this.store.loadEmployees(facility.id );
+        this.store.loadRoles(facility.id);
       }
     });
   }
