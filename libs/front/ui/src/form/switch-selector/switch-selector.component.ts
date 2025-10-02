@@ -4,13 +4,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  computed,
   effect,
   inject,
   input,
   signal,
 } from '@angular/core';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface SwitchOption<T> {
   name: string;
@@ -23,6 +22,13 @@ export interface SwitchOption<T> {
   templateUrl: './switch-selector.component.html',
   styleUrl: './switch-selector.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: SwitchSelectorComponent,
+      multi: true,
+    },
+  ],
 })
 export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterViewInit {
   options = input.required<SwitchOption<T>[]>();
@@ -31,7 +37,6 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
   selectedWidth = signal(0);
   selectedOffset = signal(0);
 
-  private readonly ngControl = inject(NgControl, { optional: true, self: true });
   private onChange?: (value: T) => void;
   private onTouched?: () => void;
   private static nextId = 0;
@@ -39,10 +44,6 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef<HTMLElement>);
 
   constructor() {
-    if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
-    }
-
     effect(() => {
       const currentOptions = this.options();
       if (currentOptions.length === 0) {
@@ -59,31 +60,35 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
 
     effect(() => {
       const selectedValue = this.selectedValue();
-      const id = this.uniqueId + '_' + selectedValue;
-      const element = this.elementRef.nativeElement.querySelector(`#${id}`);
-      if (element) {
-        this.calculateSelectedElement(element as HTMLElement);
+      if (selectedValue !== null) {
+        this.updateSelectedElement();
       }
     });
   }
 
   ngAfterViewInit(): void {
+    this.updateSelectedElement();
+  }
+
+  private updateSelectedElement(): void {
     const selectedValue = this.selectedValue();
+    if (selectedValue === null) return;
+
     const id = this.uniqueId + '_' + selectedValue;
-    const element = this.elementRef.nativeElement.querySelector(`#${id}`);
+    const element = this.elementRef.nativeElement.querySelector(`#${id}`) as HTMLElement;
+
     if (element) {
-      this.calculateSelectedElement(element as HTMLElement);
+      this.calculateSelectedElement(element);
     }
   }
 
-  calculateSelectedElement(element: HTMLElement) {
+  private calculateSelectedElement(element: HTMLElement): void {
     const width = element.clientWidth;
     this.selectedWidth.set(width);
 
     const offset = element.offsetLeft;
-
     const container = element.parentElement as HTMLElement;
-    const containerPaddingLeft = container ? parseInt(getComputedStyle(container).paddingLeft) : 0;
+    const containerPaddingLeft = container ? parseInt(getComputedStyle(container).paddingLeft, 10) : 0;
 
     const adjustedOffset = offset - containerPaddingLeft;
     this.selectedOffset.set(adjustedOffset);
@@ -96,12 +101,7 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
     }
 
     const currentOptions = this.options();
-
-    if (currentOptions.length > 0) {
-      this.selectedValue.set(currentOptions[0].value);
-    } else {
-      this.selectedValue.set(null);
-    }
+    this.selectedValue.set(currentOptions.length > 0 ? currentOptions[0].value : null);
   }
 
   registerOnChange(fn: (value: T) => void): void {
@@ -122,14 +122,8 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
     }
 
     this.selectedValue.set(option.value);
-
-    if (this.onChange) {
-      this.onChange(option.value);
-    }
-
-    if (this.onTouched) {
-      this.onTouched();
-    }
+    this.onChange?.(option.value);
+    this.onTouched?.();
   }
 
   isSelected(option: SwitchOption<T>): boolean {

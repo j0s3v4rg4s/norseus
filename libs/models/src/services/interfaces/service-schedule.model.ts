@@ -6,7 +6,6 @@ export interface ServiceSchedule {
   dayOfWeek: DayOfWeek;
   startTime: string;
   durationMinutes: number;
-  employeeId: string;
   capacity: number;
   minReserveMinutes: number;
   minCancelMinutes: number;

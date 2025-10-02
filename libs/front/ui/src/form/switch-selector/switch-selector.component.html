@@ -1,10 +1,10 @@
 <div
-  class="relative inline-flex items-center bg-muted p-2 rounded-full h-12"
+  class="relative inline-flex items-center bg-muted p-1.5 rounded-full h-12"
   role="radiogroup"
   [attr.aria-disabled]="disabled()"
 >
   <div
-    class="absolute inset-y-1 z-0 bg-primary rounded-full transition-transform duration-300 ease-in-out"
+    class="absolute h-14 z-0 bg-primary rounded-full transition-transform duration-300 ease-in-out"
     [style.transform]="'translateX(' + selectedOffset() + 'px)'"
     [style.width.px]="selectedWidth()"
   ></div>
@@ -28,4 +28,3 @@
     </button>
   }
 </div>
-

@@ -1,0 +1,130 @@
+<div [formGroup]="scheduleForm">
+  <div class="mb-4 flex justify-center">
+    <ui-switch-selector [options]="typeSchedule" formControlName="scheduleType"></ui-switch-selector>
+  </div>
+
+  <div class="mb-4">
+    @if (scheduleForm.get('scheduleType')?.value === 'single') {
+      <div class="grid grid-cols-2 gap-3">
+        <div class="grid gap-3">
+          <label for="singleDay" class="label">Día de la semana</label>
+          <ui-select formControlName="singleDay">
+            @for (day of DAYS_OF_WEEK; track day) {
+              <ui-option [value]="day">{{ DAY_OF_WEEK_LABELS[day] }}</ui-option>
+            }
+          </ui-select>
+        </div>
+        <div class="grid gap-3">
+          <label for="singleStartTime" class="label">Hora primera clase</label>
+          <input
+            class="input"
+            type="time"
+            id="singleStartTime"
+            formControlName="startTime"
+            [attr.aria-invalid]="scheduleForm.get('startTime')?.invalid && scheduleForm.get('startTime')?.touched"
+          />
+        </div>
+      </div>
+    }
+    @if (scheduleForm.get('scheduleType')?.value === 'multiple') {
+      <div class="grid gap-3">
+        <label for="daysOfWeek" class="label">Días de la semana</label>
+        <ui-day-selector [availableDays]="DAYS_OF_WEEK" formControlName="multipleDays"></ui-day-selector>
+        @if (scheduleForm.get('multipleDays')?.invalid && scheduleForm.get('multipleDays')?.touched) {
+          <p class="text-red-500 text-sm">Debe seleccionar al menos un día</p>
+        }
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid gap-3">
+          <label for="startTime" class="label">Hora primera clase</label>
+          <input
+            class="input"
+            type="time"
+            id="startTime"
+            formControlName="startTime"
+            [attr.aria-invalid]="scheduleForm.get('startTime')?.invalid && scheduleForm.get('startTime')?.touched"
+          />
+        </div>
+        <div class="grid gap-3">
+          <label for="endTime" class="label">Hora última clase</label>
+          <input
+            class="input"
+            type="time"
+            id="endTime"
+            formControlName="endTime"
+            [attr.aria-invalid]="scheduleForm.get('endTime')?.invalid && scheduleForm.get('endTime')?.touched"
+          />
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-2 gap-4 items-start">
+    <div class="grid gap-3">
+      <label for="duration" class="label">Duracion del servicio (minutos)</label>
+      <input
+        class="input"
+        type="number"
+        id="duration"
+        formControlName="duration"
+        [attr.aria-invalid]="scheduleForm.get('duration')?.invalid && scheduleForm.get('duration')?.touched"
+      />
+    </div>
+    <div class="grid gap-3">
+      <label for="capacity" class="label">Capacidad</label>
+      <input
+        class="input"
+        type="number"
+        id="capacity"
+        formControlName="capacity"
+        [attr.aria-invalid]="scheduleForm.get('capacity')?.invalid && scheduleForm.get('capacity')?.touched"
+      />
+    </div>
+    <div class="grid gap-3">
+      <div class="flex items-center gap-2">
+        <label for="minReserveMinutes" class="label">
+          Tiempo mínimo para reservar (minutos)
+          <span class="material-symbols-rounded text-sm" uiTooltip [uiTooltip]="minReserveTooltip">help</span>
+        </label>
+      </div>
+      <input
+        class="input"
+        type="number"
+        id="minReserveMinutes"
+        formControlName="minReserveMinutes"
+        [attr.aria-invalid]="
+          scheduleForm.get('minReserveMinutes')?.invalid && scheduleForm.get('minReserveMinutes')?.touched
+        "
+      />
+    </div>
+    <div class="grid gap-3">
+      <div class="flex items-center gap-2">
+        <label for="minCancelMinutes" class="label">
+          Tiempo mínimo para cancelación (minutos)
+          <span class="material-symbols-rounded text-sm" uiTooltip [uiTooltip]="minCancelTooltip">help</span>
+        </label>
+      </div>
+      <input
+        class="input"
+        type="number"
+        id="minCancelMinutes"
+        formControlName="minCancelMinutes"
+        [attr.aria-invalid]="
+          scheduleForm.get('minCancelMinutes')?.invalid && scheduleForm.get('minCancelMinutes')?.touched
+        "
+      />
+    </div>
+  </div>
+
+  <div class="flex justify-end mt-4">
+    <button
+      class="btn"
+      type="button"
+      ui-button
+      [disabled]="scheduleForm.invalid"
+      (click)="submitSchedule()"
+    >
+      Crear horarios
+    </button>
+  </div>
+</div>

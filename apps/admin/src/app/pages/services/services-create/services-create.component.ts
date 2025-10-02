@@ -1,19 +1,34 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { filter } from 'rxjs/operators';
 
-import { ButtonComponent, DaySelectorComponent, SelectModule, SwitchOption, SwitchSelectorComponent, TooltipModule } from '@ui';
+import {
+  ButtonComponent,
+  ConfirmComponent,
+  WeekCalendarComponent,
+} from '@ui';
 import { SessionSignalStore } from '@front/state/session';
-import { ServicesService } from '@front/core/services';
+import { ServicesStore } from '../services.store';
 import { Service } from '@models/services';
 import { Timestamp } from 'firebase/firestore';
 import { LoggerService } from '@front/utils/logger';
-import { DAYS_OF_WEEK } from '@models/common';
+import { SchedulesStore } from '../schedules.store';
+import { ScheduleFormComponent, ScheduleFormData } from '../common/schedule-form';
 
 @Component({
   selector: 'app-services-create',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, SelectModule, ButtonComponent, DaySelectorComponent, TooltipModule, SwitchSelectorComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterModule,
+    ButtonComponent,
+    WeekCalendarComponent,
+    MatDialogModule,
+    ScheduleFormComponent,
+  ],
+  providers: [SchedulesStore, ServicesStore],
   templateUrl: './services-create.component.html',
   styleUrls: ['./services-create.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,23 +37,20 @@ export class ServicesCreateComponent {
   private router = inject(Router);
   private sessionStore = inject(SessionSignalStore);
   private fb = inject(FormBuilder);
-  private servicesService = inject(ServicesService);
   private logger = inject(LoggerService);
-  DAYS_OF_WEEK = [...DAYS_OF_WEEK];
+  private dialog = inject(MatDialog);
+  private schedulesStore = inject(SchedulesStore);
+  private servicesStore = inject(ServicesStore);
 
   form: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-
-  minReserveTooltip =
-    'Los usuarios solo podrán reservar si faltan al menos estos minutos para que inicie la clase. Por ejemplo, si se coloca 10, las reservas se cierran 10 minutos antes de que comience la clase.';
-  minCancelTooltip =
-    'Los usuarios solo podrán cancelar si faltan al menos estos minutos para que inicie la clase. Por ejemplo, si se coloca 10, las cancelaciones se cierran 10 minutos antes de que comience la clase.';
-
-  readonly typeSchedule: SwitchOption<string>[] = [
-    {name: 'Horario unico', value: 'single'},
-    {name: 'Rangos de horarios', value: 'multiple'},
-  ]
+  isLoading = this.servicesStore.isSaving;
+  errorMessage = this.servicesStore.error;
+  internalErrorMessage = signal('');
+  showErrorMessage = computed(() => this.internalErrorMessage() || this.errorMessage());
+  schedules = this.schedulesStore.schedules;
+  conflictError = this.schedulesStore.conflictError;
+  calendarSlots = this.schedulesStore.calendarSlots;
+  scheduleFormComponent = viewChild(ScheduleFormComponent);
 
   constructor() {
     this.form = this.fb.group({
@@ -47,39 +59,58 @@ export class ServicesCreateComponent {
     });
   }
 
-  async saveService() {
+  onScheduleFormSubmit(formData: ScheduleFormData): void {
+    const success = this.schedulesStore.createSchedules(formData);
+    if (success) {
+      this.scheduleFormComponent()?.resetForm();
+    }
+  }
+
+  handleScheduleClick(slotId: string): void {
+    this.dialog
+      .open(ConfirmComponent, {
+        data: { message: '¿Estás seguro de querer eliminar este horario?' },
+      })
+      .afterClosed()
+      .pipe(filter(Boolean))
+      .subscribe(() => {
+        this.schedulesStore.deleteSchedule(slotId);
+      });
+  }
+
+  saveService(): void {
+    this.internalErrorMessage.set('');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-
     const facility = this.sessionStore.selectedFacility();
     if (!facility) {
-      this.errorMessage = 'No se ha seleccionado una instalación';
-      this.isLoading = false;
+      this.internalErrorMessage.set('No se ha seleccionado una instalación');
+      return;
+    }
+
+    const schedules = this.schedulesStore.schedules();
+
+    if (schedules.length === 0) {
+      this.internalErrorMessage.set('No se han creado horarios');
       return;
     }
 
     const { name, description } = this.form.value;
     const serviceData: Omit<Service, 'id'> = {
       name,
-      description: description || undefined,
+      description: description || null,
       isActive: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
-    try {
-      await this.servicesService.createService(facility.id as string, serviceData).toPromise();
-      this.router.navigate(['/home/services']);
-    } catch (error) {
-      this.errorMessage = 'Error al crear el servicio. Intente nuevamente.';
-      this.logger.error('Error creating service:', error);
-    } finally {
-      this.isLoading = false;
-    }
+    this.servicesStore.createServiceWithSchedules(facility.id as string, serviceData, schedules).subscribe({
+      next: () => {
+        this.router.navigate(['/home/services']);
+      }
+    });
   }
 }

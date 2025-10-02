@@ -1,17 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import {
   collection,
-  collectionData,
   CollectionReference,
   deleteDoc,
   doc,
-  docData,
   Firestore,
+  getDoc,
+  getDocs,
   query,
   setDoc,
   Timestamp,
 } from '@angular/fire/firestore';
-import { Observable, catchError, from, throwError } from 'rxjs';
+import { Observable, catchError, from, map, throwError } from 'rxjs';
 
 import { Service, SERVICES_COLLECTION } from '@models/services';
 import { FACILITY_COLLECTION } from '@models/facility';
@@ -48,12 +48,20 @@ export class ServicesService {
   /* * SERVICE OPERATIONS                                                     * */
   /* ************************************************************************** */
 
-  createService(facilityId: string, service: Omit<Service, 'id'>): Observable<void> {
+  createService(facilityId: string, service: Omit<Service, 'id'>): Observable<string> {
     const colRef = this.getServicesCollectionRef(facilityId);
     const newRef = doc(colRef);
-    return from(setDoc(newRef, { ...service, id: newRef.id, createdAt: Timestamp.now(), updatedAt: Timestamp.now() })).pipe(
-      catchError((error) => throwError(() => new ServicesServiceError('Failed to create service', error))),
-    );
+
+    try {
+      return from(
+        setDoc(newRef, { ...service, id: newRef.id, createdAt: Timestamp.now(), updatedAt: Timestamp.now() }),
+      ).pipe(
+        map(() => newRef.id),
+        catchError((error) => throwError(() => new ServicesServiceError('Failed to create service', error))),
+      );
+    } catch (error) {
+      return throwError(() => new ServicesServiceError('Failed to create service', error as Error));
+    }
   }
 
   updateService(facilityId: string, service: Service): Observable<void> {
@@ -83,18 +91,23 @@ export class ServicesService {
 
   getAllServices(facilityId: string): Observable<Service[]> {
     const q = query(this.getServicesCollectionRef(facilityId));
-    return (collectionData(q, { idField: 'id' }) as Observable<Service[]>).pipe(
+    return from(getDocs(q)).pipe(
+      map((snapshot) =>
+        snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Service))
+      ),
       catchError((error) => throwError(() => new ServicesServiceError('Failed to fetch all services', error))),
     );
   }
 
   getServiceById(facilityId: string, serviceId: string): Observable<Service | undefined> {
     const ref = doc(this.getServicesCollectionRef(facilityId), serviceId);
-    return (docData(ref, { idField: 'id' }) as Observable<Service>).pipe(
+    return from(getDoc(ref)).pipe(
+      map((snapshot) =>
+        snapshot.exists() ? { ...snapshot.data(), id: snapshot.id } as Service : undefined
+      ),
       catchError((error) =>
         throwError(() => new ServicesServiceError('Failed to fetch service by id', error, serviceId)),
       ),
     );
   }
-
 }

@@ -1,0 +1,55 @@
+<div>
+  <div>
+    <div class="grid grid-cols-[50px_repeat(7,1fr)] gap-0">
+      <div class="border-b border-gray-300"></div>
+      @for (day of DAYS_OF_WEEK; track day) {
+        <div class="border-b border-l border-gray-300 p-2 text-center font-semibold bg-gray-50">
+          {{ getShortDayLabel(day) }}
+        </div>
+      }
+
+      <div class="relative">
+        @for (slot of timeSlots(); track slot.label) {
+          <div
+            class="absolute left-0 right-0 text-xs text-gray-600 pr-2 text-right"
+            [style.top.px]="$index * SLOT_HEIGHT"
+            [style.height.px]="SLOT_HEIGHT"
+          >
+            <span class="bg-white pr-1">{{ slot.label }}</span>
+          </div>
+        }
+      </div>
+
+      @for (day of DAYS_OF_WEEK; track day) {
+        <div class="border-l border-gray-300 relative" [style.height.px]="calendarHeight()">
+          @for (slot of timeSlots(); track slot.label) {
+            <div
+              class="absolute left-0 right-0"
+              [class.border-t]="$index > 0"
+              [class.border-gray-400]="slot.isHourMark && $index > 0"
+              [class.border-gray-200]="!slot.isHourMark && $index > 0"
+              [style.top.px]="$index * SLOT_HEIGHT"
+              [style.height.px]="SLOT_HEIGHT"
+            ></div>
+          }
+
+          @for (position of getSlotsForDay(day); track position.slot.id) {
+            <button
+              class="absolute left-1 right-1 bg-blue-500/80 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
+              [style.top.px]="position.top"
+              [style.height.px]="position.height"
+              (click)="onSlotClick(position.slot.id)"
+            >
+              @if (position.slot.displayLabel) {
+                <div class="font-semibold">{{ position.slot.displayLabel }}</div>
+              }
+              @if (position.slot.displaySubLabel) {
+                <div class="text-[10px] opacity-90">{{ position.slot.displaySubLabel }}</div>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

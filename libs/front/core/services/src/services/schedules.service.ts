@@ -7,8 +7,11 @@ import {
   doc,
   docData,
   Firestore,
+  getDoc,
+  getDocs,
   query,
   setDoc,
+  Timestamp,
 } from '@angular/fire/firestore';
 import { Observable, catchError, from, map, throwError } from 'rxjs';
 
@@ -51,10 +54,22 @@ export class SchedulesService {
   createSchedule(facilityId: string, serviceId: string, schedule: Omit<ServiceSchedule, 'id'>): Observable<string> {
     const colRef = this.getSchedulesCollectionRef(facilityId, serviceId);
     const newRef = doc(colRef);
-    return from(setDoc(newRef, { ...schedule, id: newRef.id })).pipe(
-      map(() => newRef.id),
-      catchError((error) => throwError(() => new SchedulesServiceError('Failed to create schedule', error, serviceId))),
-    );
+    const docData: ServiceSchedule = {
+      ...schedule,
+      id: newRef.id,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    try {
+      return from(setDoc(newRef, docData)).pipe(
+        map(() => newRef.id),
+        catchError((error) =>
+          throwError(() => new SchedulesServiceError('Failed to create schedule', error, serviceId)),
+        ),
+      );
+    } catch (error) {
+      return throwError(() => new SchedulesServiceError('Failed to create schedule', error as Error, serviceId));
+    }
   }
 
   updateSchedule(facilityId: string, serviceId: string, schedule: ServiceSchedule): Observable<void> {
@@ -77,7 +92,8 @@ export class SchedulesService {
 
   getAllSchedules(facilityId: string, serviceId: string): Observable<ServiceSchedule[]> {
     const q = query(this.getSchedulesCollectionRef(facilityId, serviceId));
-    return (collectionData(q, { idField: 'id' }) as Observable<ServiceSchedule[]>).pipe(
+    return from(getDocs(q)).pipe(
+      map((snapshot) => snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }) as ServiceSchedule)),
       catchError((error) =>
         throwError(() => new SchedulesServiceError('Failed to fetch all schedules', error, serviceId)),
       ),
@@ -86,7 +102,8 @@ export class SchedulesService {
 
   getScheduleById(facilityId: string, serviceId: string, scheduleId: string): Observable<ServiceSchedule | undefined> {
     const ref = doc(this.getSchedulesCollectionRef(facilityId, serviceId), scheduleId);
-    return (docData(ref, { idField: 'id' }) as Observable<ServiceSchedule>).pipe(
+    return from(getDoc(ref)).pipe(
+      map((snapshot) => (snapshot.exists() ? ({ ...snapshot.data(), id: snapshot.id } as ServiceSchedule) : undefined)),
       catchError((error) =>
         throwError(() => new SchedulesServiceError('Failed to fetch schedule by id', error, serviceId, scheduleId)),
       ),

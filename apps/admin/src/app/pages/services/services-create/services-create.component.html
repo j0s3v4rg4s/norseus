@@ -35,47 +35,21 @@
 
   <h2 class="text-md text-neutral-700 mb-2">Horarios del servicio</h2>
   <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
-    <div class="grid grid-cols-2 gap-4 items-start">
-      <div class="grid gap-3">
-        <label for="duration" class="label">Duracion del servicio (minutos)</label>
-        <input class="input" type="number" id="duration" />
-      </div>
-      <div class="grid gap-3">
-        <label for="capacity" class="label">Capacidad</label>
-        <input class="input" type="number" id="capacity" />
-      </div>
-      <div class="grid gap-3">
-        <div class="flex items-center gap-2">
-          <label for="minReserveMinutes" class="label">
-            Tiempo mínimo para reservar (minutos)
-            <span class="material-symbols-rounded text-sm" uiTooltip [uiTooltip]="minReserveTooltip">help</span>
-          </label>
-        </div>
-        <input class="input" type="number" id="minReserveMinutes" />
-      </div>
-      <div class="grid gap-3">
-        <div class="flex items-center gap-2">
-          <label for="minCancelMinutes" class="label">
-            Tiempo mínimo para cancelación (minutos)
-            <span class="material-symbols-rounded text-sm" uiTooltip [uiTooltip]="minCancelTooltip">help</span>
-          </label>
-        </div>
-        <input class="input" type="number" id="minCancelMinutes" />
-      </div>
-    </div>
+    <app-schedule-form (scheduleSubmit)="onScheduleFormSubmit($event)"></app-schedule-form>
 
-    <div>
-      <ui-switch-selector [options]="typeSchedule"></ui-switch-selector>
-    </div>
-
-
-    <div class="grid gap-3">
-      <label for="daysOfWeek" class="label">Días de la semana</label>
-      <ui-day-selector [availableDays]="DAYS_OF_WEEK"></ui-day-selector>
-    </div>
+    @if (conflictError()) {
+      <p class="text-red-500 text-sm mt-2">{{ conflictError() }}</p>
+    }
   </div>
-  @if (errorMessage) {
-    <div class="text-red-400 text-sm mb-2">{{ errorMessage }}</div>
+
+  @if (schedules().length > 0) {
+    <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+      <ui-week-calendar [slots]="calendarSlots()" (slotClick)="handleScheduleClick($event)"></ui-week-calendar>
+    </div>
+  }
+
+  @if (showErrorMessage()) {
+    <div class="text-red-400 text-sm mb-2">{{ showErrorMessage() }}</div>
   }
   <div class="flex justify-between items-center">
     <button class="btn-outline" routerLink="/home/services">Cancelar</button>
@@ -85,7 +59,7 @@
       form="form-create-service"
       ui-button
       [disabled]="form.invalid"
-      [isLoading]="isLoading"
+      [isLoading]="isLoading()"
     >
       Guardar
     </button>
