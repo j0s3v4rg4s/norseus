@@ -13,8 +13,10 @@
   @if (!isLoading() && hasClasses()) {
     <div class="bg-white rounded-lg shadow-lg p-4">
       <ui-class-week-calendar
-        [slots]="classSlots()"
+        [slots]="filteredClassSlots()"
+        [legendItems]="legendItems()"
         (slotClick)="onSlotClick($event)"
+        (legendToggle)="onLegendToggle($event)"
       ></ui-class-week-calendar>
     </div>
   }

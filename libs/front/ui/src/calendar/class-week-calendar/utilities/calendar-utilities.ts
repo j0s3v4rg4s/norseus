@@ -1,30 +1,6 @@
 import { ClassCalendarSlot, ClassSlotPosition } from '../interfaces';
 
 /**
- * Predefined color palette for service differentiation
- */
-export const COLOR_PALETTE = ['blue', 'green', 'purple', 'orange', 'pink', 'indigo', 'teal', 'rose'];
-
-/**
- * Assigns colors to slots based on their categoryId cycling through the color palette
- */
-export function assignColorsToSlots<T>(slots: ClassCalendarSlot<T>[]): ClassCalendarSlot<T>[] {
-  const categoryColorMap = new Map<string, string>();
-
-  return slots.map(slot => {
-    if (!categoryColorMap.has(slot.categoryId)) {
-      const colorIndex = categoryColorMap.size % COLOR_PALETTE.length;
-      categoryColorMap.set(slot.categoryId, COLOR_PALETTE[colorIndex]);
-    }
-
-    return {
-      ...slot,
-      color: categoryColorMap.get(slot.categoryId)
-    };
-  });
-}
-
-/**
  * Detects if two slots overlap in time (any partial overlap)
  */
 export function slotsOverlap<T>(slot1: ClassCalendarSlot<T>, slot2: ClassCalendarSlot<T>): boolean {

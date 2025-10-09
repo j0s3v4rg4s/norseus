@@ -1,3 +1,5 @@
+import { CalendarColor } from '../enums';
+
 /**
  * Interface for rendering a slot in the class-based week calendar
  */
@@ -6,8 +8,7 @@ export interface ClassCalendarSlot<T> {
   date: Date;
   startTime: string;
   durationMinutes: number;
-  categoryId: string;
-  color?: string; // Assigned by assignColorsToSlots utility
+  color: CalendarColor;
   displayLabel?: string;
   displaySubLabel?: string;
   data?: T;
@@ -23,4 +24,11 @@ export interface ClassSlotPosition<T> {
   left: number;
   width: number;
   zIndex: number;
+}
+
+export interface ClassCalendarLegendItem {
+  id: string;
+  color: CalendarColor;
+  serviceName: string;
+  visible: boolean;
 }

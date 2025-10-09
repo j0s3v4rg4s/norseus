@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { ClassCalendarSlot, ClassSlotPosition } from './interfaces';
+import { ClassCalendarSlot, ClassSlotPosition, ClassCalendarLegendItem } from './interfaces';
+import { CalendarColor } from './enums';
 import { TimeSlot } from '../utilities';
 import {
   getWeekStart,
@@ -12,7 +13,6 @@ import {
   isToday,
 } from '../utilities/date-utilities';
 import {
-  assignColorsToSlots,
   groupSlotsByDate,
   calculateOverlappingPositions,
   getTimeRangeFromSlots,
@@ -27,9 +27,11 @@ import {
 export class ClassWeekCalendarComponent<T> {
   slots = input.required<ClassCalendarSlot<T>[]>();
   currentWeekDate = input<Date>(new Date());
+  legendItems = input<ClassCalendarLegendItem[]>([]);
 
   slotClick = output<ClassCalendarSlot<T>>();
   weekChange = output<{ start: Date; end: Date }>();
+  legendToggle = output<ClassCalendarLegendItem>();
 
   readonly SLOT_HEIGHT = 40;
 
@@ -98,9 +100,8 @@ export class ClassWeekCalendarComponent<T> {
     const slots = this.slots();
     if (slots.length === 0) return {};
 
-    const coloredSlots = assignColorsToSlots(slots);
-    const grouped = groupSlotsByDate(coloredSlots);
-    const { minHour } = getTimeRangeFromSlots(coloredSlots);
+    const grouped = groupSlotsByDate(slots);
+    const { minHour } = getTimeRangeFromSlots(slots);
 
     const result: Record<string, ClassSlotPosition<T>[]> = {};
 
@@ -116,6 +117,10 @@ export class ClassWeekCalendarComponent<T> {
     const allPositions = Object.values(this.slotsByDate()).flat();
     if (allPositions.length === 0) return 10;
     return Math.max(...allPositions.map(pos => pos.zIndex)) + 10;
+  });
+
+  showLegend = computed<boolean>(() => {
+    return this.legendItems().length > 0;
   });
 
   constructor() {
@@ -167,20 +172,59 @@ export class ClassWeekCalendarComponent<T> {
   }
 
   getSlotColorClasses(position: ClassSlotPosition<T>): string {
-    const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/90 hover:bg-blue-600 text-white',
-      green: 'bg-green-500/90 hover:bg-green-600 text-white',
-      purple: 'bg-purple-500/90 hover:bg-purple-600 text-white',
-      orange: 'bg-orange-500/90 hover:bg-orange-600 text-white',
-      pink: 'bg-pink-500/90 hover:bg-pink-600 text-white',
-      indigo: 'bg-indigo-500/90 hover:bg-indigo-600 text-white',
-      teal: 'bg-teal-500/90 hover:bg-teal-600 text-white',
-      rose: 'bg-rose-500/90 hover:bg-rose-600 text-white',
+    const colorMap: Record<CalendarColor, string> = {
+      [CalendarColor.BLUE]: 'bg-blue-500/90 hover:bg-blue-600 text-white',
+      [CalendarColor.GREEN]: 'bg-green-500/90 hover:bg-green-600 text-white',
+      [CalendarColor.PURPLE]: 'bg-purple-500/90 hover:bg-purple-600 text-white',
+      [CalendarColor.ORANGE]: 'bg-orange-500/90 hover:bg-orange-600 text-white',
+      [CalendarColor.PINK]: 'bg-pink-500/90 hover:bg-pink-600 text-white',
+      [CalendarColor.INDIGO]: 'bg-indigo-500/90 hover:bg-indigo-600 text-white',
+      [CalendarColor.TEAL]: 'bg-teal-500/90 hover:bg-teal-600 text-white',
+      [CalendarColor.ROSE]: 'bg-rose-500/90 hover:bg-rose-600 text-white',
     };
 
-    // Get color from the slot's color property (assigned by assignColorsToSlots)
     const color = position.slot.color;
-    return color ? colorMap[color] || 'bg-gray-500/80 hover:bg-gray-600/90 text-white' : 'bg-gray-500/80 hover:bg-gray-600/90 text-white';
+    return colorMap[color] || 'bg-gray-500/80 hover:bg-gray-600/90 text-white';
+  }
+
+  getLegendColorClasses(color: CalendarColor): string {
+    const colorMap: Record<CalendarColor, string> = {
+      [CalendarColor.BLUE]: 'bg-blue-500',
+      [CalendarColor.GREEN]: 'bg-green-500',
+      [CalendarColor.PURPLE]: 'bg-purple-500',
+      [CalendarColor.ORANGE]: 'bg-orange-500',
+      [CalendarColor.PINK]: 'bg-pink-500',
+      [CalendarColor.INDIGO]: 'bg-indigo-500',
+      [CalendarColor.TEAL]: 'bg-teal-500',
+      [CalendarColor.ROSE]: 'bg-rose-500',
+    };
+
+    return colorMap[color] || 'bg-gray-500';
+  }
+
+  getLegendCheckboxClasses(item: ClassCalendarLegendItem): string {
+    const baseClasses = 'w-4 h-4 rounded border-2 transition-all duration-200';
+
+    if (item.visible) {
+      const colorMap: Record<CalendarColor, string> = {
+        [CalendarColor.BLUE]: 'bg-blue-500 border-blue-500',
+        [CalendarColor.GREEN]: 'bg-green-500 border-green-500',
+        [CalendarColor.PURPLE]: 'bg-purple-500 border-purple-500',
+        [CalendarColor.ORANGE]: 'bg-orange-500 border-orange-500',
+        [CalendarColor.PINK]: 'bg-pink-500 border-pink-500',
+        [CalendarColor.INDIGO]: 'bg-indigo-500 border-indigo-500',
+        [CalendarColor.TEAL]: 'bg-teal-500 border-teal-500',
+        [CalendarColor.ROSE]: 'bg-rose-500 border-rose-500',
+      };
+
+      return `${baseClasses} ${colorMap[item.color] || 'bg-gray-500 border-gray-500'}`;
+    } else {
+      return `${baseClasses} bg-white border-gray-300 hover:border-gray-400`;
+    }
+  }
+
+  toggleLegendItem(item: ClassCalendarLegendItem): void {
+    this.legendToggle.emit(item);
   }
 
   private emitWeekChange(): void {
