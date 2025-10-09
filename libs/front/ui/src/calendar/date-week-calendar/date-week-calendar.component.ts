@@ -3,17 +3,19 @@ import { DateCalendarSlot, DateSlotPosition } from './interfaces';
 import { TimeSlot } from '../utilities';
 import {
   calculateDateSlotPosition,
+  getDateTimeRange,
+} from './utilities';
+import {
   formatDayLabel,
   formatMonthYear,
   getDateKey,
-  getDateTimeRange,
   getWeekDates,
   getWeekEnd,
   getWeekStart,
-  isDateInRange,
   isSameWeek,
   isToday,
-} from './utilities';
+  isDateInRange,
+} from '../utilities/date-utilities';
 
 @Component({
   selector: 'ui-date-week-calendar',

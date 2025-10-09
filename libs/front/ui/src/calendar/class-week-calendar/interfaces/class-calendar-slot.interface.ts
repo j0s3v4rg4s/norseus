@@ -1,0 +1,26 @@
+/**
+ * Interface for rendering a slot in the class-based week calendar
+ */
+export interface ClassCalendarSlot<T> {
+  id: string;
+  date: Date;
+  startTime: string;
+  durationMinutes: number;
+  categoryId: string;
+  color?: string; // Assigned by assignColorsToSlots utility
+  displayLabel?: string;
+  displaySubLabel?: string;
+  data?: T;
+}
+
+/**
+ * Interface representing the calculated position of a class slot in the calendar
+ */
+export interface ClassSlotPosition<T> {
+  slot: ClassCalendarSlot<T>;
+  top: number;
+  height: number;
+  left: number;
+  width: number;
+  zIndex: number;
+}

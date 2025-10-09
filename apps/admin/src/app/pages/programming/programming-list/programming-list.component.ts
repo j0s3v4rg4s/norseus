@@ -1,17 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { SelectModule, WeekCalendarComponent } from '@ui';
+import { ClassWeekCalendarComponent, ClassCalendarSlot } from '@ui';
 import { SessionSignalStore } from '@front/state/session';
 import { Service } from '@models/services';
-import { ServicesService, SchedulesService } from '@front/core/services';
-import { ServiceSchedule } from '@models/services';
-import { CalendarSlot } from '@ui';
+import { ServicesService } from '@front/core/services';
+import { ClassesService } from '@front/core/classes';
+import { ClassModel } from '@models/classes';
 
 @Component({
   selector: 'app-programming-list',
   standalone: true,
-  imports: [RouterModule, FormsModule, SelectModule, WeekCalendarComponent],
+  imports: [RouterModule, ClassWeekCalendarComponent],
   templateUrl: './programming-list.component.html',
   styleUrls: ['./programming-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,22 +18,41 @@ import { CalendarSlot } from '@ui';
 export class ProgrammingListComponent {
   private sessionStore = inject(SessionSignalStore);
   private servicesService = inject(ServicesService);
-  private schedulesService = inject(SchedulesService);
+  private classesService = inject(ClassesService);
 
   services = signal<Service[]>([]);
-  schedules = signal<ServiceSchedule[]>([]);
-  selectedService = signal<Service | null>(null);
+  classes = signal<ClassModel[]>([]);
   isLoading = signal(false);
 
-  calendarSlots = computed<CalendarSlot[]>(() => {
-    return this.schedules().map((schedule) => ({
-      id: schedule.id || '',
-      dayOfWeek: schedule.dayOfWeek,
-      startTime: schedule.startTime,
-      durationMinutes: schedule.durationMinutes,
-      displayLabel: this.selectedService()?.name || '',
-      displaySubLabel: `${schedule.startTime}`,
-    }));
+  classSlots = computed<ClassCalendarSlot<ClassModel>[]>(() => {
+    const classes = this.classes();
+    const services = this.services();
+
+    if (classes.length === 0 || services.length === 0) return [];
+
+    const allSlots: ClassCalendarSlot<ClassModel>[] = [];
+
+    classes.forEach(cls => {
+      const service = services.find(s => s.id === cls.serviceId);
+      if (service) {
+        allSlots.push({
+          id: cls.id,
+          date: cls.date.toDate(),
+          startTime: cls.startAt,
+          durationMinutes: cls.duration,
+          categoryId: service.id, // Use service ID as categoryId for color grouping
+          displayLabel: service.name,
+          displaySubLabel: `${cls.startAt} - ${cls.capacity} plazas`,
+          data: cls
+        });
+      }
+    });
+
+    return allSlots;
+  });
+
+  hasClasses = computed<boolean>(() => {
+    return this.classSlots().length > 0;
   });
 
   constructor() {
@@ -42,6 +60,7 @@ export class ProgrammingListComponent {
       const facility = this.sessionStore.selectedFacility();
       if (facility?.id) {
         this.loadServices(facility.id);
+        this.loadClasses(facility.id);
       }
     });
   }
@@ -59,30 +78,18 @@ export class ProgrammingListComponent {
     });
   }
 
-  onServiceChange(service: Service | null): void {
-    this.selectedService.set(service);
-    if (service?.id) {
-      const facilityId = this.sessionStore.selectedFacility()?.id;
-      if (facilityId) {
-        this.loadSchedules(facilityId, service.id);
-      }
-    } else {
-      this.schedules.set([]);
-    }
-  }
-
-  private loadSchedules(facilityId: string, serviceId: string): void {
-    this.schedulesService.getAllSchedules(facilityId, serviceId).subscribe({
-      next: (schedules) => {
-        this.schedules.set(schedules);
+  private loadClasses(facilityId: string): void {
+    this.classesService.getAllClasses(facilityId).subscribe({
+      next: (classes) => {
+        this.classes.set(classes);
       },
       error: () => {
-        this.schedules.set([]);
+        this.classes.set([]);
       },
     });
   }
 
-  onSlotClick(slotId: string): void {
-    console.log('Slot clicked:', slotId);
+  onSlotClick(slot: ClassCalendarSlot<ClassModel>): void {
+    console.log('Class clicked:', slot);
   }
 }

@@ -10,28 +10,20 @@
     </div>
   }
 
-  <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
-    <div class="grid gap-3">
-      <label for="service-select" class="label">Seleccionar servicio</label>
-      <ui-select
-        [ngModel]="selectedService()"
-        (ngModelChange)="onServiceChange($event)"
-        placeholder="Seleccione un servicio"
-      >
-        @for (service of services(); track service.id) {
-          <ui-option [value]="service">{{ service.name }}</ui-option>
-        }
-      </ui-select>
-    </div>
-  </div>
-
-  @if (selectedService() && schedules().length > 0) {
+  @if (!isLoading() && hasClasses()) {
     <div class="bg-white rounded-lg shadow-lg p-4">
-      <ui-week-calendar [slots]="calendarSlots()" (slotClick)="onSlotClick($event)"></ui-week-calendar>
+      <ui-class-week-calendar
+        [slots]="classSlots()"
+        (slotClick)="onSlotClick($event)"
+      ></ui-class-week-calendar>
     </div>
   }
 
-  @if (selectedService() && schedules().length === 0 && !isLoading()) {
-    <div class="text-center text-slate-500 py-8">No hay horarios para este servicio.</div>
+  @if (!isLoading() && !hasClasses()) {
+    <div class="text-center text-slate-500 py-8">
+      <div class="text-6xl mb-4">📅</div>
+      <h3 class="text-lg font-semibold mb-2">No hay clases programadas</h3>
+      <p class="text-sm">No se encontraron clases programadas para esta instalación.</p>
+    </div>
   }
 </div>
