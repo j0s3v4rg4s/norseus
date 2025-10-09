@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
@@ -10,6 +10,7 @@ import {
   TooltipModule,
 } from '@ui';
 import { DAYS_OF_WEEK, DAY_OF_WEEK_LABELS, DayOfWeek } from '@models/common';
+import { timeToMinutes } from '@front/utils';
 
 export interface ScheduleFormData {
   scheduleType: 'single' | 'multiple';
@@ -20,6 +21,29 @@ export interface ScheduleFormData {
   capacity: number;
   minReserveMinutes: number;
   minCancelMinutes: number;
+}
+
+/**
+ * Custom validator to ensure start time is less than end time
+ */
+function startTimeBeforeEndTimeValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const startTime = control.get('startTime')?.value;
+    const endTime = control.get('endTime')?.value;
+
+    if (!startTime || !endTime) {
+      return null;
+    }
+
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+
+    if (startMinutes >= endMinutes) {
+      return { startTimeAfterEndTime: true };
+    }
+
+    return null;
+  };
 }
 
 @Component({
@@ -66,7 +90,7 @@ export class ScheduleFormComponent {
       capacity: ['', [Validators.required, Validators.min(1)]],
       minReserveMinutes: ['', [Validators.required, Validators.min(0)]],
       minCancelMinutes: ['', [Validators.required, Validators.min(0)]],
-    });
+    }, { validators: startTimeBeforeEndTimeValidator() });
 
     this.setupDynamicValidations();
   }

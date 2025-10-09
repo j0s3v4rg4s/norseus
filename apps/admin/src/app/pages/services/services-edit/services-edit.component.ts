@@ -9,8 +9,8 @@ import { ServicesStore } from '../services.store';
 import { SchedulesStore } from '../schedules.store';
 import { ScheduleFormComponent, ScheduleFormData } from '../common/schedule-form';
 import { ScheduleEditModalComponent, ScheduleEditModalData } from '../common/schedule-edit-modal';
-import { ServiceSchedule } from '@models/services';
-
+import { Service, ServiceSchedule } from '@models/services';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-services-edit',
@@ -96,16 +96,40 @@ export class ServicesEditComponent {
         schedule,
         facilityId,
         serviceId,
+        listSchedules: this.currentServiceSchedules(),
       } as ScheduleEditModalData,
       disableClose: false,
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      // Modal closed, no additional action needed for now
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(filter(Boolean))
+      .subscribe((data) => {
+        if (data.action === 'update') {
+          this.schedulesStore.updateSchedule(data.schedule);
+        } else if (data.action === 'delete') {
+          this.schedulesStore.deleteSchedule(data.schedule.id);
+        }
+      });
   }
 
   saveService(): void {
-    // TODO: Implement save service
+    const facilityId = this.sessionStore.selectedFacility()?.id;
+    const service = this.servicesStore.currentService() as Service;
+    const { name, description } = this.form.value;
+    const newService: Service = {
+      ...service,
+      name,
+      description: description || null,
+    };
+
+    if (facilityId && newService) {
+      Promise.all([
+        this.schedulesStore.saveListSchedules(facilityId, newService.id),
+        this.servicesStore.updateService(facilityId, newService),
+      ]).then(() => {
+        this.router.navigate(['/home/services']);
+      });
+    }
   }
 }

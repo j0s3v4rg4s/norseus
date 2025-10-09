@@ -1,10 +1,10 @@
 <div
-  class="relative inline-flex items-center bg-muted p-1.5 rounded-full h-12"
+  class="relative inline-flex items-center bg-muted rounded-full h-10 shadow-inner parent-container"
   role="radiogroup"
   [attr.aria-disabled]="disabled()"
 >
   <div
-    class="absolute h-14 z-0 bg-primary rounded-full transition-transform duration-300 ease-in-out"
+    class="absolute h-12 z-0 bg-primary rounded-full transition-transform duration-300 ease-in-out"
     [style.transform]="'translateX(' + selectedOffset() + 'px)'"
     [style.width.px]="selectedWidth()"
   ></div>
@@ -14,7 +14,7 @@
       type="button"
       role="radio"
       [id]="uniqueId + '_' + option.value"
-      class="relative z-10 px-6 h-full rounded-full flex items-center justify-center text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
+      class="cursor-pointer relative z-10 px-2 h-full rounded-full flex items-center justify-center text-sm font-medium transition-colors duration-200"
       [disabled]="disabled()"
       (click)="selectOption(option)"
       [attr.aria-checked]="isSelected(option)"

@@ -1,4 +1,4 @@
-import { CalendarSlot } from '../interfaces';
+import { CalendarSlot } from '../week-calendar/interfaces';
 
 /**
  * Calculates the minimum and maximum hours from a list of calendar slots

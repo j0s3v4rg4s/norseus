@@ -23,6 +23,10 @@ export const appRoutes: Route[] = [
         loadChildren: () => import('./pages/services/services.routes').then((m) => m.SERVICES_ROUTES),
       },
       {
+        path: 'programming',
+        loadChildren: () => import('./pages/programming/programming.routes').then((m) => m.PROGRAMMING_ROUTES),
+      },
+      {
         path: '',
         redirectTo: 'users',
         pathMatch: 'full',

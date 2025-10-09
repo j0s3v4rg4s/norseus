@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@front/core/classes": ["libs/front/core/classes/src/index.ts"],
       "@front/core/employee": ["libs/front/core/employee/src/index.ts"],
       "@front/core/facility": ["libs/front/core/facility/src/index.ts"],
       "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
@@ -22,12 +23,13 @@
       "@front/core/services": ["libs/front/core/services/src/index.ts"],
       "@front/state/session": ["libs/front/state/session/src/index.ts"],
       "@front/supabase": ["libs/front/supabase/src/index.ts"],
-      "@front/utils/logger": ["libs/front/utils/logger/src/index.ts"],
+      "@front/utils": ["libs/front/utils/src/index.ts"],
+      "@models/classes": ["libs/models/src/classes/index.ts"],
+      "@models/common": ["libs/models/src/common/index.ts"],
       "@models/facility": ["libs/models/src/facility/index.ts"],
       "@models/permissions": ["libs/models/src/permissions/index.ts"],
       "@models/services": ["libs/models/src/services/index.ts"],
       "@models/user": ["libs/models/src/user/index.ts"],
-      "@models/common": ["libs/models/src/common/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]
     }
   },

@@ -83,14 +83,14 @@ export class SwitchSelectorComponent<T> implements ControlValueAccessor, AfterVi
   }
 
   private calculateSelectedElement(element: HTMLElement): void {
-    const width = element.clientWidth;
-    this.selectedWidth.set(width);
-
     const offset = element.offsetLeft;
     const container = element.parentElement as HTMLElement;
     const containerPaddingLeft = container ? parseInt(getComputedStyle(container).paddingLeft, 10) : 0;
+    const elementWidth = element.clientWidth + (containerPaddingLeft * 2);
+    this.selectedWidth.set(elementWidth);
 
-    const adjustedOffset = offset - containerPaddingLeft;
+    const elementCenter = offset + elementWidth / 2;
+    const adjustedOffset = elementCenter - elementWidth / 2 - (containerPaddingLeft * 2);
     this.selectedOffset.set(adjustedOffset);
   }
 

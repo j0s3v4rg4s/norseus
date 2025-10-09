@@ -28,6 +28,7 @@ export class AppComponent implements OnInit {
     { label: 'About', icon: 'info', route: '/about' },
     { label: 'Permisos', icon: 'lock', route: '/home/permissions' },
     { label: 'Servicios', icon: 'fitness_center', route: '/home/services' },
+    { label: 'Programación', icon: 'calendar_month', route: '/home/programming' },
   ];
 
   ngOnInit(): void {

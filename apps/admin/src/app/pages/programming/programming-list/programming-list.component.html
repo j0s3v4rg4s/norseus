@@ -1,0 +1,37 @@
+<div class="container">
+  <div class="flex items-center mb-6">
+    <h1 class="text-2xl font-bold flex-1">Programación</h1>
+    <button class="btn" routerLink="/home/programming/create">Crear programación</button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  }
+
+  <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
+    <div class="grid gap-3">
+      <label for="service-select" class="label">Seleccionar servicio</label>
+      <ui-select
+        [ngModel]="selectedService()"
+        (ngModelChange)="onServiceChange($event)"
+        placeholder="Seleccione un servicio"
+      >
+        @for (service of services(); track service.id) {
+          <ui-option [value]="service">{{ service.name }}</ui-option>
+        }
+      </ui-select>
+    </div>
+  </div>
+
+  @if (selectedService() && schedules().length > 0) {
+    <div class="bg-white rounded-lg shadow-lg p-4">
+      <ui-week-calendar [slots]="calendarSlots()" (slotClick)="onSlotClick($event)"></ui-week-calendar>
+    </div>
+  }
+
+  @if (selectedService() && schedules().length === 0 && !isLoading()) {
+    <div class="text-center text-slate-500 py-8">No hay horarios para este servicio.</div>
+  }
+</div>

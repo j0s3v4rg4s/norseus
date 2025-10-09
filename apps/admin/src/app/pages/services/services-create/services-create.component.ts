@@ -13,7 +13,7 @@ import { SessionSignalStore } from '@front/state/session';
 import { ServicesStore } from '../services.store';
 import { Service } from '@models/services';
 import { Timestamp } from 'firebase/firestore';
-import { LoggerService } from '@front/utils/logger';
+import { LoggerService } from '@front/utils';
 import { SchedulesStore } from '../schedules.store';
 import { ScheduleFormComponent, ScheduleFormData } from '../common/schedule-form';
 

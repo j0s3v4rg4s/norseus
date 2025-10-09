@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { DAYS_OF_WEEK, DAY_OF_WEEK_LABELS, DayOfWeek } from '@models/common';
-import { CalendarSlot, SlotPosition, TimeSlot } from './interfaces';
-import { calculatePosition, getTimeRange } from './utilities';
+import { CalendarSlot, SlotPosition } from './interfaces';
+import { calculatePosition, getTimeRange, TimeSlot } from '../utilities';
 
 @Component({
   selector: 'ui-week-calendar',

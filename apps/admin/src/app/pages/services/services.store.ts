@@ -1,12 +1,12 @@
 import { inject, computed } from '@angular/core';
 import { patchState, signalStore, withMethods, withState, withComputed } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { forkJoin, of, EMPTY, pipe } from 'rxjs';
+import { forkJoin, of, EMPTY, pipe, from } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 
 import { Service, ServiceSchedule } from '@models/services';
 import { ServicesService, SchedulesService } from '@front/core/services';
-import { LoggerService } from '@front/utils/logger';
+import { LoggerService } from '@front/utils';
 
 interface ServicesState {
   isSaving: boolean;
@@ -63,11 +63,7 @@ export const ServicesStore = signalStore(
         ),
       ),
 
-      createServiceWithSchedules(
-        facilityId: string,
-        serviceData: Omit<Service, 'id'>,
-        schedules: ServiceSchedule[]
-      ) {
+      createServiceWithSchedules(facilityId: string, serviceData: Omit<Service, 'id'>, schedules: ServiceSchedule[]) {
         patchState(store, { isSaving: true, error: '' });
 
         return servicesService.createService(facilityId, serviceData).pipe(
@@ -77,7 +73,7 @@ export const ServicesStore = signalStore(
             }
 
             const scheduleObservables = schedules.map((schedule) =>
-              schedulesService.createSchedule(facilityId, serviceId, schedule)
+              from(schedulesService.createSchedule(facilityId, serviceId, schedule)),
             );
 
             return forkJoin(scheduleObservables).pipe(switchMap(() => of(serviceId)));
@@ -109,7 +105,7 @@ export const ServicesStore = signalStore(
                   } else {
                     patchState(store, {
                       currentService: null,
-                      error: 'Servicio no encontrado'
+                      error: 'Servicio no encontrado',
                     });
                   }
                 },
@@ -152,38 +148,16 @@ export const ServicesStore = signalStore(
         ),
       ),
 
-      updateService: rxMethod<{ facilityId: string; service: Service }>(
-        pipe(
-          tap(() => patchState(store, { isSaving: true, error: '' })),
-          switchMap(({ facilityId, service }) =>
-            servicesService.updateService(facilityId, service).pipe(
-              tap({
-                next: () => {
-                  patchState(store, {
-                    isSaving: false,
-                    currentService: service
-                  });
-                },
-                error: (error) => {
-                  logger.error('Error updating service:', error);
-                  patchState(store, {
-                    isSaving: false,
-                    error: 'Error al actualizar el servicio. Intente nuevamente.',
-                  });
-                },
-              }),
-              catchError((error) => {
-                logger.error('Error updating service:', error);
-                patchState(store, {
-                  isSaving: false,
-                  error: 'Error al actualizar el servicio. Intente nuevamente.',
-                });
-                return EMPTY;
-              }),
-            ),
-          ),
-        ),
-      ),
+      updateService: async (facilityId: string, service: Service) => {
+        patchState(store, { isSaving: true, error: '' });
+        try {
+          await servicesService.updateService(facilityId, service);
+          patchState(store, { isSaving: false, currentService: service });
+        } catch (error) {
+          logger.error('Error updating service:', error);
+          patchState(store, { isSaving: false, error: 'Error al actualizar el servicio. Intente nuevamente.' });
+        }
+      },
 
       deleteService: rxMethod<{ facilityId: string; serviceId: string }>(
         pipe(
@@ -195,7 +169,7 @@ export const ServicesStore = signalStore(
                   patchState(store, {
                     isDeleting: false,
                     currentService: null,
-                    currentServiceSchedules: []
+                    currentServiceSchedules: [],
                   });
                 },
                 error: (error) => {
@@ -223,5 +197,5 @@ export const ServicesStore = signalStore(
         patchState(store, initialState);
       },
     };
-  })
+  }),
 );

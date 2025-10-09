@@ -6,7 +6,7 @@ import { ProfileModel } from '@models/user';
 import { FacilityModel } from '@models/facility';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, combineLatest, catchError, of } from 'rxjs';
-import { LoggerService } from '@front/utils/logger';
+import { LoggerService } from '@front/utils';
 
 export interface SessionState {
   profile: ProfileModel | null;

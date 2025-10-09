@@ -38,3 +38,20 @@ export const DAY_OF_WEEK_LABELS: Record<DayOfWeek, string> = {
   [DayOfWeek.SATURDAY]: 'Sábado',
   [DayOfWeek.SUNDAY]: 'Domingo',
 };
+
+/**
+ * Maps DayOfWeek enum to JavaScript day numbers (0 = Sunday, 1 = Monday, etc.)
+ */
+export function getDayOfWeekNumber(dayOfWeek: DayOfWeek): number {
+  const dayMap: Record<DayOfWeek, number> = {
+    [DayOfWeek.SUNDAY]: 0,
+    [DayOfWeek.MONDAY]: 1,
+    [DayOfWeek.TUESDAY]: 2,
+    [DayOfWeek.WEDNESDAY]: 3,
+    [DayOfWeek.THURSDAY]: 4,
+    [DayOfWeek.FRIDAY]: 5,
+    [DayOfWeek.SATURDAY]: 6,
+  };
+
+  return dayMap[dayOfWeek];
+}

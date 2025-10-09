@@ -1,4 +1,4 @@
-import { CalendarSlot, SlotPosition } from '../interfaces';
+import { CalendarSlot, SlotPosition } from '../week-calendar/interfaces';
 
 /**
  * Calculates the visual position and height of a calendar slot

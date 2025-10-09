@@ -51,7 +51,7 @@ export class SchedulesService {
   /* * PUBLIC METHODS                                                         * */
   /* ************************************************************************** */
 
-  createSchedule(facilityId: string, serviceId: string, schedule: Omit<ServiceSchedule, 'id'>): Observable<string> {
+  async createSchedule(facilityId: string, serviceId: string, schedule: Omit<ServiceSchedule, 'id'>): Promise<string> {
     const colRef = this.getSchedulesCollectionRef(facilityId, serviceId);
     const newRef = doc(colRef);
     const docData: ServiceSchedule = {
@@ -61,33 +61,29 @@ export class SchedulesService {
       updatedAt: Timestamp.now(),
     };
     try {
-      return from(setDoc(newRef, docData)).pipe(
-        map(() => newRef.id),
-        catchError((error) =>
-          throwError(() => new SchedulesServiceError('Failed to create schedule', error, serviceId)),
-        ),
-      );
+      await setDoc(newRef, docData);
+      return newRef.id;
     } catch (error) {
-      return throwError(() => new SchedulesServiceError('Failed to create schedule', error as Error, serviceId));
+      throw new SchedulesServiceError('Failed to create schedule', error as Error, serviceId);
     }
   }
 
-  updateSchedule(facilityId: string, serviceId: string, schedule: ServiceSchedule): Observable<void> {
+  async updateSchedule(facilityId: string, serviceId: string, schedule: ServiceSchedule): Promise<void> {
     const ref = doc(this.getSchedulesCollectionRef(facilityId, serviceId), schedule.id);
-    return from(setDoc(ref, schedule, { merge: true })).pipe(
-      catchError((error) =>
-        throwError(() => new SchedulesServiceError('Failed to update schedule', error, serviceId, schedule.id)),
-      ),
-    );
+    try {
+      return await setDoc(ref, schedule, { merge: true });
+    } catch (error) {
+      throw new SchedulesServiceError('Failed to update schedule', error as Error, serviceId, schedule.id);
+    }
   }
 
-  deleteSchedule(facilityId: string, serviceId: string, scheduleId: string): Observable<void> {
+  async deleteSchedule(facilityId: string, serviceId: string, scheduleId: string): Promise<void> {
     const ref = doc(this.getSchedulesCollectionRef(facilityId, serviceId), scheduleId);
-    return from(deleteDoc(ref)).pipe(
-      catchError((error) =>
-        throwError(() => new SchedulesServiceError('Failed to delete schedule', error, serviceId, scheduleId)),
-      ),
-    );
+    try {
+      return await deleteDoc(ref);
+    } catch (error) {
+      throw new SchedulesServiceError('Failed to delete schedule', error as Error, serviceId, scheduleId);
+    }
   }
 
   getAllSchedules(facilityId: string, serviceId: string): Observable<ServiceSchedule[]> {

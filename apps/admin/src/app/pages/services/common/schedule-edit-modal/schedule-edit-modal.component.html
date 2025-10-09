@@ -81,6 +81,9 @@
       />
       <label for="isActive" class="text-sm font-medium text-gray-700">Horario activo</label>
     </div>
+    @if (errorMessage()) {
+      <p class="text-red-500 text-sm">{{ errorMessage() }}</p>
+    }
   </form>
 
   <div class="flex gap-3 mt-6 flex-row-reverse">

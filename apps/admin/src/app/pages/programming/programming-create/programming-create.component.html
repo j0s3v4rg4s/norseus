@@ -1,0 +1,45 @@
+<div class="container">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold">Crear nueva programación</h1>
+  </div>
+
+  <div class="mb-8">
+    <ui-step-indicator [steps]="stepDefinitions()" [currentStep]="currentStep()"> </ui-step-indicator>
+  </div>
+
+  @if (currentStep() === 1) {
+    <app-program-information
+      [form]="form"
+      [services]="store.services()"
+      [dateCalendarSlots]="store.dateCalendarSlots()"
+      (slotClick)="onSlotClick($event)"
+      (weekChange)="onWeekChange($event)"
+    >
+    </app-program-information>
+  } @else if (currentStep() === 2) {
+    <app-coach-assignment
+      [programClasses]="store.programClasses()"
+      [employees]="store.employees()"
+      (coachAssignment)="onCoachAssignment($event)"
+      (sameCoachForAll)="onSameCoachForAll($event)"
+      (clearCoachAssignment)="onClearCoachAssignment($event)"
+    >
+    </app-coach-assignment>
+  }
+
+  @if (errorMessage() || store.error()) {
+    <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
+      {{ store.error() || errorMessage() }}
+    </div>
+  }
+
+  <div class="flex justify-between items-center mt-6">
+    @if (store.currentStep() === 1) {
+      <button class="btn-outline" (click)="onCancel()">Cancelar</button>
+      <button class="btn" (click)="goToNextStep()" [disabled]="!canProceedToNextStep()">Continuar</button>
+    } @else if (store.currentStep() === 2) {
+      <button class="btn-outline" (click)="goBack()">Atrás</button>
+      <button class="btn" (click)="onSave()">Guardar</button>
+    }
+  </div>
+</div>

@@ -70,6 +70,13 @@ service cloud.firestore {
         allow update: if hasPermission(request, facilityId, 'services', 'update') || isFacilityAdmin(request, facilityId);
         allow delete: if hasPermission(request, facilityId, 'services', 'delete') || isFacilityAdmin(request, facilityId);
       }
+
+      match /classes/{classId} {
+        allow create: if hasPermission(request, facilityId, 'programming', 'create') || isFacilityAdmin(request, facilityId);
+        allow read: if isAuth(request);
+        allow update: if hasPermission(request, facilityId, 'programming', 'update') || isFacilityAdmin(request, facilityId);
+        allow delete: if hasPermission(request, facilityId, 'programming', 'delete') || isFacilityAdmin(request, facilityId);
+      }
     }
 
     match /{path=**}/employees/{uid} {

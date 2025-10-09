@@ -1,0 +1,36 @@
+<div class="flex items-center justify-center">
+  @for (step of stepStates(); track step.id; let isLast = $last) {
+    <div class="flex items-center">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center justify-center">
+          @if (step.isCompleted) {
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white">
+              <span class="material-symbols-rounded text-sm">check</span>
+            </div>
+          } @else if (step.isCurrent) {
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-semibold">
+              {{ step.stepNumber }}
+            </div>
+          } @else {
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-300 text-gray-600 font-semibold">
+              {{ step.stepNumber }}
+            </div>
+          }
+        </div>
+
+        <div
+          class="text-sm font-medium"
+          [class.text-green-600]="step.isCompleted"
+          [class.text-blue-600]="step.isCurrent"
+          [class.text-gray-500]="step.isPending"
+        >
+          {{ step.label }}
+        </div>
+      </div>
+
+      @if (!isLast) {
+        <div class="flex-1 h-px bg-gray-300 min-w-[60px] mx-4"></div>
+      }
+    </div>
+  }
+</div>

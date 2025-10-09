@@ -64,11 +64,13 @@ export class ServicesService {
     }
   }
 
-  updateService(facilityId: string, service: Service): Observable<void> {
+  async updateService(facilityId: string, service: Service): Promise<void> {
     const ref = doc(this.getServicesCollectionRef(facilityId), service.id);
-    return from(setDoc(ref, { ...service, updatedAt: Timestamp.now() })).pipe(
-      catchError((error) => throwError(() => new ServicesServiceError('Failed to update service', error, service.id))),
-    );
+    try {
+      await setDoc(ref, { ...service, updatedAt: Timestamp.now() });
+    } catch (error) {
+      throw new ServicesServiceError('Failed to update service', error as Error, service.id);
+    }
   }
 
   /**
@@ -92,9 +94,7 @@ export class ServicesService {
   getAllServices(facilityId: string): Observable<Service[]> {
     const q = query(this.getServicesCollectionRef(facilityId));
     return from(getDocs(q)).pipe(
-      map((snapshot) =>
-        snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Service))
-      ),
+      map((snapshot) => snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }) as Service)),
       catchError((error) => throwError(() => new ServicesServiceError('Failed to fetch all services', error))),
     );
   }
@@ -102,9 +102,7 @@ export class ServicesService {
   getServiceById(facilityId: string, serviceId: string): Observable<Service | undefined> {
     const ref = doc(this.getServicesCollectionRef(facilityId), serviceId);
     return from(getDoc(ref)).pipe(
-      map((snapshot) =>
-        snapshot.exists() ? { ...snapshot.data(), id: snapshot.id } as Service : undefined
-      ),
+      map((snapshot) => (snapshot.exists() ? ({ ...snapshot.data(), id: snapshot.id } as Service) : undefined)),
       catchError((error) =>
         throwError(() => new ServicesServiceError('Failed to fetch service by id', error, serviceId)),
       ),

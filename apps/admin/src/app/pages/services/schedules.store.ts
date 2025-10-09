@@ -7,11 +7,15 @@ import { Timestamp } from '@angular/fire/firestore';
 import { ServiceSchedule } from '@models/services';
 import { CalendarSlot } from '@ui';
 import { DAY_OF_WEEK_LABELS, DayOfWeek } from '@models/common';
-import { LoggerService } from '@front/utils/logger';
+import { LoggerService } from '@front/utils';
 import { SchedulesService } from '@front/core/services';
+import { timeToMinutes, calculateEndTime } from '@front/utils';
 
 interface SchedulesState {
   schedules: ServiceSchedule[];
+  deleteSchedules: Set<string>;
+  updateSchedules: Set<string>;
+  newSchedules: Set<string>;
   conflictError: string;
   isLoading: boolean;
 }
@@ -48,6 +52,9 @@ interface CreateMultipleSchedulesData {
 
 const initialState: SchedulesState = {
   schedules: [],
+  deleteSchedules: new Set(),
+  updateSchedules: new Set(),
+  newSchedules: new Set(),
   conflictError: '',
   isLoading: false,
 };
@@ -162,6 +169,7 @@ export const SchedulesStore = signalStore(
           patchState(store, (state) => ({
             schedules: [...state.schedules, ...newSchedules],
             isLoading: false,
+            newSchedules: new Set([...state.newSchedules, ...newSchedules.map((s) => s.id)]),
           }));
 
           return true;
@@ -176,10 +184,57 @@ export const SchedulesStore = signalStore(
         patchState(store, (state) => ({
           schedules: state.schedules.filter((s) => s.id !== scheduleId),
         }));
+        const newSchedules = store.newSchedules();
+        const deleteSchedules = store.deleteSchedules();
+
+
+        if (newSchedules.has(scheduleId)) {
+          newSchedules.delete(scheduleId);
+        } else {
+          deleteSchedules.add(scheduleId);
+        }
+
+        patchState(store, () => ({ newSchedules: newSchedules, deleteSchedules: deleteSchedules }));
       },
 
       resetSchedules(): void {
         patchState(store, { schedules: [], conflictError: '', isLoading: false });
+      },
+
+      checkScheduleConflicts(actualSchedule: ServiceSchedule[], newSchedule: ServiceSchedule[]): string | null {
+        return checkScheduleConflicts(actualSchedule, newSchedule);
+      },
+
+      updateSchedule(schedule: ServiceSchedule) {
+        const newSchedules = store.newSchedules();
+        const updateSchedules = store.updateSchedules();
+
+        if (!newSchedules.has(schedule.id)) {
+          updateSchedules.add(schedule.id);
+        }
+
+        patchState(store, (state) => ({
+          updateSchedules: updateSchedules,
+          schedules: state.schedules.map((s) => (s.id === schedule.id ? schedule : s)),
+        }));
+      },
+
+      saveListSchedules(facilityId: string, serviceId: string) {
+        const newSchedules = store.newSchedules();
+        const updateSchedules = store.updateSchedules();
+        const deleteSchedules = store.deleteSchedules();
+
+        const schedules = store.schedules();
+        const deleteSchedulesPromises = [...deleteSchedules].map((id) =>
+          schedulesService.deleteSchedule(facilityId, serviceId, id),
+        );
+        const updateSchedulesPromises = [...updateSchedules].map((id) =>
+          schedulesService.updateSchedule(facilityId, serviceId, schedules.find((s) => s.id === id) as ServiceSchedule),
+        ).filter(Boolean);
+        const newSchedulesPromises = [...newSchedules].map((id) =>
+          schedulesService.createSchedule(facilityId, serviceId, schedules.find((s) => s.id === id) as ServiceSchedule),
+        ).filter(Boolean);
+        return Promise.all([...deleteSchedulesPromises, ...updateSchedulesPromises, ...newSchedulesPromises]);
       },
     };
   }),
@@ -283,21 +338,8 @@ function schedulesOverlap(schedule1: ServiceSchedule, schedule2: ServiceSchedule
   return start1 < end2 && start2 < end1;
 }
 
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
-}
-
 function formatScheduleInfo(schedule: ServiceSchedule): string {
   const dayLabel = DAY_OF_WEEK_LABELS[schedule.dayOfWeek];
   const endTime = calculateEndTime(schedule.startTime, schedule.durationMinutes);
   return `${dayLabel} de ${schedule.startTime} a ${endTime}`;
-}
-
-function calculateEndTime(startTime: string, durationMinutes: number): string {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const totalMinutes = hours * 60 + minutes + durationMinutes;
-  const endHours = Math.floor(totalMinutes / 60);
-  const endMinutes = totalMinutes % 60;
-  return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
 }

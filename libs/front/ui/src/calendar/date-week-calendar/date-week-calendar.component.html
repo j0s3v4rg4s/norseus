@@ -1,0 +1,99 @@
+<div>
+  <div class="flex items-center justify-between mb-4 py-2">
+    <div class="text-xl font-semibold text-neutral-600">
+      <span>{{ monthYear() }}</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        class="btn-icon-outline"
+        [disabled]="!canGoPrevious()"
+        (click)="goToPreviousWeek()"
+      >
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+
+      <button
+        class="btn-secondary px-4 py-2"
+        [disabled]="isCurrentWeek()"
+        (click)="goToToday()"
+      >
+        Hoy
+      </button>
+
+      <button
+        class="btn-icon-outline"
+        [disabled]="!canGoNext()"
+        (click)="goToNextWeek()"
+      >
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <div class="grid grid-cols-[50px_repeat(7,1fr)] gap-0">
+      <div class="border-b border-gray-300"></div>
+
+      @for (date of weekDates(); track date.toISOString()) {
+        <button
+          class="border-b border-l border-gray-300 p-2 text-center bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+          [class.bg-blue-50]="isDateToday(date)"
+          (click)="onDayHeaderClick(date)"
+        >
+          <div class="font-semibold text-sm">{{ getDayLabel(date).day }}</div>
+          <div
+            class="text-lg font-bold"
+            [class.text-blue-600]="isDateToday(date)"
+          >
+            {{ getDayLabel(date).number }}
+          </div>
+        </button>
+      }
+
+      <div class="relative">
+        @for (slot of timeSlots(); track slot.label) {
+          <div
+            class="absolute left-0 right-0 text-xs text-gray-600 pr-2 text-right"
+            [style.top.px]="$index * SLOT_HEIGHT"
+            [style.height.px]="SLOT_HEIGHT"
+          >
+            <span class="bg-white pr-1">{{ slot.label }}</span>
+          </div>
+        }
+      </div>
+
+      @for (date of weekDates(); track date.toISOString()) {
+        <div class="border-l border-gray-300 relative" [style.height.px]="calendarHeight()">
+          @for (slot of timeSlots(); track slot.label) {
+            <div
+              class="absolute left-0 right-0"
+              [class.border-t]="$index > 0"
+              [class.border-gray-400]="slot.isHourMark && $index > 0"
+              [class.border-gray-200]="!slot.isHourMark && $index > 0"
+              [style.top.px]="$index * SLOT_HEIGHT"
+              [style.height.px]="SLOT_HEIGHT"
+            ></div>
+          }
+
+          @for (position of getSlotsForDate(date); track position.slot.id) {
+            <button
+              class="absolute left-1 right-1 rounded px-2 py-1 text-xs overflow-hidden transition-all duration-200"
+              [class]="getSlotColorClasses(position)"
+              [disabled]="position.isDisabled"
+              [style.top.px]="position.top"
+              [style.height.px]="position.height"
+              (click)="onSlotClick(position.slot)">
+              @if (position.slot.displayLabel) {
+                <div class="font-semibold">{{ position.slot.displayLabel }}</div>
+              }
+              @if (position.slot.displaySubLabel) {
+                <div class="text-[10px] opacity-90" [innerHTML]="position.slot.displaySubLabel"></div>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

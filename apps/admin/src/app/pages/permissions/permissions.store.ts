@@ -6,7 +6,7 @@ import { RolesService } from '@front/core/roles';
 import { PermissionAction, PermissionSection } from '@models/permissions';
 import { Role as RolesLibRole, PermissionsBySection } from '@front/core/roles';
 import { SessionSignalStore } from '@front/state/session';
-import { LoggerService } from '@front/utils/logger';
+import { LoggerService } from '@front/utils';
 
 type UiPermission = { action: PermissionAction; section: PermissionSection };
 

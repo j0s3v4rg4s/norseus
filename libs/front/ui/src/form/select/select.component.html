@@ -28,7 +28,7 @@
       [attr.aria-labelledby]="uniqueId + '-trigger'"
     >
       <div role="option" data-value="" aria-selected="true" aria-disabled="true" disabled data-placeholder="">
-        Seleccione una opción
+        {{ placeholder() }}
       </div>
 
       <ng-content select="ui-option"></ng-content>

@@ -1,0 +1,13 @@
+{
+  "name": "classes",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/core/classes/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["front"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

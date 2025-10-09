@@ -21,12 +21,3 @@ export interface SlotPosition {
   height: number;
 }
 
-/**
- * Interface representing a time mark in the calendar grid
- */
-export interface TimeSlot {
-  hour: number;
-  minute: number;
-  label: string;
-  isHourMark: boolean;
-}

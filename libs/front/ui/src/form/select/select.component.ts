@@ -25,7 +25,7 @@ export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor 
   //****************************************************************************
   //* PUBLIC INPUTS
   //****************************************************************************
-  placeholder = input<string>('');
+  placeholder = input<string>('Seleccione una opción');
 
   //****************************************************************************
   //* PUBLIC SIGNALS
@@ -96,7 +96,7 @@ export class SelectComponent implements OnInit, OnDestroy, ControlValueAccessor 
   writeValue(value: string): void {
     this.value.set(value || '');
     (document.getElementById(this.uniqueId) as HTMLElement & { selectByValue: (value: string) => void })?.selectByValue(
-      value,
+      value || '',
     );
   }
 
