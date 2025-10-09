@@ -67,7 +67,14 @@ export function groupSlotsByDate<T>(allSlots: ClassCalendarSlot<T>[]): Record<st
 }
 
 /**
- * Calculates positions for overlapping slots with horizontal division
+ * Checks if two slots have exact same start time and duration
+ */
+function slotsAreIdentical<T>(slot1: ClassCalendarSlot<T>, slot2: ClassCalendarSlot<T>): boolean {
+  return slot1.startTime === slot2.startTime && slot1.durationMinutes === slot2.durationMinutes;
+}
+
+/**
+ * Calculates positions for overlapping slots with intelligent multi-column cascading
  */
 export function calculateOverlappingPositions<T>(
   slots: ClassCalendarSlot<T>[],
@@ -76,76 +83,110 @@ export function calculateOverlappingPositions<T>(
 ): ClassSlotPosition<T>[] {
   if (slots.length === 0) return [];
 
-  const positions: ClassSlotPosition<T>[] = [];
-
-  // Sort slots by start time to process them in order
   const sortedSlots = [...slots].sort((a, b) => {
     const [hourA, minuteA] = a.startTime.split(':').map(Number);
     const [hourB, minuteB] = b.startTime.split(':').map(Number);
     return (hourA * 60 + minuteA) - (hourB * 60 + minuteB);
   });
 
-  // Group slots into overlapping clusters
-  const overlapGroups: ClassCalendarSlot<T>[][] = [];
+  const identicalGroups = new Map<string, ClassCalendarSlot<T>[]>();
   const processedSlots = new Set<string>();
 
   sortedSlots.forEach(slot => {
     if (processedSlots.has(slot.id)) return;
 
-    // Find all slots that overlap with this one (including transitive overlaps)
-    const currentGroup: ClassCalendarSlot<T>[] = [];
-    const toProcess = [slot];
+    const groupKey = `${slot.startTime}-${slot.durationMinutes}`;
+    const identicalSlots = sortedSlots.filter(s =>
+      !processedSlots.has(s.id) && slotsAreIdentical(slot, s)
+    );
 
-    while (toProcess.length > 0) {
-      const currentSlot = toProcess.shift() as ClassCalendarSlot<T>;
-
-      if (processedSlots.has(currentSlot.id)) continue;
-
-      processedSlots.add(currentSlot.id);
-      currentGroup.push(currentSlot);
-
-      // Find all unprocessed slots that overlap with current slot
-      sortedSlots.forEach(otherSlot => {
-        if (!processedSlots.has(otherSlot.id) && slotsOverlap(currentSlot, otherSlot)) {
-          toProcess.push(otherSlot);
-        }
-      });
-    }
-
-    if (currentGroup.length > 0) {
-      overlapGroups.push(currentGroup);
+    if (identicalSlots.length > 1) {
+      identicalGroups.set(groupKey, identicalSlots);
+      identicalSlots.forEach(s => processedSlots.add(s.id));
     }
   });
 
-  // Calculate positions for each group
-  overlapGroups.forEach(group => {
-    // Sort group by start time
-    const sortedGroup = group.sort((a, b) => {
-      const [hourA, minuteA] = a.startTime.split(':').map(Number);
-      const [hourB, minuteB] = b.startTime.split(':').map(Number);
-      return (hourA * 60 + minuteA) - (hourB * 60 + minuteB);
-    });
+  const columns: ClassCalendarSlot<T>[][] = [];
+  const slotColumnMap = new Map<string, number>();
+  const identicalGroupInfo = new Map<string, { groupSize: number; indexInGroup: number }>();
 
-    sortedGroup.forEach((slot, index) => {
-      const [hour, minute] = slot.startTime.split(':').map(Number);
-      const startMinutes = (hour - minHour) * 60 + minute;
-      const top = (startMinutes / 30) * slotHeight;
-      const height = (slot.durationMinutes / 30) * slotHeight;
+  sortedSlots.forEach(slot => {
+    const groupKey = `${slot.startTime}-${slot.durationMinutes}`;
 
-      const totalOverlapping = group.length;
-      const slotWidth = 100 / totalOverlapping;
-      const left = index * slotWidth;
-      const zIndex = 10 + index;
+    if (identicalGroups.has(groupKey)) {
+      const group = identicalGroups.get(groupKey);
+      if (group) {
+        const indexInGroup = group.findIndex(s => s.id === slot.id);
+        identicalGroupInfo.set(slot.id, {
+          groupSize: group.length,
+          indexInGroup
+        });
+        slotColumnMap.set(slot.id, 0);
+      }
+      return;
+    }
 
-      positions.push({
+    let assignedColumn = -1;
+
+    for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+      const columnSlots = columns[colIndex];
+      const hasOverlap = columnSlots.some(existingSlot => slotsOverlap(slot, existingSlot));
+
+      if (!hasOverlap) {
+        assignedColumn = colIndex;
+        break;
+      }
+    }
+
+    if (assignedColumn === -1) {
+      assignedColumn = columns.length;
+      columns.push([]);
+    }
+
+    columns[assignedColumn].push(slot);
+    slotColumnMap.set(slot.id, assignedColumn);
+  });
+
+  const totalColumns = columns.length;
+  const offsetPerColumn = totalColumns === 1 ? 0 : 100 / totalColumns;
+
+  const positions: ClassSlotPosition<T>[] = sortedSlots.map(slot => {
+    const [hour, minute] = slot.startTime.split(':').map(Number);
+    const startMinutes = (hour - minHour) * 60 + minute;
+    const top = (startMinutes / 30) * slotHeight;
+    const height = (slot.durationMinutes / 30) * slotHeight;
+
+    const identicalInfo = identicalGroupInfo.get(slot.id);
+
+    if (identicalInfo) {
+      const { groupSize, indexInGroup } = identicalInfo;
+      const slotWidth = 100 / groupSize;
+      const left = indexInGroup * slotWidth;
+      const zIndex = 10 + (indexInGroup * 10);
+
+      return {
         slot,
         top,
         height,
         left,
         width: slotWidth,
         zIndex
-      });
-    });
+      };
+    }
+
+    const columnIndex = slotColumnMap.get(slot.id) || 0;
+    const left = columnIndex * offsetPerColumn;
+    const width = 100 - left;
+    const zIndex = 10 + (columnIndex * 10);
+
+    return {
+      slot,
+      top,
+      height,
+      left,
+      width,
+      zIndex
+    };
   });
 
   return positions;

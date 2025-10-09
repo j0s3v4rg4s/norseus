@@ -77,20 +77,21 @@
 
           @for (position of getSlotsForDate(date); track position.slot.id) {
             <button
-              class="absolute rounded px-2 py-1 text-xs overflow-hidden transition-all duration-200 cursor-pointer"
+              class="absolute rounded px-2 py-1 overflow-hidden transition-all duration-200 flex flex-col items-start calendar-slot border border-white"
               [class]="getSlotColorClasses(position)"
               [style.top.px]="position.top"
               [style.height.px]="position.height"
               [style.left.%]="position.left"
               [style.width.%]="position.width"
               [style.z-index]="position.zIndex"
+              [style.--max-z-index]="maxZIndex()"
               (click)="onSlotClick(position.slot)"
             >
               @if (position.slot.displayLabel) {
-                <div class="font-semibold">{{ position.slot.displayLabel }}</div>
+                <div class="font-semibold text-xs text-left">{{ position.slot.displayLabel }}</div>
               }
               @if (position.slot.displaySubLabel) {
-                <div class="text-[10px] opacity-90" [innerHTML]="position.slot.displaySubLabel"></div>
+                <div class="text-[10px] opacity-90 text-left" [innerHTML]="position.slot.displaySubLabel"></div>
               }
             </button>
           }

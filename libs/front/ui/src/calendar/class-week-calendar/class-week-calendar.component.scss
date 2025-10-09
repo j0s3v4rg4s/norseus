@@ -1,0 +1,8 @@
+.calendar-slot {
+  &:hover {
+    width: 100% !important;
+    left: 0 !important;
+    z-index: var(--max-z-index) !important;
+  }
+}
+

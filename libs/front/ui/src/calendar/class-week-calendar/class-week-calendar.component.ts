@@ -112,6 +112,12 @@ export class ClassWeekCalendarComponent<T> {
     return result;
   });
 
+  maxZIndex = computed<number>(() => {
+    const allPositions = Object.values(this.slotsByDate()).flat();
+    if (allPositions.length === 0) return 10;
+    return Math.max(...allPositions.map(pos => pos.zIndex)) + 10;
+  });
+
   constructor() {
     const initialDate = this.currentWeekDate();
     this.currentDisplayWeek.set(initialDate);
@@ -162,14 +168,14 @@ export class ClassWeekCalendarComponent<T> {
 
   getSlotColorClasses(position: ClassSlotPosition<T>): string {
     const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/80 hover:bg-blue-600/90 text-white',
-      green: 'bg-green-500/80 hover:bg-green-600/90 text-white',
-      purple: 'bg-purple-500/80 hover:bg-purple-600/90 text-white',
-      orange: 'bg-orange-500/80 hover:bg-orange-600/90 text-white',
-      pink: 'bg-pink-500/80 hover:bg-pink-600/90 text-white',
-      indigo: 'bg-indigo-500/80 hover:bg-indigo-600/90 text-white',
-      teal: 'bg-teal-500/80 hover:bg-teal-600/90 text-white',
-      rose: 'bg-rose-500/80 hover:bg-rose-600/90 text-white',
+      blue: 'bg-blue-500/90 hover:bg-blue-600 text-white',
+      green: 'bg-green-500/90 hover:bg-green-600 text-white',
+      purple: 'bg-purple-500/90 hover:bg-purple-600 text-white',
+      orange: 'bg-orange-500/90 hover:bg-orange-600 text-white',
+      pink: 'bg-pink-500/90 hover:bg-pink-600 text-white',
+      indigo: 'bg-indigo-500/90 hover:bg-indigo-600 text-white',
+      teal: 'bg-teal-500/90 hover:bg-teal-600 text-white',
+      rose: 'bg-rose-500/90 hover:bg-rose-600 text-white',
     };
 
     // Get color from the slot's color property (assigned by assignColorsToSlots)
