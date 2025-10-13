@@ -1,21 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { DateCalendarSlot, DateSlotPosition } from './interfaces';
 import { TimeSlot } from '../utilities';
-import {
-  calculateDateSlotPosition,
-  getDateTimeRange,
-} from './utilities';
+import { calculateDateSlotPosition, getDateTimeRange } from './utilities';
 import {
   formatDayLabel,
   formatMonthYear,
   getDateKey,
   getWeekDates,
   getWeekEnd,
-  getWeekStart,
   isSameWeek,
   isToday,
   isDateInRange,
 } from '../utilities/date-utilities';
+import { getWeekStart } from '@front/utils';
 
 @Component({
   selector: 'ui-date-week-calendar',
@@ -61,7 +58,7 @@ export class DateWeekCalendarComponent<T> {
     const minDateStart = new Date(minDate);
     minDateStart.setHours(0, 0, 0, 0);
 
-    return minDateStart<= previousWeekStart ||  (minDateStart >= previousWeekStart && minDateStart <= previousWeekEnd);
+    return minDateStart <= previousWeekStart || (minDateStart >= previousWeekStart && minDateStart <= previousWeekEnd);
   });
 
   canGoNext = computed<boolean>(() => {
@@ -195,14 +192,14 @@ export class DateWeekCalendarComponent<T> {
 
   onDayHeaderClick(date: Date): void {
     const slotsForDate = this.getSlotsForDate(date);
-    const enabledSlots = slotsForDate.filter(slot => !slot.isDisabled);
+    const enabledSlots = slotsForDate.filter((slot) => !slot.isDisabled);
 
     if (enabledSlots.length === 0) return;
 
-    const allSelected = enabledSlots.every(slot => slot.slot.isSelected);
+    const allSelected = enabledSlots.every((slot) => slot.slot.isSelected);
     const newState = !allSelected;
 
-    enabledSlots.forEach(slot => {
+    enabledSlots.forEach((slot) => {
       this.slotClick.emit({ slotId: slot.slot.id, isSelected: newState });
     });
   }

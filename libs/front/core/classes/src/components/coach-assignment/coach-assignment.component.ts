@@ -12,7 +12,7 @@ interface GroupedClasses {
 }
 
 @Component({
-  selector: 'app-coach-assignment',
+  selector: 'lib-coach-assignment',
   templateUrl: './coach-assignment.component.html',
   styleUrls: ['./coach-assignment.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,3 +83,4 @@ export class CoachAssignmentComponent {
     this.clearCoachAssignment.emit(this.selectedEmployeeForAll());
   }
 }
+

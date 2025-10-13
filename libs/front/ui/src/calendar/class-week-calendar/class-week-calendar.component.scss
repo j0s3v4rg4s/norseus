@@ -1,3 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
 .calendar-slot {
   &:hover {
     width: 100% !important;

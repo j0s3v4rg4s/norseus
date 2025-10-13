@@ -1,16 +1,5 @@
 import { DayOfWeek, getDayOfWeekNumber } from '@models/common';
-
-/**
- * Gets the start of the week (Monday) for a given date
- */
-export function getWeekStart(date: Date): Date {
-  const result = new Date(date);
-  const day = result.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  result.setDate(result.getDate() + diff);
-  result.setHours(0, 0, 0, 0);
-  return result;
-}
+import { getWeekStart } from '@front/utils';
 
 /**
  * Gets the end of the week (Sunday) for a given date

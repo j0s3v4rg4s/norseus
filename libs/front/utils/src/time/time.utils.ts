@@ -25,3 +25,17 @@ export function calculateEndTime(startTime: string, durationMinutes: number): st
   const endMinutes = totalMinutes % 60;
   return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
 }
+
+/**
+ * Gets the start of the week (Monday) for a given date
+ * @param date - The reference date
+ * @returns A new Date object set to Monday at 00:00:00
+ */
+export function getWeekStart(date: Date): Date {
+  const result = new Date(date);
+  const day = result.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  result.setDate(result.getDate() + diff);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}

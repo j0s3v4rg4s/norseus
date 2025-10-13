@@ -3,30 +3,30 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { EMPTY, pipe } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
+import { Timestamp } from '@angular/fire/firestore';
 
 import { Service, ServiceSchedule } from '@models/services';
 import { EmployeeModel } from '@models/facility';
 import { ClassModel, ProgramType } from '@models/classes';
 import { ServicesService, SchedulesService } from '@front/core/services';
 import { EmployeeService } from '@front/core/employee';
-import { ClassesService } from '@front/core/classes';
+import { ClassesService } from '../services';
 import { LoggerService } from '@front/utils';
-import { DateCalendarSlot, getDatesForDayOfWeek, getCurrentWeekRange } from '@ui';
-import { Timestamp } from '@angular/fire/firestore';
+import { getDatesForDayOfWeek, getCurrentWeekRange, ClassCalendarSlot, CalendarColor } from '@ui';
 
-interface ProgrammingCreateState {
+interface ProgrammingState {
   isLoading: boolean;
   currentStep: number;
   services: Service[];
   employees: EmployeeModel[];
   schedules: ServiceSchedule[];
-  dateCalendarSlots: DateCalendarSlot<ServiceSchedule>[];
+  dateCalendarSlots: ClassCalendarSlot<ServiceSchedule>[];
   programClasses: ClassModel[];
   error: string;
   serviceId: string | null;
 }
 
-const initialState: ProgrammingCreateState = {
+const initialState: ProgrammingState = {
   isLoading: false,
   currentStep: 1,
   services: [],
@@ -38,7 +38,7 @@ const initialState: ProgrammingCreateState = {
   serviceId: null,
 };
 
-export const ProgrammingCreateStore = signalStore(
+export const ProgrammingStore = signalStore(
   withState(initialState),
   withComputed((store) => ({
     activeSlots: computed(() =>
@@ -56,7 +56,7 @@ export const ProgrammingCreateStore = signalStore(
           acc[slot.id] = slot;
           return acc;
         },
-        {} as Record<string, DateCalendarSlot<ServiceSchedule>>,
+        {} as Record<string, ClassCalendarSlot<ServiceSchedule>>,
       );
     }),
     schedulesMap: computed(() => {
@@ -67,9 +67,6 @@ export const ProgrammingCreateStore = signalStore(
         },
         {} as Record<string, ServiceSchedule>,
       );
-    }),
-    allSlotsAssigned: computed(() => {
-      return store.programClasses().every((cls) => cls.instructorId !== null);
     }),
   })),
   withMethods((store) => {
@@ -135,7 +132,7 @@ export const ProgrammingCreateStore = signalStore(
 
                   if (schedules.length > 0) {
                     const { startDate, endDate } = getCurrentWeekRange();
-                    const newSlots: DateCalendarSlot<ServiceSchedule>[] = [];
+                    const newSlots: ClassCalendarSlot<ServiceSchedule>[] = [];
 
                     schedules.forEach((schedule) => {
                       const datesForSchedule = getDatesForDayOfWeek(startDate, endDate, schedule.dayOfWeek);
@@ -147,7 +144,7 @@ export const ProgrammingCreateStore = signalStore(
                         const [hours, minutes] = schedule.startTime.split(':').map(Number);
                         slotDate.setHours(hours, minutes, 0, 0);
 
-                        const newSlot: DateCalendarSlot<ServiceSchedule> = {
+                        const newSlot: ClassCalendarSlot<ServiceSchedule> = {
                           id: slotId,
                           date: slotDate,
                           startTime: schedule.startTime,
@@ -156,7 +153,8 @@ export const ProgrammingCreateStore = signalStore(
                           disabled: !schedule.isActive,
                           displayLabel: schedule.startTime,
                           displaySubLabel: `${schedule.durationMinutes} min <br> Cap: ${schedule.capacity}`,
-                          extraData: schedule,
+                          data: schedule,
+                          color: CalendarColor.BLUE,
                         };
                         newSlots.push(newSlot);
                       });
@@ -189,7 +187,7 @@ export const ProgrammingCreateStore = signalStore(
       generateDateCalendarSlots(startDate: Date, endDate: Date): void {
         const schedules = store.schedules();
         const existingSlots = store.dateCalendarSlots();
-        const newSlots: DateCalendarSlot<ServiceSchedule>[] = [];
+        const newSlots: ClassCalendarSlot<ServiceSchedule>[] = [];
 
         schedules.forEach((schedule) => {
           const datesForSchedule = getDatesForDayOfWeek(startDate, endDate, schedule.dayOfWeek);
@@ -203,7 +201,7 @@ export const ProgrammingCreateStore = signalStore(
               const [hours, minutes] = schedule.startTime.split(':').map(Number);
               slotDate.setHours(hours, minutes, 0, 0);
 
-              const newSlot: DateCalendarSlot<ServiceSchedule> = {
+              const newSlot: ClassCalendarSlot<ServiceSchedule> = {
                 id: slotId,
                 date: slotDate,
                 startTime: schedule.startTime,
@@ -211,8 +209,9 @@ export const ProgrammingCreateStore = signalStore(
                 isSelected: false,
                 disabled: false,
                 displayLabel: schedule.startTime,
-                displaySubLabel: `${schedule.durationMinutes} min`,
-                extraData: schedule,
+                displaySubLabel: `${schedule.durationMinutes} min <br> Cap: ${schedule.capacity}`,
+                data: schedule,
+                color: CalendarColor.BLUE,
               };
               newSlots.push(newSlot);
             }
@@ -271,7 +270,7 @@ export const ProgrammingCreateStore = signalStore(
         if (!serviceId) return;
 
         const programClasses: ClassModel[] = activeSlots.map((slot) => {
-          const schedule = schedulesMap[slot.extraData?.id || ''];
+          const schedule = schedulesMap[slot.data?.id || ''];
           const slotId = `temp-${slot.id}`;
 
           const existingClass = existingClasses.find((cls) => cls.id === slotId);
@@ -320,9 +319,7 @@ export const ProgrammingCreateStore = signalStore(
       clearCoachAssignment(instructorId: string): void {
         const currentClasses = store.programClasses();
         const updatedClasses = currentClasses.map((cls) =>
-          cls.instructorId === instructorId
-            ? { ...cls, instructorId: null }
-            : cls
+          cls.instructorId === instructorId ? { ...cls, instructorId: null } : cls,
         );
 
         patchState(store, { programClasses: updatedClasses });

@@ -12,6 +12,8 @@ export interface ClassCalendarSlot<T> {
   displayLabel?: string;
   displaySubLabel?: string;
   data?: T;
+  isSelected?: boolean;
+  disabled?: boolean;
 }
 
 /**

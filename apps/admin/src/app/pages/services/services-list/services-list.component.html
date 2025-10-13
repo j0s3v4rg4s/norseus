@@ -42,11 +42,11 @@
           <td cdk-cell *cdkCellDef="let row" class="px-6 py-4 align-middle bg-white">
             <div class="flex justify-center gap-2">
               <button
-                [routerLink]="['/home/services', row.id, 'edit']"
+                [routerLink]="['/home/services', row.id]"
                 class="cursor-pointer p-1 hover:bg-gray-100 rounded"
-                title="Editar servicio"
+                title="Ver detalle"
               >
-                <span class="material-symbols-rounded text-blue-600">edit</span>
+                <span class="material-symbols-rounded text-blue-600">visibility</span>
               </button>
               <button
                 (click)="deleteService(row.id)"

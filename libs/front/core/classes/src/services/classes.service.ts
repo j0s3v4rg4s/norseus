@@ -84,11 +84,17 @@ export class ClassesService {
     );
   }
 
-  async getClassesByService(facilityId: string, serviceId: string): Promise<ClassModel[]> {
-    const q = query(
+  async getClassesByService(facilityId: string, serviceId: string, filter?: { since?: Date, until?: Date }): Promise<ClassModel[]> {
+    let q = query(
       this.getClassesCollectionRef(facilityId),
       where('serviceId', '==', serviceId)
     );
+    if (filter?.since) {
+      q = query(q, where('date', '>=', filter.since));
+    }
+    if (filter?.until) {
+      q = query(q, where('date', '<=', filter.until));
+    }
 
     try {
       const snapshot = await getDocs(q);

@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal, OnInit } from '@angular/core';
 import { ClassCalendarSlot, ClassSlotPosition, ClassCalendarLegendItem } from './interfaces';
 import { CalendarColor } from './enums';
+import { CALENDAR_COLOR_THEME, CALENDAR_DISABLED_COLOR, CALENDAR_DEFAULT_COLORS } from './constants';
 import { TimeSlot } from '../utilities';
 import {
-  getWeekStart,
   getWeekEnd,
   getWeekDates,
   isSameWeek,
@@ -12,11 +12,8 @@ import {
   getDateKey,
   isToday,
 } from '../utilities/date-utilities';
-import {
-  groupSlotsByDate,
-  calculateOverlappingPositions,
-  getTimeRangeFromSlots,
-} from './utilities';
+import { groupSlotsByDate, calculateOverlappingPositions, getTimeRangeFromSlots } from './utilities';
+import { getWeekStart } from '@front/utils';
 
 @Component({
   selector: 'ui-class-week-calendar',
@@ -24,14 +21,16 @@ import {
   styleUrls: ['./class-week-calendar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClassWeekCalendarComponent<T> {
+export class ClassWeekCalendarComponent<T> implements OnInit {
   slots = input.required<ClassCalendarSlot<T>[]>();
-  currentWeekDate = input<Date>(new Date());
+  minDate = input<Date | undefined>(undefined);
+  maxDate = input<Date | undefined>(undefined);
   legendItems = input<ClassCalendarLegendItem[]>([]);
 
   slotClick = output<ClassCalendarSlot<T>>();
   weekChange = output<{ start: Date; end: Date }>();
   legendToggle = output<ClassCalendarLegendItem>();
+  daySelect = output<ClassCalendarSlot<T>[]>();
 
   readonly SLOT_HEIGHT = 40;
 
@@ -47,14 +46,36 @@ export class ClassWeekCalendarComponent<T> {
     return formatMonthYear(currentWeek);
   });
 
+  minWeekStart = computed<Date | undefined>(() => {
+    const min = this.minDate();
+    return min ? getWeekStart(min) : undefined;
+  });
+
+  maxWeekEnd = computed<Date | undefined>(() => {
+    const max = this.maxDate();
+    return max ? getWeekEnd(max) : undefined;
+  });
+
   canGoPrevious = computed<boolean>(() => {
-    const today = new Date();
     const currentWeekStart = getWeekStart(this.currentDisplayWeek());
-    const todayWeekStart = getWeekStart(today);
+    const minWeek = this.minWeekStart();
+
+    if (minWeek) {
+      return currentWeekStart.getTime() > minWeek.getTime();
+    }
+
+    const todayWeekStart = getWeekStart(new Date());
     return currentWeekStart.getTime() > todayWeekStart.getTime();
   });
 
   canGoNext = computed<boolean>(() => {
+    const currentWeekStart = getWeekStart(this.currentDisplayWeek());
+    const maxWeek = this.maxWeekEnd();
+
+    if (maxWeek) {
+      return currentWeekStart.getTime() < getWeekStart(maxWeek).getTime();
+    }
+
     return true;
   });
 
@@ -105,7 +126,7 @@ export class ClassWeekCalendarComponent<T> {
 
     const result: Record<string, ClassSlotPosition<T>[]> = {};
 
-    Object.keys(grouped).forEach(dateKey => {
+    Object.keys(grouped).forEach((dateKey) => {
       const slotsForDate = grouped[dateKey];
       result[dateKey] = calculateOverlappingPositions(slotsForDate, minHour, this.SLOT_HEIGHT);
     });
@@ -116,15 +137,16 @@ export class ClassWeekCalendarComponent<T> {
   maxZIndex = computed<number>(() => {
     const allPositions = Object.values(this.slotsByDate()).flat();
     if (allPositions.length === 0) return 10;
-    return Math.max(...allPositions.map(pos => pos.zIndex)) + 10;
+    return Math.max(...allPositions.map((pos) => pos.zIndex)) + 10;
   });
 
   showLegend = computed<boolean>(() => {
     return this.legendItems().length > 0;
   });
 
-  constructor() {
-    const initialDate = this.currentWeekDate();
+  ngOnInit(): void {
+    const min = this.minDate();
+    const initialDate = min || new Date();
     this.currentDisplayWeek.set(initialDate);
   }
 
@@ -168,59 +190,45 @@ export class ClassWeekCalendarComponent<T> {
   }
 
   onSlotClick(slot: ClassCalendarSlot<T>): void {
+    if (slot.disabled) return;
     this.slotClick.emit(slot);
   }
 
+  onDayHeaderClick(slots: ClassSlotPosition<T>[]) {
+    const slotsClass = slots.map(slot => slot.slot);
+    this.daySelect.emit(slotsClass);
+  }
+
   getSlotColorClasses(position: ClassSlotPosition<T>): string {
-    const colorMap: Record<CalendarColor, string> = {
-      [CalendarColor.BLUE]: 'bg-blue-500/90 hover:bg-blue-600 text-white',
-      [CalendarColor.GREEN]: 'bg-green-500/90 hover:bg-green-600 text-white',
-      [CalendarColor.PURPLE]: 'bg-purple-500/90 hover:bg-purple-600 text-white',
-      [CalendarColor.ORANGE]: 'bg-orange-500/90 hover:bg-orange-600 text-white',
-      [CalendarColor.PINK]: 'bg-pink-500/90 hover:bg-pink-600 text-white',
-      [CalendarColor.INDIGO]: 'bg-indigo-500/90 hover:bg-indigo-600 text-white',
-      [CalendarColor.TEAL]: 'bg-teal-500/90 hover:bg-teal-600 text-white',
-      [CalendarColor.ROSE]: 'bg-rose-500/90 hover:bg-rose-600 text-white',
-    };
+    if (position.slot.disabled) {
+      return CALENDAR_DISABLED_COLOR;
+    }
 
     const color = position.slot.color;
-    return colorMap[color] || 'bg-gray-500/80 hover:bg-gray-600/90 text-white';
+    const colorTheme = CALENDAR_COLOR_THEME[color];
+
+    if (!colorTheme) {
+      return position.slot.isSelected ? CALENDAR_DEFAULT_COLORS.selected : CALENDAR_DEFAULT_COLORS.normal;
+    }
+
+    return position.slot.isSelected ? colorTheme.selected : colorTheme.normal;
   }
 
   getLegendColorClasses(color: CalendarColor): string {
-    const colorMap: Record<CalendarColor, string> = {
-      [CalendarColor.BLUE]: 'bg-blue-500',
-      [CalendarColor.GREEN]: 'bg-green-500',
-      [CalendarColor.PURPLE]: 'bg-purple-500',
-      [CalendarColor.ORANGE]: 'bg-orange-500',
-      [CalendarColor.PINK]: 'bg-pink-500',
-      [CalendarColor.INDIGO]: 'bg-indigo-500',
-      [CalendarColor.TEAL]: 'bg-teal-500',
-      [CalendarColor.ROSE]: 'bg-rose-500',
-    };
-
-    return colorMap[color] || 'bg-gray-500';
+    const colorTheme = CALENDAR_COLOR_THEME[color];
+    return colorTheme ? colorTheme.legend : CALENDAR_DEFAULT_COLORS.legend;
   }
 
   getLegendCheckboxClasses(item: ClassCalendarLegendItem): string {
     const baseClasses = 'w-4 h-4 rounded border-2 transition-all duration-200';
 
     if (item.visible) {
-      const colorMap: Record<CalendarColor, string> = {
-        [CalendarColor.BLUE]: 'bg-blue-500 border-blue-500',
-        [CalendarColor.GREEN]: 'bg-green-500 border-green-500',
-        [CalendarColor.PURPLE]: 'bg-purple-500 border-purple-500',
-        [CalendarColor.ORANGE]: 'bg-orange-500 border-orange-500',
-        [CalendarColor.PINK]: 'bg-pink-500 border-pink-500',
-        [CalendarColor.INDIGO]: 'bg-indigo-500 border-indigo-500',
-        [CalendarColor.TEAL]: 'bg-teal-500 border-teal-500',
-        [CalendarColor.ROSE]: 'bg-rose-500 border-rose-500',
-      };
-
-      return `${baseClasses} ${colorMap[item.color] || 'bg-gray-500 border-gray-500'}`;
-    } else {
-      return `${baseClasses} bg-white border-gray-300 hover:border-gray-400`;
+      const colorTheme = CALENDAR_COLOR_THEME[item.color];
+      const colorClasses = colorTheme ? colorTheme.legendCheckbox : CALENDAR_DEFAULT_COLORS.legendCheckbox;
+      return `${baseClasses} ${colorClasses}`;
     }
+
+    return `${baseClasses} bg-white border-gray-300 hover:border-gray-400`;
   }
 
   toggleLegendItem(item: ClassCalendarLegendItem): void {

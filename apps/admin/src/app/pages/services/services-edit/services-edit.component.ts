@@ -44,12 +44,14 @@ export class ServicesEditComponent {
   showErrorMessage = computed(() => this.internalErrorMessage() || this.errorMessage());
 
   scheduleFormComponent = viewChild(ScheduleFormComponent);
+  serviceId: string | null = null;
 
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(500)]],
     });
+    this.serviceId = this.route.snapshot.paramMap.get('id');
 
     effect(() => {
       const loading = this.sessionStore.loading();

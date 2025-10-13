@@ -1,0 +1,42 @@
+<div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4 items-start">
+  <div class="bg-white rounded-lg shadow-lg p-4" [formGroup]="form()">
+    <div class="grid gap-3">
+      <label for="description" class="label">Programa</label>
+      <div class="NgxEditor__Wrapper">
+        <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor
+          [editor]="editor"
+          formControlName="description"
+          placeholder="Escribe el programa del día aquí..."
+          [attr.aria-invalid]="form().get('description')?.invalid && form().get('description')?.touched"
+        >
+        </ngx-editor>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    @if (dateCalendarSlots().length > 0) {
+      <div class="bg-white rounded-lg shadow-lg p-4">
+        <h3 class="text-lg mb-2">Selecciona los horarios que deseas programar</h3>
+        <p class="text-sm text-gray-500 mb-4">Puedes seleccionar múltiples horarios para la misma programación.</p>
+        <ui-class-week-calendar
+          [slots]="dateCalendarSlots()"
+          (slotClick)="onSlotClick($event)"
+          (daySelect)="onDaySelect($event)"
+          (weekChange)="onWeekChange($event)"
+          [minDate]="minDate()"
+          [maxDate]="maxDate()"
+        ></ui-class-week-calendar>
+      </div>
+    } @else {
+      <div class="bg-white rounded-lg shadow-lg p-4">
+        <div class="text-center py-8">
+          <span class="material-symbols-rounded text-4xl text-gray-400 mb-3 block">schedule</span>
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay horarios disponibles</h3>
+          <p class="text-gray-500">No hay horarios configurados para mostrar.</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>
