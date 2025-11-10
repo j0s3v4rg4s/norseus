@@ -1,0 +1,13 @@
+{
+  "name": "plans",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/core/plans/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["front"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

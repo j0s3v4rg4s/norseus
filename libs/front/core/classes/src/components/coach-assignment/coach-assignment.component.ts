@@ -1,14 +1,21 @@
 import { ChangeDetectionStrategy, Component, input, output, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SelectModule } from '@ui';
+import { SelectModule, ClassCalendarSlot } from '@ui';
 import { EmployeeModel } from '@models/facility';
-import { ClassModel } from '@models/classes';
-import { DAY_OF_WEEK_LABELS, MONTH_LABELS } from '@models/common';
+import { ProgramDraft } from '@models/classes';
+import { ServiceSchedule } from '@models/services';
+import { MONTH_LABELS } from '@models/common';
 
-interface GroupedClasses {
+interface ProgramSlot {
+  slotId: string;
+  slot: ClassCalendarSlot<ServiceSchedule>;
+  instructorId: string | null;
+}
+
+interface GroupedSlots {
   dayKey: string;
   dayLabel: string;
-  classes: ClassModel[];
+  slots: ProgramSlot[];
 }
 
 @Component({
@@ -19,41 +26,70 @@ interface GroupedClasses {
   imports: [SelectModule, FormsModule],
 })
 export class CoachAssignmentComponent {
-  programClasses = input.required<ClassModel[]>();
+  programs = input.required<ProgramDraft[]>();
   employees = input.required<EmployeeModel[]>();
+  dateCalendarSlots = input.required<ClassCalendarSlot<ServiceSchedule>[]>();
 
-  coachAssignment = output<{ classId: string; instructorId: string }>();
-  sameCoachForAll = output<string>();
-  clearCoachAssignment = output<string>();
+  coachAssignment = output<{ programId: string; slotId: string; instructorId: string }>();
+  sameCoachForAll = output<{ programId: string; instructorId: string }>();
+  clearCoachAssignment = output<{ programId: string; instructorId: string }>();
 
-  isSameCoachForAllEnabled = signal(false);
-  selectedEmployeeForAll = signal<string>('');
+  selectedCoachPerProgram = signal<Record<string, string>>({});
 
-  classCount = computed(() => this.programClasses().length);
-
-  groupedClasses = computed(() => {
-    const classes = this.programClasses();
-    const grouped = classes.reduce((acc, cls) => {
-      const date = new Date(cls.date.toDate());
-      const dayKey = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
-
-      if (!acc[dayKey]) {
-        acc[dayKey] = {
-          dayKey,
-          dayLabel: this.formatDayLabel(date),
-          classes: []
-        };
-      }
-
-      acc[dayKey].classes.push(cls);
-      return acc;
-    }, {} as Record<string, GroupedClasses>);
-
-    return Object.values(grouped).sort((a, b) => a.dayKey.localeCompare(b.dayKey));
+  dateCalendarSlotsMap = computed(() => {
+    return this.dateCalendarSlots().reduce(
+      (acc, slot) => {
+        acc[slot.id] = slot;
+        return acc;
+      },
+      {} as Record<string, ClassCalendarSlot<ServiceSchedule>>,
+    );
   });
 
+  getGroupedSlotsForProgram(program: ProgramDraft): GroupedSlots[] {
+    const slotsMap = this.dateCalendarSlotsMap();
+    const programSlots: ProgramSlot[] = program.slotIds.map((slotId) => ({
+      slotId,
+      slot: slotsMap[slotId],
+      instructorId: program.coachAssignments[slotId] || null,
+    }));
+
+    const grouped = programSlots.reduce(
+      (acc, programSlot) => {
+        if (!programSlot.slot) return acc;
+
+        const date = programSlot.slot.date;
+        const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+        if (!acc[dayKey]) {
+          acc[dayKey] = {
+            dayKey,
+            dayLabel: this.formatDayLabel(date),
+            slots: [],
+          };
+        }
+
+        acc[dayKey].slots.push(programSlot);
+        return acc;
+      },
+      {} as Record<string, GroupedSlots>,
+    );
+
+    const result = Object.values(grouped).sort((a, b) => a.dayKey.localeCompare(b.dayKey));
+
+    result.forEach((group) => {
+      group.slots.sort((a, b) => {
+        const timeA = a.slot.startTime.split(':').map(Number);
+        const timeB = b.slot.startTime.split(':').map(Number);
+        return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
+      });
+    });
+
+    return result;
+  }
+
   formatDayLabel(date: Date): string {
-    const dayNames = Object.values(DAY_OF_WEEK_LABELS);
+    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const monthNames = Object.values(MONTH_LABELS);
 
     const dayName = dayNames[date.getDay()];
@@ -63,24 +99,42 @@ export class CoachAssignmentComponent {
     return `${dayName} ${dayNumber} de ${monthName}`;
   }
 
-  formatClass(cls: ClassModel): string {
-    return `${cls.startAt} (${cls.duration} min)`;
+  onCoachSelection(programId: string, slotId: string, instructorId: string | Event): void {
+    this.coachAssignment.emit({
+      programId,
+      slotId,
+      instructorId: instructorId as string,
+    });
   }
 
-  getCapacity(cls: ClassModel): string {
-    return cls.capacity.toString();
+  onAssignCoachToProgram(programId: string): void {
+    const selectedCoaches = this.selectedCoachPerProgram();
+    const instructorId = selectedCoaches[programId];
+
+    if (instructorId) {
+      this.sameCoachForAll.emit({ programId, instructorId });
+    }
   }
 
-  onCoachSelection(classId: string, instructorId: string | Event): void {
-    this.coachAssignment.emit({ classId, instructorId: instructorId as string });
+  onClearProgramCoaches(programId: string): void {
+    const selectedCoaches = this.selectedCoachPerProgram();
+    const instructorId = selectedCoaches[programId];
+
+    if (instructorId) {
+      this.clearCoachAssignment.emit({ programId, instructorId });
+    }
   }
 
-  onSameCoachForAll() {
-    this.sameCoachForAll.emit(this.selectedEmployeeForAll());
+  onCoachSelectChange(programId: string, value: string): void {
+    const current = this.selectedCoachPerProgram();
+    this.selectedCoachPerProgram.set({
+      ...current,
+      [programId]: value,
+    });
   }
 
-  onClearCoachAssignment() {
-    this.clearCoachAssignment.emit(this.selectedEmployeeForAll());
+  getSelectedCoach(programId: string): string {
+    return this.selectedCoachPerProgram()[programId] || '';
   }
 }
 

@@ -1,0 +1,44 @@
+<div [formGroup]="serviceGroup()" class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+  <div class="flex items-end justify-between gap-4">
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="space-y-2">
+        <div class="text-sm font-medium text-slate-700">Servicio <span class="text-red-500">*</span></div>
+        <ui-select formControlName="serviceId" placeholder="Seleccionar servicio">
+          @for (service of services(); track service.id) {
+            <ui-option [value]="service.id">{{ service.name }}</ui-option>
+          }
+        </ui-select>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-sm font-medium text-slate-700">Límite de Clases <span class="text-red-500">*</span></div>
+        <ui-select formControlName="classLimitType" placeholder="Límite de Clases">
+          @for (limitType of classLimitTypes; track limitType) {
+            <ui-option [value]="limitType">{{ classLimitTypeNames[limitType] }}</ui-option>
+          }
+        </ui-select>
+      </div>
+
+      <div class="space-y-2">
+        @if (isFixedLimit()) {
+          <label [for]="id() + '-class-limit'" class="text-sm font-medium text-slate-700">
+            Cantidad de Clases <span class="text-red-500">*</span>
+          </label>
+          <input
+            [id]="id() + '-class-limit'"
+            type="number"
+            class="input bg-white"
+            formControlName="classLimit"
+            placeholder="Ej: 10"
+          />
+        } @else {
+          <div class="h-10"></div>
+        }
+      </div>
+    </div>
+
+    <button type="button" (click)="remove.emit()" class="text-red-500">
+      <span class="material-symbols-rounded text-lg">delete</span>
+    </button>
+  </div>
+</div>

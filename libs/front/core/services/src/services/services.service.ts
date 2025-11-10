@@ -1,5 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import {
+  arrayRemove,
+  arrayUnion,
   collection,
   CollectionReference,
   deleteDoc,
@@ -10,6 +12,7 @@ import {
   query,
   setDoc,
   Timestamp,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Observable, catchError, from, map, throwError } from 'rxjs';
 
@@ -105,6 +108,24 @@ export class ServicesService {
       map((snapshot) => (snapshot.exists() ? ({ ...snapshot.data(), id: snapshot.id } as Service) : undefined)),
       catchError((error) =>
         throwError(() => new ServicesServiceError('Failed to fetch service by id', error, serviceId)),
+      ),
+    );
+  }
+
+  addPlanIdToService(facilityId: string, serviceId: string, planId: string): Observable<void> {
+    const serviceRef = doc(this.getServicesCollectionRef(facilityId), serviceId);
+    return from(updateDoc(serviceRef, { planIds: arrayUnion(planId) })).pipe(
+      catchError((error) =>
+        throwError(() => new ServicesServiceError('Failed to add plan ID to service', error, serviceId)),
+      ),
+    );
+  }
+
+  removePlanIdFromService(facilityId: string, serviceId: string, planId: string): Observable<void> {
+    const serviceRef = doc(this.getServicesCollectionRef(facilityId), serviceId);
+    return from(updateDoc(serviceRef, { planIds: arrayRemove(planId) })).pipe(
+      catchError((error) =>
+        throwError(() => new ServicesServiceError('Failed to remove plan ID from service', error, serviceId)),
       ),
     );
   }

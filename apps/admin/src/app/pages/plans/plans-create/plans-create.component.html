@@ -1,0 +1,106 @@
+<div class="max-w-4xl mx-auto py-6">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-slate-900">Crear plan</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center items-center py-16">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="savePlan()" class="space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <h2 class="text-xl font-semibold text-slate-900 mb-6">Información del Plan</h2>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label for="name" class="label">Nombre <span class="text-red-500">*</span></label>
+              <input id="name" class="input" formControlName="name" type="text" placeholder="Ej: Plan Básico" />
+            </div>
+
+            <div class="space-y-2">
+              <label for="cost" class="label">Costo <span class="text-red-500">*</span></label>
+              <input
+                id="cost"
+                class="input"
+                type="number"
+                formControlName="cost"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="description" class="label">Descripción</label>
+            <textarea
+              id="description"
+              class="textarea"
+              formControlName="description"
+              rows="3"
+              placeholder="Describe las características y beneficios del plan..."
+            ></textarea>
+          </div>
+
+          <div class="space-y-2" formGroupName="duration">
+            <label for="duration-type" class="label">Duración <span class="text-red-500">*</span></label>
+            <ui-select formControlName="type">
+              @for (duration of planDurations; track duration) {
+                <ui-option [value]="duration">{{ planDurationNames[duration] }}</ui-option>
+              }
+            </ui-select>
+            @if (form.get('duration.type')?.value === 'custom') {
+              <input type="number" class="input mt-2" formControlName="days" placeholder="Número de días" min="1" />
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-slate-900">Servicios Incluidos</h2>
+          <button type="button" class="btn-outline flex items-center gap-2" (click)="addService()">
+            <span class="material-symbols-rounded text-lg">add</span>
+            Agregar Servicio
+          </button>
+        </div>
+
+        @if (servicesArray.length === 0) {
+          <div class="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
+            <span class="material-symbols-rounded text-4xl mb-2 block">fitness_center</span>
+            <p class="text-sm">No hay servicios agregados</p>
+            <p class="text-xs mt-1">Haz clic en "Agregar Servicio" para comenzar</p>
+          </div>
+        } @else {
+          <div formArrayName="services" class="flex flex-col gap-4">
+            @for (serviceGroup of servicesArray.controls; track $index) {
+              <app-plan-service-form
+                [serviceGroup]="$any(serviceGroup)"
+                [services]="services()"
+                (remove)="removeService($index)"
+              />
+            }
+          </div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded">error</span>
+            <span>{{ error() }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="flex justify-end gap-4 pt-4 border-t border-slate-200">
+        <a routerLink="/home/plans" class="btn-outline">Cancelar</a>
+        <button type="submit" class="btn" ui-button [isLoading]="loading()" [disabled]="form.invalid">
+          Guardar Plan
+        </button>
+      </div>
+    </form>
+  }
+</div>

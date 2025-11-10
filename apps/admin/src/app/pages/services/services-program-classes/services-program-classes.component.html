@@ -11,17 +11,29 @@
 
   @if (currentStep() === 1) {
     <lib-program-information
-      [form]="form"
+      [programs]="store.programs()"
       [dateCalendarSlots]="store.dateCalendarSlots()"
-      (slotClick)="onSlotClick($event)"
-      (daySelect)="onDaySelect($event)"
+      [isEditingExistingProgram]="store.isEditingExistingProgram()"
+      (programCreate)="onProgramCreate()"
+      (programEdit)="onProgramEdit($event)"
+      (programUpdate)="onProgramUpdate($event)"
+      (programConfirm)="onProgramConfirm($event)"
+      (programDelete)="onProgramDelete($event)"
+      (programCancelEdit)="onProgramCancelEdit($event)"
       (weekChange)="onWeekChange($event)"
     >
     </lib-program-information>
   } @else if (currentStep() === 2) {
+    <lib-program-description
+      [programs]="store.confirmedPrograms()"
+      (descriptionChange)="onDescriptionChange($event)"
+    >
+    </lib-program-description>
+  } @else if (currentStep() === 3) {
     <lib-coach-assignment
-      [programClasses]="store.programClasses()"
+      [programs]="store.confirmedPrograms()"
       [employees]="store.employees()"
+      [dateCalendarSlots]="store.dateCalendarSlots()"
       (coachAssignment)="onCoachAssignment($event)"
       (sameCoachForAll)="onSameCoachForAll($event)"
       (clearCoachAssignment)="onClearCoachAssignment($event)"
@@ -40,6 +52,9 @@
       <button class="btn-outline" (click)="onCancel()">Cancelar</button>
       <button class="btn" (click)="goToNextStep()" [disabled]="!canProceedToNextStep()">Continuar</button>
     } @else if (store.currentStep() === 2) {
+      <button class="btn-outline" (click)="goBack()">Atrás</button>
+      <button class="btn" (click)="goToNextStep()">Continuar</button>
+    } @else if (store.currentStep() === 3) {
       <button class="btn-outline" (click)="goBack()">Atrás</button>
       <button class="btn" (click)="onSave()">Guardar</button>
     }

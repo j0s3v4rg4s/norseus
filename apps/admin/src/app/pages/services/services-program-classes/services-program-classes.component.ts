@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ClassCalendarSlot, StepIndicatorComponent } from '@ui';
+import { StepIndicatorComponent } from '@ui';
 import { SessionSignalStore } from '@front/state/session';
 import { LoggerService } from '@front/utils';
-import { ProgrammingStore, ProgramInformationComponent, CoachAssignmentComponent } from '@front/core/classes';
-import { Service, ServiceSchedule } from '@models/services';
+import { ProgrammingStore, ProgramInformationComponent, ProgramDescriptionComponent, CoachAssignmentComponent } from '@front/core/classes';
+import { Service } from '@models/services';
 import { ServicesService } from '@front/core/services';
 
 @Component({
   selector: 'app-services-program-classes',
-  imports: [ReactiveFormsModule, RouterModule, StepIndicatorComponent, ProgramInformationComponent, CoachAssignmentComponent],
+  imports: [RouterModule, StepIndicatorComponent, ProgramInformationComponent, ProgramDescriptionComponent, CoachAssignmentComponent],
   providers: [ProgrammingStore],
   templateUrl: './services-program-classes.component.html',
   styleUrls: ['./services-program-classes.component.scss'],
@@ -20,7 +19,6 @@ export class ServicesProgramClassesComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sessionStore = inject(SessionSignalStore);
-  private fb = inject(FormBuilder);
   private logger = inject(LoggerService);
   private servicesService = inject(ServicesService);
   store = inject(ProgrammingStore);
@@ -30,18 +28,13 @@ export class ServicesProgramClassesComponent {
   errorMessage = signal('');
   currentStep = computed(() => this.store.currentStep());
 
-  form: FormGroup;
-
   stepDefinitions = signal([
-    { id: 'program-info', label: 'Información del programa' },
+    { id: 'program-creation', label: 'Crear programas' },
+    { id: 'program-description', label: 'Descripción de programas' },
     { id: 'coach-assignment', label: 'Asignar coaches' }
   ]);
 
   constructor() {
-    this.form = this.fb.group({
-      description: [''],
-    });
-
     effect(() => {
       const loading = this.sessionStore.loading();
       const facility = this.sessionStore.selectedFacility();
@@ -69,54 +62,60 @@ export class ServicesProgramClassesComponent {
     });
   }
 
-  onSlotClick(event: ClassCalendarSlot<ServiceSchedule>): void {
-    this.store.setSlotSelection(event.id, !event.isSelected);
+  onProgramCreate(): void {
+    this.store.createProgram();
   }
-  onDaySelect(slots: ClassCalendarSlot<ServiceSchedule>[]): void {
-    const noSelect = slots.some(slot => !slot.isSelected)
-    if (noSelect) {
-      slots.forEach(slot => {
-        this.store.setSlotSelection(slot.id, true);
-      });
-    } else {
-      slots.forEach(slot => {
-        this.store.setSlotSelection(slot.id, false);
-      });
-    }
+
+  onProgramEdit(programId: string): void {
+    this.store.editProgram(programId);
+  }
+
+  onProgramUpdate(update: { programId: string; title?: string; slotIds?: string[] }): void {
+    this.store.updateProgram(update);
+  }
+
+  onProgramConfirm(programId: string): void {
+    this.store.confirmProgram(programId);
+  }
+
+  onProgramDelete(programId: string): void {
+    this.store.deleteProgram(programId);
+  }
+
+  onProgramCancelEdit(programId: string): void {
+    this.store.cancelEditProgram(programId);
   }
 
   onWeekChange(weekRange: { start: Date; end: Date }): void {
     this.store.generateDateCalendarSlots(weekRange.start, weekRange.end);
   }
 
-  onCoachAssignment(event: { classId: string; instructorId: string }): void {
-    this.store.setCoachAssignment(event.classId, event.instructorId);
+  onDescriptionChange(event: { programId: string; description: string }): void {
+    this.store.updateProgramDescription(event.programId, event.description);
   }
 
-  onSameCoachForAll(instructorId: string): void {
-    this.store.assignSameCoachToAll(instructorId);
+  onCoachAssignment(event: { programId: string; slotId: string; instructorId: string }): void {
+    this.store.setProgramCoachAssignment(event.programId, event.slotId, event.instructorId);
   }
 
-  onClearCoachAssignment(instructorId: string): void {
-    this.store.clearCoachAssignment(instructorId);
+  onSameCoachForAll(event: { programId: string; instructorId: string }): void {
+    this.store.assignSameCoachToProgram(event.programId, event.instructorId);
+  }
+
+  onClearCoachAssignment(event: { programId: string; instructorId: string }): void {
+    this.store.clearProgramCoachAssignment(event.programId, event.instructorId);
   }
 
   canProceedToNextStep(): boolean {
-    if (this.store.currentStep() === 1) {
-      return this.store.activeSlots().length > 0;
+    const currentStep = this.store.currentStep();
+    if (currentStep === 1) {
+      return this.store.confirmedPrograms().length > 0;
     }
     return true;
   }
 
   goToNextStep(): void {
-    if (this.store.currentStep() === 1 && this.canProceedToNextStep()) {
-      const { description } = this.form.value;
-      const facility = this.sessionStore.selectedFacility();
-
-      if (facility?.id) {
-        this.store.generateProgramClasses(facility.id, description || '');
-      }
-
+    if (this.canProceedToNextStep()) {
       this.store.incrementCurrentStep();
     }
   }
@@ -131,8 +130,10 @@ export class ServicesProgramClassesComponent {
 
   async onSave(): Promise<void> {
     this.errorMessage.set('');
-    if (this.store.programClasses().length === 0) {
-      this.errorMessage.set('No se han seleccionado horarios');
+
+    const confirmedPrograms = this.store.confirmedPrograms();
+    if (confirmedPrograms.length === 0) {
+      this.errorMessage.set('No se han creado programas');
       return;
     }
 

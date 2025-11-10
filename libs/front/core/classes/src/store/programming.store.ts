@@ -7,7 +7,7 @@ import { Timestamp } from '@angular/fire/firestore';
 
 import { Service, ServiceSchedule } from '@models/services';
 import { EmployeeModel } from '@models/facility';
-import { ClassModel, ProgramType } from '@models/classes';
+import { ClassModel, ProgramType, ProgramDraft } from '@models/classes';
 import { ServicesService, SchedulesService } from '@front/core/services';
 import { EmployeeService } from '@front/core/employee';
 import { ClassesService } from '../services';
@@ -21,7 +21,8 @@ interface ProgrammingState {
   employees: EmployeeModel[];
   schedules: ServiceSchedule[];
   dateCalendarSlots: ClassCalendarSlot<ServiceSchedule>[];
-  programClasses: ClassModel[];
+  programs: ProgramDraft[];
+  editingProgramId: string | null;
   error: string;
   serviceId: string | null;
 }
@@ -33,7 +34,8 @@ const initialState: ProgrammingState = {
   employees: [],
   schedules: [],
   dateCalendarSlots: [],
-  programClasses: [],
+  programs: [],
+  editingProgramId: null,
   error: '',
   serviceId: null,
 };
@@ -41,14 +43,14 @@ const initialState: ProgrammingState = {
 export const ProgrammingStore = signalStore(
   withState(initialState),
   withComputed((store) => ({
-    activeSlots: computed(() =>
-      store
-        .dateCalendarSlots()
-        .filter((slot) => slot.isSelected)
-        .sort((a, b) => a.date.getTime() - b.date.getTime()),
-    ),
+    confirmedPrograms: computed(() => store.programs().filter((p) => p.isConfirmed)),
+    activeProgram: computed(() => store.programs().find((p) => !p.isConfirmed) || null),
+    isEditingExistingProgram: computed(() => {
+      const activeProgram = store.programs().find((p) => !p.isConfirmed);
+      return activeProgram ? store.editingProgramId() === activeProgram.id : false;
+    }),
     canProceedToStep2: computed(() => {
-      return store.serviceId() !== null && store.dateCalendarSlots().filter((slot) => slot.isSelected).length > 0;
+      return store.programs().filter((p) => p.isConfirmed).length > 0;
     }),
     dateCalendarSlotsMap: computed(() => {
       return store.dateCalendarSlots().reduce(
@@ -225,24 +227,126 @@ export const ProgrammingStore = signalStore(
         }
       },
 
-      toggleSlotSelection(slotId: string): void {
-        const currentSlots = store.dateCalendarSlots();
-        const updatedSlots = currentSlots.map((slot) =>
-          slot.id === slotId ? { ...slot, isSelected: !slot.isSelected } : slot,
-        );
+      createProgram(): void {
+        const newProgram: ProgramDraft = {
+          id: `temp-${Date.now()}`,
+          title: '',
+          slotIds: [],
+          description: '',
+          isConfirmed: false,
+          coachAssignments: {},
+        };
 
         patchState(store, {
-          dateCalendarSlots: updatedSlots,
+          programs: [...store.programs(), newProgram],
+          editingProgramId: null,
         });
       },
 
-      setSlotSelection(slotId: string, isSelected: boolean): void {
-        const currentSlots = store.dateCalendarSlots();
-        const updatedSlots = currentSlots.map((slot) => (slot.id === slotId ? { ...slot, isSelected } : slot));
+      updateProgram(update: { programId: string; title?: string; slotIds?: string[] }): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.map((p) => {
+          if (p.id === update.programId) {
+            return {
+              ...p,
+              ...(update.title !== undefined && { title: update.title }),
+              ...(update.slotIds !== undefined && { slotIds: update.slotIds }),
+            };
+          }
+          return p;
+        });
+
+        patchState(store, { programs: updatedPrograms });
+
+        if (update.slotIds !== undefined) {
+          this.updateSlotSelection();
+        }
+      },
+
+      confirmProgram(programId: string): void {
+        const programs = store.programs();
+        const program = programs.find((p) => p.id === programId);
+
+        if (!program || !program.title || program.slotIds.length === 0) {
+          patchState(store, { error: 'El programa debe tener título y al menos un slot seleccionado' });
+          return;
+        }
+
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, isConfirmed: true } : p));
 
         patchState(store, {
-          dateCalendarSlots: updatedSlots,
+          programs: updatedPrograms,
+          error: '',
         });
+
+        this.updateSlotSelection();
+      },
+
+      editProgram(programId: string): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, isConfirmed: false } : p));
+
+        patchState(store, {
+          programs: updatedPrograms,
+          editingProgramId: programId,
+        });
+
+        this.updateSlotSelection();
+      },
+
+      cancelEditProgram(programId: string): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, isConfirmed: true } : p));
+
+        patchState(store, {
+          programs: updatedPrograms,
+          editingProgramId: null,
+          error: '',
+        });
+
+        this.updateSlotSelection();
+      },
+
+      deleteProgram(programId: string): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.filter((p) => p.id !== programId);
+
+        patchState(store, {
+          programs: updatedPrograms,
+          editingProgramId: null,
+          error: '',
+        });
+
+        this.updateSlotSelection();
+      },
+
+      updateSlotSelection(): void {
+        const programs = store.programs();
+        const activeProgram = programs.find((p) => !p.isConfirmed);
+        const confirmedPrograms = programs.filter((p) => p.isConfirmed);
+
+        const confirmedSlotIds = new Set(confirmedPrograms.flatMap((p) => p.slotIds));
+        const activeSlotIds = new Set(activeProgram?.slotIds || []);
+
+        const updatedSlots = store.dateCalendarSlots().map((slot) => {
+          const isConfirmed = confirmedSlotIds.has(slot.id);
+          const isActiveSelection = activeSlotIds.has(slot.id);
+
+          return {
+            ...slot,
+            color: isConfirmed ? CalendarColor.GREEN : CalendarColor.BLUE,
+            isSelected: isActiveSelection && !isConfirmed,
+          };
+        });
+
+        patchState(store, { dateCalendarSlots: updatedSlots });
+      },
+
+      updateProgramDescription(programId: string, description: string): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, description } : p));
+
+        patchState(store, { programs: updatedPrograms });
       },
 
       setServiceId(serviceId: string): void {
@@ -261,81 +365,115 @@ export const ProgrammingStore = signalStore(
         return store.canProceedToStep2();
       },
 
-      generateProgramClasses(facilityId: string, programDescription?: string): void {
-        const activeSlots = store.activeSlots();
-        const schedulesMap = store.schedulesMap();
-        const serviceId = store.serviceId();
-        const existingClasses = store.programClasses();
-
-        if (!serviceId) return;
-
-        const programClasses: ClassModel[] = activeSlots.map((slot) => {
-          const schedule = schedulesMap[slot.data?.id || ''];
-          const slotId = `temp-${slot.id}`;
-
-          const existingClass = existingClasses.find((cls) => cls.id === slotId);
-
-          return {
-            id: slotId,
-            serviceId,
-            facilityId,
-            date: Timestamp.fromDate(slot.date),
-            capacity: schedule?.capacity || 0,
-            scheduleId: schedule?.id,
-            startAt: slot.startTime,
-            duration: slot.durationMinutes,
-            instructorId: existingClass?.instructorId || null,
-            userBookings: [],
-            program:
-              programDescription && programDescription.trim() !== ''
-                ? {
-                    type: ProgramType.RICH_TEXT,
-                    value: programDescription,
-                  }
-                : null,
-          };
+      setProgramCoachAssignment(programId: string, classId: string, instructorId: string): void {
+        const programs = store.programs();
+        const updatedPrograms = programs.map((p) => {
+          if (p.id === programId) {
+            return {
+              ...p,
+              coachAssignments: {
+                ...p.coachAssignments,
+                [classId]: instructorId,
+              },
+            };
+          }
+          return p;
         });
 
-        patchState(store, { programClasses });
+        patchState(store, { programs: updatedPrograms });
       },
 
-      setCoachAssignment(classId: string, instructorId: string): void {
-        const currentClasses = store.programClasses();
-        const updatedClasses = currentClasses.map((cls) => (cls.id === classId ? { ...cls, instructorId } : cls));
+      assignSameCoachToProgram(programId: string, instructorId: string): void {
+        const programs = store.programs();
+        const program = programs.find((p) => p.id === programId);
 
-        patchState(store, { programClasses: updatedClasses });
+        if (!program) return;
+
+        const coachAssignments: Record<string, string> = {};
+        program.slotIds.forEach((slotId) => {
+          coachAssignments[slotId] = instructorId;
+        });
+
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, coachAssignments } : p));
+
+        patchState(store, { programs: updatedPrograms });
       },
 
-      assignSameCoachToAll(instructorId: string): void {
-        const currentClasses = store.programClasses();
-        const updatedClasses = currentClasses.map((cls) => ({
-          ...cls,
-          instructorId,
-        }));
+      clearProgramCoachAssignment(programId: string, instructorId: string): void {
+        const programs = store.programs();
+        const program = programs.find((p) => p.id === programId);
 
-        patchState(store, { programClasses: updatedClasses });
+        if (!program) return;
+
+        const coachAssignments: Record<string, string> = {};
+        Object.entries(program.coachAssignments).forEach(([slotId, assignedId]) => {
+          if (assignedId !== instructorId) {
+            coachAssignments[slotId] = assignedId;
+          }
+        });
+
+        const updatedPrograms = programs.map((p) => (p.id === programId ? { ...p, coachAssignments } : p));
+
+        patchState(store, { programs: updatedPrograms });
       },
 
-      clearCoachAssignment(instructorId: string): void {
-        const currentClasses = store.programClasses();
-        const updatedClasses = currentClasses.map((cls) =>
-          cls.instructorId === instructorId ? { ...cls, instructorId: null } : cls,
-        );
+      generateClassesFromPrograms(facilityId: string): ClassModel[] {
+        const programs = store.confirmedPrograms();
+        const schedulesMap = store.schedulesMap();
+        const dateCalendarSlotsMap = store.dateCalendarSlotsMap();
+        const serviceId = store.serviceId();
 
-        patchState(store, { programClasses: updatedClasses });
+        if (!serviceId) return [];
+
+        const allClasses: ClassModel[] = [];
+
+        programs.forEach((program) => {
+          program.slotIds.forEach((slotId) => {
+            const slot = dateCalendarSlotsMap[slotId];
+            if (!slot) return;
+
+            const schedule = schedulesMap[slot.data?.id || ''];
+            const instructorId = program.coachAssignments[slotId] || null;
+
+            const classModel: ClassModel = {
+              id: `temp-${slotId}`,
+              serviceId,
+              facilityId,
+              date: Timestamp.fromDate(slot.date),
+              capacity: schedule?.capacity || 0,
+              scheduleId: schedule?.id || '',
+              startAt: slot.startTime,
+              duration: slot.durationMinutes,
+              instructorId,
+              userBookings: [],
+              program:
+                program.description && program.description.trim() !== ''
+                  ? {
+                      type: ProgramType.RICH_TEXT,
+                      value: program.description,
+                    }
+                  : null,
+              programTitle: program.title,
+            };
+
+            allClasses.push(classModel);
+          });
+        });
+
+        return allClasses;
       },
 
       async saveProgramClasses(facilityId: string): Promise<string[]> {
-        const currentClasses = store.programClasses();
+        const classes = this.generateClassesFromPrograms(facilityId);
 
-        if (currentClasses.length === 0) {
+        if (classes.length === 0) {
           throw new Error('No classes to save');
         }
 
         try {
           patchState(store, { isLoading: true, error: '' });
 
-          const classIds = await classesService.createMultipleClasses(facilityId, currentClasses);
+          const classIds = await classesService.createMultipleClasses(facilityId, classes);
 
           patchState(store, { isLoading: false });
           return classIds;

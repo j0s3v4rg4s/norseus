@@ -26,10 +26,13 @@ import { Component, effect, ElementRef, inject, input } from '@angular/core';
 export class ButtonComponent {
   isLoading = input(false);
   parentElement = inject(ElementRef<HTMLElement>);
+  disabled = input(false);
 
   constructor() {
     effect(() => {
       if (this.isLoading()) {
+        this.parentElement?.nativeElement?.setAttribute('disabled', 'true');
+      } else if (this.disabled()) {
         this.parentElement?.nativeElement?.setAttribute('disabled', 'true');
       } else {
         this.parentElement?.nativeElement?.removeAttribute('disabled');

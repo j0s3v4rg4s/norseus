@@ -1,0 +1,26 @@
+<div class="space-y-6">
+  @for (program of programs(); track program.id) {
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="mb-4">
+        <h3 class="text-xl font-bold text-gray-900">{{ program.title }}</h3>
+        <p class="text-sm text-gray-500">{{ program.slotIds.length }} clases programadas</p>
+      </div>
+
+      <div class="grid gap-3">
+        <label class="label" for="programDescription">Descripción del programa</label>
+        <div class="NgxEditor__Wrapper">
+          <ngx-editor-menu [editor]="getEditor(program.id)" [toolbar]="toolbar"></ngx-editor-menu>
+          <ngx-editor
+            [editor]="getEditor(program.id)"
+            [ngModel]="program.description"
+            (ngModelChange)="onDescriptionChange(program.id, $event)"
+            placeholder="Escribe la descripción del programa aquí..."
+            id="programDescription"
+          >
+          </ngx-editor>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

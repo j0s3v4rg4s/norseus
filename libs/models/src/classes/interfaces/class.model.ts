@@ -13,4 +13,5 @@ export interface ClassModel {
   instructorId: string | null;
   userBookings: string[];
   program: ClassProgram | null;
+  programTitle: string | null;
 }

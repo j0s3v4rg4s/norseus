@@ -1,4 +1,6 @@
-import { ApplicationConfig, provideZonelessChangeDetection, ErrorHandler, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection, ErrorHandler, importProvidersFrom, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -16,6 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes),
     provideLogger({ production: environment.production }),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
+    { provide: LOCALE_ID, useValue: 'es-ES' },
     provideAnimations(),
     importProvidersFrom(
       NgxEditorModule.forRoot({
@@ -78,3 +81,5 @@ export const appConfig: ApplicationConfig = {
     }),
   ],
 };
+
+registerLocaleData(localeEs);

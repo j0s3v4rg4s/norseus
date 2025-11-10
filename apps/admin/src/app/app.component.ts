@@ -22,13 +22,12 @@ export class AppComponent implements OnInit {
       icon: 'home',
       subItems: [
         { label: 'Estadísticas', icon: 'bar_chart', route: '/home/statistics' },
-        { label: 'Usuarios', icon: 'group', route: '/home/users' },
       ],
     },
-    { label: 'About', icon: 'info', route: '/about' },
+    { label: 'Empleados', icon: 'group', route: '/home/users' },
     { label: 'Permisos', icon: 'lock', route: '/home/permissions' },
     { label: 'Servicios', icon: 'fitness_center', route: '/home/services' },
-    { label: 'Programación', icon: 'calendar_month', route: '/home/programming' },
+    { label: 'Planes', icon: 'card_membership', route: '/home/plans' },
   ];
 
   ngOnInit(): void {
