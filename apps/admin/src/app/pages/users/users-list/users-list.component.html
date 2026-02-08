@@ -2,6 +2,11 @@
   <div class="flex items-center">
     <h1 class="text-2xl font-bold mb-4 flex-1">Usuarios</h1>
     <button class="btn" routerLink="/home/users/create">Crear usuario</button>
+    <ui-cdk-select placeholder="Select an option">
+      <ui-cdk-option value="1">Option 1</ui-cdk-option>
+      <ui-cdk-option value="2">Option 2</ui-cdk-option>
+      <ui-cdk-option value="3">Option 3</ui-cdk-option>
+    </ui-cdk-select>
   </div>
 
   @if (store.isLoading()) {

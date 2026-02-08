@@ -4,11 +4,12 @@ import { RouterModule } from '@angular/router';
 
 import { SessionSignalStore } from '@front/state/session';
 import { UsersStore } from './../users.store';
+import { CDKSelectModule } from '@ui';
 
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [RouterModule, CdkTableModule],
+  imports: [RouterModule, CdkTableModule, CDKSelectModule],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +25,7 @@ export class UsersListComponent {
       const loading = this.sessionStore.loading();
       const facility = this.sessionStore.selectedFacility();
       if (!loading && facility && facility.id) {
-        this.store.loadEmployees(facility.id );
+        this.store.loadEmployees(facility.id);
         this.store.loadRoles(facility.id);
       }
     });

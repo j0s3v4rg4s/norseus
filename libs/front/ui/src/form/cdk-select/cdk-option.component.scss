@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.125rem;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  outline: none;
+}
+
+:host(:hover:not(.cdk-option-disabled)) {
+  background-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+:host(.cdk-option-active) {
+  background-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+:host(.cdk-option-selected) {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  font-weight: 500;
+}
+
+:host(.cdk-option-disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

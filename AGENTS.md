@@ -7,6 +7,7 @@ Norseus is a modern enterprise application built with **Angular 20.1.3** and **N
 ## Architecture
 
 ### Technology Stack
+
 - **Frontend**: Angular 20.1.3 with standalone components
 - **Monorepo**: Nx 21.3.9 with pnpm package manager
 - **Styling**: Tailwind CSS v4 (primary), SCSS (fallback)
@@ -16,6 +17,7 @@ Norseus is a modern enterprise application built with **Angular 20.1.3** and **N
 - **UI Components**: Custom component library with basecoat-css
 
 ### Project Structure
+
 ```
 norseus/
 ├── apps/
@@ -35,12 +37,14 @@ norseus/
 ### Angular 20.1.3 Best Practices
 
 #### TypeScript Best Practices
+
 - **Strict Type Checking**: Use strict type checking configuration
 - **Type Inference**: Prefer type inference when the type is obvious
 - **Avoid `any` Type**: Avoid the `any` type; use `unknown` when type is uncertain
 - **Type Safety**: Ensure proper TypeScript typing with interfaces and models
 
 #### Component Architecture
+
 - **Standalone Components**: All components are standalone by default (no `standalone: true` needed in v20.1.3)
 - **Single Responsibility**: Keep components small and focused on a single responsibility
 - **File Structure**: Separate `.ts`, `.html`, and `.scss` files for components (prefer inline templates for small components)
@@ -53,6 +57,7 @@ norseus/
 **CRITICAL**: Every Angular component, directive, pipe, or service MUST have its corresponding `index.ts` file for proper module organization and clean imports.
 
 ##### Standard Component Structure
+
 ```
 component-name/
 ├── component-name.component.ts
@@ -62,18 +67,21 @@ component-name/
 ```
 
 ##### Index.ts File Requirements
+
 - **Purpose**: Centralizes exports for clean import statements
 - **Location**: Must be placed in the same directory as the component files
 - **Content**: Export the main component class and any related types/interfaces
 - **Naming**: Always named `index.ts` (lowercase)
 
 ##### Import Benefits
+
 - **Clean Imports**: Enables `import { ComponentNameComponent } from './component-name'` instead of `import { ComponentNameComponent } from './component-name.component'`
 - **Module Organization**: Essential for proper library structure in Nx monorepo
 - **Tree Shaking**: Improves bundle optimization
 - **Consistency**: Maintains uniform import patterns across the project
 
 ##### Library-Level Index Files
+
 Each library should have a main `index.ts` that exports all public components:
 
 ```typescript
@@ -85,6 +93,7 @@ export * from './input';
 ```
 
 ##### AI Agent Guidelines for Index Files
+
 1. **Always Create**: Never create a component without its `index.ts` file
 2. **Export Everything**: Export the main class and any related types/interfaces
 3. **Consistent Naming**: Use the same naming pattern as the component file
@@ -93,12 +102,14 @@ export * from './input';
 6. **Clean Structure**: Keep exports organized and well-documented
 
 ##### Common Mistakes to Avoid
+
 - ❌ Creating components without `index.ts` files
 - ❌ Forgetting to update parent `index.ts` files when adding new components
 - ❌ Not exporting related types and interfaces
 - ❌ Inconsistent naming between component files and index exports
 
 #### Signal-Based Development
+
 - **Inputs/Outputs**: Use `input()` and `output()` functions instead of decorators
 - **Computed State**: Use `computed()` for derived state
 - **State Management**: Use Angular Signals for reactive state management
@@ -106,6 +117,7 @@ export * from './input';
 - **Pure Transformations**: Keep state transformations pure and predictable
 
 #### Template Standards
+
 - **Control Flow**: Use built-in control flow (`@if`, `@for`, `@switch`) instead of structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`)
 - **Track Expressions**: Always include `track` in `@for` loops for performance
 - **Template Variables**: Use `@let` for local variables and `#var` for template references
@@ -116,16 +128,19 @@ export * from './input';
 - **Style Bindings**: Do NOT use `ngStyle`, use `style` bindings instead
 
 #### Forms and Images
+
 - **Reactive Forms**: Prefer Reactive forms instead of Template-driven ones
 - **Image Optimization**: Use `NgOptimizedImage` for all static images (does not work for inline base64 images)
 
 #### Naming Conventions
+
 - **Files**: `feature.type.ts` pattern (e.g., `user-profile.component.ts`)
 - **Classes**: PascalCase with descriptive names
 - **Variables/Methods**: camelCase
 - **Constants**: UPPER_SNAKE_CASE
 
 #### Comment Standards
+
 - **No Inline Comments**: Do NOT add inline comments (`//` or `/* */`) in any files
 - **JSDoc Only**: The ONLY comments allowed are JSDoc comments (`/** */`) in `.ts` files
 - **JSDoc Purpose**: Use JSDoc for documenting functions, classes, interfaces, and public APIs
@@ -135,11 +150,13 @@ export * from './input';
 ### Styling Guidelines
 
 #### Priority Order
+
 1. **Primary**: Custom UI components (see UI Components section)
 2. **Secondary**: Standard HTML with Tailwind CSS v4 classes
 3. **Fallback**: Custom SCSS when Tailwind is insufficient
 
 #### Tailwind CSS v4 Usage
+
 - Use utility classes for styling
 - Follow responsive design principles
 - Maintain consistent spacing and typography
@@ -150,12 +167,15 @@ export * from './input';
 The project includes a custom UI component library with the following components:
 
 #### Input Component
+
 ```html
-<input class="input" type="email" placeholder="Email">
-<input class="input" aria-invalid="true" type="email" placeholder="Email"> <!-- Invalid state -->
+<input class="input" type="email" placeholder="Email" />
+<input class="input" aria-invalid="true" type="email" placeholder="Email" />
+<!-- Invalid state -->
 ```
 
 #### Button Component
+
 ```html
 <button class="btn">Primary</button>
 <button class="btn-secondary">Secondary</button>
@@ -163,10 +183,13 @@ The project includes a custom UI component library with the following components
 <button class="btn-outline">Outline</button>
 <button class="btn-ghost">Ghost</button>
 <button class="btn-link">Link</button>
-<button class="btn-icon-outline"><svg><!-- icon --></svg></button>
+<button class="btn-icon-outline">
+  <svg><!-- icon --></svg>
+</button>
 ```
 
 #### Select Component
+
 ```html
 <ui-select placeholder="Select an option">
   <ui-option value="apple">Apple</ui-option>
@@ -177,6 +200,7 @@ The project includes a custom UI component library with the following components
 ### Code Organization
 
 #### Services
+
 - **Single Responsibility**: Design services around a single responsibility
 - **Singleton Services**: Use `@Injectable({ providedIn: 'root' })` for singleton services
 - **Dependency Injection**: Use the `inject()` function instead of constructor injection
@@ -184,14 +208,15 @@ The project includes a custom UI component library with the following components
 - **Component Logic**: Keep components lean by moving complex logic to services
 
 #### Models and Interfaces
+
 - All model definitions reside under `@models/` namespace
 - Use TypeScript interfaces for type safety
 - Follow consistent naming patterns
 
 #### Logging
+
 - Use `@logger` library instead of `console.*` methods
 - Implement proper error handling with global error handler
-
 
 ## Library Management and Validation
 
@@ -204,6 +229,7 @@ The project includes a custom UI component library with the following components
 3. **Use Context7 for unknown versions**: If you don't have knowledge about the specific version installed, use the Context7 MCP tool to get up-to-date documentation
 
 #### Example Workflow:
+
 ```bash
 # 1. Check if library exists
 grep "library-name" package.json
@@ -223,6 +249,7 @@ The project is configured with MCP servers that provide real-time access to Angu
 #### Available MCP Tools
 
 **Nx MCP Server (`nx-mcp`)**
+
 - **Workspace Analysis**: Get comprehensive workspace information including project graph, dependencies, and configuration
 - **Project Details**: Retrieve detailed project configuration for any app or library in the monorepo
 - **Generator Management**: Access available generators and their schemas for code generation
@@ -231,11 +258,13 @@ The project is configured with MCP servers that provide real-time access to Angu
 - **Documentation**: Access up-to-date Nx documentation for configuration and best practices
 
 **Angular MCP Server (`angular-cli`)**
+
 - **Best Practices**: Retrieve current Angular best practices and style guide recommendations
 - **Project Listing**: List all Angular applications and libraries in the workspace
 - **Documentation Search**: Search official Angular documentation for specific topics and APIs
 
 **Context7 MCP Server (`context7`)**
+
 - **Library Documentation**: Get comprehensive documentation for any library or framework
 - **Version-Specific Information**: Access documentation for specific library versions
 - **API References**: Retrieve detailed API documentation and usage examples
@@ -249,7 +278,6 @@ The project is configured with MCP servers that provide real-time access to Angu
 5. **Documentation Lookup**: Use `nx_docs` and `angular_search_documentation` for current best practices and API information
 6. **Real-Time Monitoring**: Use `nx_current_running_tasks_details` to monitor build, test, or other running processes
 
-
 #### Benefits of MCP Integration
 
 - **Always Current**: Access to the latest Angular and Nx documentation and features
@@ -257,7 +285,6 @@ The project is configured with MCP servers that provide real-time access to Angu
 - **Error Prevention**: Up-to-date information helps prevent configuration and compatibility issues
 - **Best Practices**: Access to current Angular style guide and Nx best practices
 - **Efficient Development**: Faster code generation and project management with accurate tooling
-
 
 ## Important Notes for AI Agents
 
@@ -291,23 +318,25 @@ The project is configured with MCP servers that provide real-time access to Angu
 ## Project-Specific Patterns
 
 ### State Management
+
 - Use Angular Signals for reactive state
 - Implement signal stores for complex state management
 - Follow the established patterns in `libs/front/state/`
 
 ### Authentication & Authorization
+
 - Firebase Auth for authentication
 - Firebase Firestore security rules for database-level authorization
 - Role-based permissions system implemented
 
 ### Data Flow
+
 - Services handle data operations
 - Components consume services
 - Models define data structures
 - Proper separation of concerns maintained
 
 This documentation should provide AI agents with comprehensive understanding of the project structure, development standards, and local setup requirements.
-
 
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
@@ -320,6 +349,6 @@ This documentation should provide AI agents with comprehensive understanding of 
 - When working in individual projects, use the `nx_project_details` mcp tool to analyze and understand the specific project structure and dependencies
 - For questions around nx configuration, best practices or if you're unsure, use the `nx_docs` tool to get relevant, up-to-date docs. Always use this instead of assuming things about nx configuration
 - If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
-
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
 
 <!-- nx configuration end-->
