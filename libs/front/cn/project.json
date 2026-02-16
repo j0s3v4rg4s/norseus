@@ -1,0 +1,9 @@
+{
+  "name": "cn",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/cn/src",
+  "projectType": "library",
+  "tags": ["front"],
+  "// targets": "to see all targets run: nx show project cn --web",
+  "targets": {}
+}
