@@ -9,7 +9,8 @@ export default [
     route('home', './routes/home/layout.tsx', [
       route('users', './routes/home/users.tsx'),
       route('permissions', './routes/home/permissions/index.tsx'),
-      route('permissions/create', './routes/home/permissions/create.tsx'),
+      route('permissions/create', './routes/home/permissions/permissions-create.tsx'),
+      route('permissions/:roleId/edit', './routes/home/permissions/permissions-edit.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig;

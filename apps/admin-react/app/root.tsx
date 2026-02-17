@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, type MetaFunction, type LinksFunction } from 'react-router';
+import { Toaster } from 'sileo';
 import { AuthProvider } from './context/auth-context';
 import { TooltipProvider } from '@front/cn/components/tooltip';
 
@@ -34,6 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <TooltipProvider>
           {children}
         </TooltipProvider>
+        <Toaster options={{ fill: '#171717' }} />
         <ScrollRestoration />
         <Scripts />
       </body>

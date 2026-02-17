@@ -18,6 +18,7 @@ Norseus is a modern enterprise application built with **Angular 20.1.3** and **N
 - **State Management (React)**: Zustand
 - **UI Components (Angular)**: Custom component library with basecoat-css
 - **UI Components (React)**: shadcn/ui (Radix + Tailwind) via `libs/front/cn/`
+- **Toast Notifications (React)**: Sileo — the only allowed toast library
 
 ### Project Structure
 
@@ -242,6 +243,55 @@ TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add table select alert-dia
 4. **Import `cn` utility from `@front/cn/utils`** (e.g., `import { cn } from '@front/cn/utils'`)
 5. **Check existing components first** — look in `libs/front/cn/components/` before adding a new one
 
+### Toast Notifications (React) — Sileo
+
+**CRITICAL**: The **only** library allowed for toast notifications in the React application is **Sileo**. Do NOT use any other toast library (e.g., react-hot-toast, sonner, react-toastify, etc.).
+
+#### Setup
+
+Add the `<Toaster />` component once at the app root (e.g., `root.tsx` or the top-level layout):
+
+```tsx
+import { Toaster } from 'sileo';
+
+export default function App() {
+  return (
+    <>
+      <Toaster />
+      {/* rest of the app */}
+    </>
+  );
+}
+```
+
+#### Usage
+
+```tsx
+import { toast } from 'sileo';
+
+toast.success('Operation completed');
+toast.error('Something went wrong');
+toast.warning('Be careful');
+toast.info('Here is some info');
+toast.loading('Processing...');
+
+toast.success('Done!', {
+  position: 'bottom-right',
+  duration: 3000,
+});
+```
+
+#### Available positions
+
+`top-left` | `top-right` | `bottom-left` | `bottom-right` | `center`
+
+#### AI Agent Guidelines for Sileo
+
+1. **Only use Sileo** — never use or suggest any other toast/notification library in the React app
+2. **Always place `<Toaster />`** at the root layout so it is available globally
+3. **Import from `sileo`** — `import { toast, Toaster } from 'sileo'`
+4. **Never install Sileo again** — it is already installed at the workspace root
+
 ### Code Organization
 
 #### Services
@@ -361,6 +411,7 @@ The project is configured with MCP servers that provide real-time access to Angu
 26. **NO inline comments** - Do NOT add inline comments (`//` or `/* */`) in any files. Only JSDoc comments (`/** */`) are allowed in `.ts` files
 27. **Use shadcn/ui for React** - Always use `TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add <component>` to add new shadcn components. Never install them manually
 28. **Import shadcn from `@front/cn`** - Use `@front/cn/components/<name>` for components and `@front/cn/utils` for the `cn` utility
+29. **CRITICAL: Use Sileo for all toast notifications in React** - `import { toast, Toaster } from 'sileo'`. Never use any other toast library. `<Toaster />` must be placed at the app root
 
 ## Project-Specific Patterns
 

@@ -1,13 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { ArrowLeft, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
-import { Button } from '@front/cn/components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@front/cn/components/card';
 import { Checkbox } from '@front/cn/components/checkbox';
-import { Input } from '@front/cn/components/input';
-import { Label } from '@front/cn/components/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@front/cn/components/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@front/cn/components/tooltip';
 import {
   PERMISSIONS_ACTIONS,
   PERMISSIONS_ACTIONS_DICTIONARY,
@@ -22,15 +16,14 @@ import {
   ACTION_DESELECTION_IMPLIES,
   ACTION_SELECTION_IMPLIES,
   SECTION_TOOLTIPS,
-} from './create.config';
+} from '../create.config';
 
-function PermissionsMatrix({
-  permissions,
-  onChange,
-}: {
+interface PermissionsMatrixProps {
   permissions: PermissionsBySection;
   onChange: (permissions: PermissionsBySection) => void;
-}) {
+}
+
+export function PermissionsMatrix({ permissions, onChange }: PermissionsMatrixProps) {
   function toggleAction(section: PermissionSection, action: PermissionAction) {
     const current = permissions[section] ?? [];
     const isChecked = current.includes(action);
@@ -103,78 +96,6 @@ function PermissionsMatrix({
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function hasAtLeastOnePermission(permissions: PermissionsBySection): boolean {
-  return Object.values(permissions).some((actions) => actions.length > 0);
-}
-
-export default function CreateRolePage() {
-  const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [permissions, setPermissions] = useState<PermissionsBySection>({});
-
-  const canSave = name.trim().length > 0 && hasAtLeastOnePermission(permissions);
-
-  function handleSave() {
-    const roleData = { name: name.trim(), permissions };
-    console.log('Role data:', roleData);
-  }
-
-  return (
-    <div className="w-full max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/home/permissions')}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Volver</span>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Crear rol</h1>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información básica</CardTitle>
-            <CardDescription>Ingresa el nombre que identificará este rol</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="role-name">Nombre del rol</Label>
-              <Input
-                id="role-name"
-                placeholder="Ej: Administrador, Recepcionista..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Permisos</CardTitle>
-            <CardDescription>Selecciona las acciones permitidas para cada sección</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TooltipProvider>
-              <PermissionsMatrix permissions={permissions} onChange={setPermissions} />
-            </TooltipProvider>
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-3">
-          <Button disabled={!canSave} onClick={handleSave}>
-            Guardar
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/home/permissions')}>
-            Cancelar
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
