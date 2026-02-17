@@ -6,6 +6,8 @@ import {
 export const PERMISSIONS_SECTIONS: PermissionSection[] = [
   PermissionSection.EMPLOYEES,
   PermissionSection.ROLES,
+  PermissionSection.SERVICES,
+  PermissionSection.PROGRAMMING,
 ] as const;
 
 export const PERMISSIONS_ACTIONS: PermissionAction[] = [
@@ -16,13 +18,15 @@ export const PERMISSIONS_ACTIONS: PermissionAction[] = [
 ] as const;
 
 export const PERMISSIONS_SECTIONS_DICTIONARY: Record<string, string> = {
-  [PermissionSection.ROLES]: 'Roles',
   [PermissionSection.EMPLOYEES]: 'Employees',
+  [PermissionSection.ROLES]: 'Roles',
+  [PermissionSection.SERVICES]: 'Servicios',
+  [PermissionSection.PROGRAMMING]: 'Programación',
 };
 
 export const PERMISSIONS_ACTIONS_DICTIONARY: Record<string, string> = {
   [PermissionAction.CREATE]: 'Create',
-  [PermissionAction.READ]: 'Read',
-  [PermissionAction.UPDATE]: 'Update',
-  [PermissionAction.DELETE]: 'Delete',
+  [PermissionAction.READ]: 'Leer',
+  [PermissionAction.UPDATE]: 'Actualizar',
+  [PermissionAction.DELETE]: 'Eliminar',
 };

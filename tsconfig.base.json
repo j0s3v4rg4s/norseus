@@ -28,6 +28,8 @@
       "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
       "@front/core/roles": ["libs/front/core/roles/src/index.ts"],
       "@front/core/services": ["libs/front/core/services/src/index.ts"],
+      "@front/facility": ["libs/front/facility/src/index.ts"],
+      "@front/roles": ["libs/front/roles/src/index.ts"],
       "@front/state/session": ["libs/front/state/session/src/index.ts"],
       "@front/supabase": ["libs/front/supabase/src/index.ts"],
       "@front/utils": ["libs/front/utils/src/index.ts"],

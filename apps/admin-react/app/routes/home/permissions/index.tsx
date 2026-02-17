@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Eye, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Eye, ChevronRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router';
 
 import { Badge } from '@front/cn/components/badge';
@@ -13,33 +13,9 @@ import {
   PermissionAction,
   type Role,
 } from '@models/permissions';
-
-const MOCK_ROLES: Role[] = [
-  {
-    id: '1',
-    name: 'Administrador',
-    permissions: {
-      roles: [PermissionAction.CREATE, PermissionAction.READ, PermissionAction.UPDATE, PermissionAction.DELETE],
-      employees: [PermissionAction.CREATE, PermissionAction.READ, PermissionAction.UPDATE, PermissionAction.DELETE],
-    },
-  },
-  {
-    id: '2',
-    name: 'Recepcionista',
-    permissions: {
-      roles: [PermissionAction.READ],
-      employees: [PermissionAction.CREATE, PermissionAction.READ, PermissionAction.UPDATE],
-    },
-  },
-  {
-    id: '3',
-    name: 'Coach',
-    permissions: {
-      roles: [],
-      employees: [PermissionAction.READ],
-    },
-  },
-];
+import { getAllRoles } from '@front/roles';
+import { useSessionStore } from '../../../stores/session.store';
+import { db } from '../../../firebase';
 
 function getSectionLabel(section: string): string {
   return PERMISSIONS_SECTIONS_DICTIONARY[section] ?? section;
@@ -75,14 +51,34 @@ function PermissionBadges({ role }: { role: Role }) {
 }
 
 export default function PermissionsPage() {
-  const roles = MOCK_ROLES;
+  const selectedFacility = useSessionStore((s) => s.selectedFacility);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
   const [openRoleId, setOpenRoleId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedFacility?.id) return;
+
+    setLoading(true);
+    getAllRoles(db, selectedFacility.id)
+      .then(setRoles)
+      .finally(() => setLoading(false));
+  }, [selectedFacility?.id]);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Roles y permisos</h1>
+          <p className="text-sm text-muted-foreground">Administra los roles y sus permisos asociados</p>
         </div>
         <Button size="lg" className="gap-2" asChild>
           <Link to="/home/permissions/create">
@@ -101,7 +97,7 @@ export default function PermissionsPage() {
               onOpenChange={(open) => setOpenRoleId(open ? role.id : null)}
             >
               <div className={index < roles.length - 1 ? 'border-b' : ''}>
-                <div className="flex items-center px-4 py-3">
+                <div className="flex items-center px-4 py-3 hover:bg-muted/30 transition-colors">
                   <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left">
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
                     <span className="font-medium">{role.name}</span>
@@ -119,7 +115,7 @@ export default function PermissionsPage() {
                   </Button>
                 </div>
                 <CollapsibleContent>
-                  <div className="px-10 pb-4">
+                  <div className="bg-muted/20 px-10 pb-4 pt-2">
                     <PermissionBadges role={role} />
                   </div>
                 </CollapsibleContent>

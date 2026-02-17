@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -40,7 +39,6 @@ function getAuthErrorMessage(code: string): string {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
@@ -59,15 +57,7 @@ export default function Login() {
     setErrorMessage(null);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-
-      if (userCredential.user) {
-        navigate('/home');
-      }
+      await signInWithEmailAndPassword(auth, data.email, data.password);
     } catch (error: unknown) {
       const firebaseError = error as { code?: string };
       const message = firebaseError.code

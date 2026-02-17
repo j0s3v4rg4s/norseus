@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, type MetaFunction, type LinksFunction } from 'react-router';
+import { AuthProvider } from './context/auth-context';
 import { TooltipProvider } from '@front/cn/components/tooltip';
 
 export const meta: MetaFunction = () => [
@@ -41,5 +42,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
 }
