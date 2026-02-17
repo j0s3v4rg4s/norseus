@@ -40,6 +40,7 @@
       "@models/plans": ["libs/models/src/plans/index.ts"],
       "@models/services": ["libs/models/src/services/index.ts"],
       "@models/user": ["libs/models/src/user/index.ts"],
+      "@front/employees": ["libs/front/employees/src/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]
     }
   },

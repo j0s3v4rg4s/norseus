@@ -1,10 +1,18 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CreateEmployeeRequest, EMPLOYEE_COLLECTION, EmployeeModel, FACILITY_COLLECTION } from '@models/facility';
 import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
-import { Timestamp } from 'firebase/firestore';
 import { PermissionSection, PermissionAction } from '@models/permissions';
+
+type ProfileModelForAdmin = Omit<ProfileModel, 'createdAt'> & {
+  createdAt: Timestamp;
+};
+
+type EmployeeModelForAdmin = Omit<EmployeeModel, 'joined' | 'profile'> & {
+  joined: Timestamp;
+  profile: ProfileModelForAdmin;
+};
 import { z } from 'zod';
 import { checkUserPermission } from './utilities/permissions';
 
@@ -53,7 +61,7 @@ export const createEmployee = onCall(async (request) => {
     await auth.setCustomUserClaims(userRecord.uid, { role: data.userType });
     const timestamp = Timestamp.fromDate(new Date());
 
-    const profileData: ProfileModel = {
+    const profileData: ProfileModelForAdmin = {
       id: userRecord.uid,
       createdAt: timestamp,
       name: data.name,
@@ -62,7 +70,7 @@ export const createEmployee = onCall(async (request) => {
     };
     await db.collection(PROFILE_COLLECTION).doc(userRecord.uid).set(profileData);
 
-    const employeeData: EmployeeModel = {
+    const employeeData: EmployeeModelForAdmin = {
       uid: userRecord.uid,
       joined: timestamp,
       roleId: data.roleId,
@@ -83,7 +91,10 @@ export const createEmployee = onCall(async (request) => {
     if (error instanceof HttpsError) {
       throw error;
     }
+    if (error instanceof FirebaseAuthError && error.code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'El correo electronico ya esta en uso por otra cuenta.');
+    }
     console.error('Error creating employee:', error);
-    throw new Error('Failed to create employee.');
+    throw new HttpsError('internal', 'Error al crear el empleado.');
   }
 });

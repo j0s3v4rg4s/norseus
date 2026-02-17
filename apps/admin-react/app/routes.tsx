@@ -7,7 +7,9 @@ export default [
   ]),
   layout('./routes/protected-layout.tsx', [
     route('home', './routes/home/layout.tsx', [
-      route('users', './routes/home/users.tsx'),
+      route('employees', './routes/home/employees/index.tsx'),
+      route('employees/create', './routes/home/employees/employees-create.tsx'),
+      route('employees/:employeeId/edit', './routes/home/employees/employees-edit.tsx'),
       route('permissions', './routes/home/permissions/index.tsx'),
       route('permissions/create', './routes/home/permissions/permissions-create.tsx'),
       route('permissions/:roleId/edit', './routes/home/permissions/permissions-edit.tsx'),
