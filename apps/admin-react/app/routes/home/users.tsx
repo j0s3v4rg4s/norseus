@@ -55,27 +55,7 @@ export default function UsersPage() {
         </Card>
       </div>
 
-      <Card className="p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar empleados..." className="pl-9" />
-          </div>
-        </div>
 
-        <div className="mt-6 space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={`skeleton-${i}`} className="flex items-center gap-4 rounded-lg border p-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-[200px]" />
-                <Skeleton className="h-3 w-[150px]" />
-              </div>
-              <Skeleton className="h-6 w-16 rounded-full" />
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 }

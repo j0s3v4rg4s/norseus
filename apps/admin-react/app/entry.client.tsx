@@ -7,6 +7,7 @@
 import { HydratedRouter } from 'react-router/dom';
 import { startTransition, StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import '../../../libs/assets/styles/global-react.css';
 
 startTransition(() => {
