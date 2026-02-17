@@ -32,6 +32,8 @@ norseus/
 │   ├── front/            # Frontend libraries
 │   │   ├── cn/           # shadcn/ui components & utilities (React)
 │   │   ├── core/         # Business logic (employee, facility, profile, roles)
+│   │   ├── facility/     # Facility domain services (React)
+│   │   ├── roles/        # Roles domain services (React)
 │   │   ├── state/        # State management (session)
 │   │   ├── ui/           # UI component library (Angular)
 │   │   └── utils/        # Utilities (logger)
@@ -292,6 +294,97 @@ toast.success('Done!', {
 3. **Import from `sileo`** — `import { toast, Toaster } from 'sileo'`
 4. **Never install Sileo again** — it is already installed at the workspace root
 
+### React Domain Libraries (libs/front/*)
+
+Domain libraries in `libs/front/` encapsulate business logic and data operations for React applications. They are **pure, framework-agnostic** modules that do not contain React components or hooks.
+
+#### Purpose and Scope
+
+- **Data operations**: CRUD, queries, and Firebase/Firestore interactions
+- **Business logic**: Domain-specific rules and transformations
+- **Reusability**: Shared across multiple React apps and routes
+
+#### Library Structure
+
+```
+libs/front/<domain>/
+├── src/
+│   ├── index.ts              # Public API - exports all public functions
+│   └── <domain>.service.ts    # Service functions (pure, no React)
+├── project.json
+├── tsconfig.json
+└── tsconfig.lib.json
+```
+
+#### Design Principles
+
+- **Pure functions**: Services receive dependencies (e.g., `db`, `facilityId`) as parameters instead of using dependency injection
+- **No React**: No components, hooks, or React-specific code
+- **Models from @models**: Use shared types and interfaces from `@models/*` for consistency
+- **Single responsibility**: Each library focuses on one domain (e.g., roles, facility, employees)
+
+#### Path Aliases
+
+Domain libraries are consumed via path aliases defined in `tsconfig.base.json`:
+
+- `@front/<domain>` maps to `libs/front/<domain>/src/index.ts`
+
+#### AI Agent Guidelines for Domain Libraries
+
+1. **Create via Nx generator** — use `nx g @nx/js:library` or the appropriate plugin generator
+2. **Export through index.ts** — all public functions must be re-exported from `src/index.ts`
+3. **Add path alias** — register the library in `tsconfig.base.json` paths
+4. **Use @models for types** — do not duplicate model definitions; import from `@models/*`
+5. **Keep services pure** — pass `db` and context (e.g., `facilityId`) as arguments
+
+### React Route and Page Structure
+
+React applications use **React Router v7** with file-based route configuration. Each feature or section has a dedicated folder under the routes hierarchy.
+
+#### Route Folder Structure
+
+```
+app/routes/
+├── routes.tsx                    # Root route config (RouteConfig)
+├── <layout>.tsx                  # Layout components
+└── <section>/                    # Section (e.g., home)
+    └── <feature>/                # Feature folder
+        ├── index.tsx             # List/index page (default route)
+        ├── <feature>-create.tsx   # Create form page
+        ├── <feature>-edit.tsx     # Edit form page (with :id param)
+        ├── components/           # Feature-specific components
+        │   ├── index.ts          # Barrel export
+        │   └── *.tsx             # Shared components for this feature
+        └── <feature>.config.ts   # Optional: feature-specific constants and config
+```
+
+#### Naming Conventions
+
+- **Index page**: `index.tsx` — main list or overview
+- **Create page**: `<feature>-create.tsx` — form to create new entities
+- **Edit page**: `<feature>-edit.tsx` — form to edit existing entities (uses `:id` or `:entityId` in route)
+- **Config file**: `<feature>.config.ts` — constants, tooltips, business rules used only by this feature
+
+#### Route Registration
+
+Routes are defined in the root `routes.tsx` using `route()`, `layout()`, and `index()` from `@react-router/dev/routes`. Nested routes follow the folder hierarchy.
+
+#### Page and Component Guidelines
+
+- **Pages**: Consume domain libraries (`@front/*`) and models (`@models/*`)
+- **Components**: Place feature-specific UI in `components/` with a barrel `index.ts`
+- **Config**: Use `*.config.ts` for feature-specific constants (e.g., tooltips, implication rules) instead of hardcoding in components
+- **State**: Use Zustand for global state; local state with `useState` for form and UI state
+
+#### AI Agent Guidelines for React Pages
+
+1. **Follow folder structure** — use `index.tsx`, `*-create.tsx`, `*-edit.tsx` for CRUD flows
+2. **Extract shared components** — put reusable pieces in `components/` with barrel export
+3. **Use domain libraries** — import services from `@front/<domain>`, not inline Firebase calls
+4. **Use path aliases** — `@front/*`, `@models/*`, `@front/cn/components`
+5. **Register routes** — add new routes in `routes.tsx` with correct path and nesting
+6. **Config for constants** — use `*.config.ts` when a feature needs constants or business rules
+
 ### Code Organization
 
 #### Services
@@ -412,6 +505,8 @@ The project is configured with MCP servers that provide real-time access to Angu
 27. **Use shadcn/ui for React** - Always use `TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add <component>` to add new shadcn components. Never install them manually
 28. **Import shadcn from `@front/cn`** - Use `@front/cn/components/<name>` for components and `@front/cn/utils` for the `cn` utility
 29. **CRITICAL: Use Sileo for all toast notifications in React** - `import { toast, Toaster } from 'sileo'`. Never use any other toast library. `<Toaster />` must be placed at the app root
+30. **React domain libraries** - Keep `libs/front/<domain>` pure: no React, no components. Use pure functions with `db` and context as parameters. Export via `index.ts`
+31. **React page structure** - Use `index.tsx` (list), `*-create.tsx`, `*-edit.tsx`, `components/` with barrel, and optional `*.config.ts` for feature constants
 
 ## Project-Specific Patterns
 
