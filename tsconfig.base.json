@@ -18,6 +18,7 @@
       "@front/cn/components": ["libs/front/cn/components"],
       "@front/cn/components/*": ["libs/front/cn/components/*"],
       "@front/cn/hooks": ["libs/front/cn/hooks"],
+      "@front/cn/hooks/*": ["libs/front/cn/hooks/*"],
       "@front/cn/lib": ["libs/front/cn/lib"],
       "@front/cn/utils": ["libs/front/cn/utils/index.ts"],
       "@front/core/classes": ["libs/front/core/classes/src/index.ts"],

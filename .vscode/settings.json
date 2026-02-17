@@ -1,6 +1,6 @@
 {
   "cSpell.words": ["Supabase"],
-  "tailwindCSS.experimental.configFile": "libs/assets/styles/global.css",
+  "tailwindCSS.experimental.configFile": "libs/assets/styles/global-react.css",
   "nxConsole.generateAiAgentRules": true,
   "angular.enable-strict-mode-prompt": false
 }

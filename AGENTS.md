@@ -8,28 +8,34 @@ Norseus is a modern enterprise application built with **Angular 20.1.3** and **N
 
 ### Technology Stack
 
-- **Frontend**: Angular 20.1.3 with standalone components
+- **Frontend (Angular)**: Angular 20.1.3 with standalone components
+- **Frontend (React)**: React 19 with React Router v7 (SPA mode, no SSR)
 - **Monorepo**: Nx 21.3.9 with pnpm package manager
 - **Styling**: Tailwind CSS v4 (primary), SCSS (fallback)
 - **Backend**: Firebase (Auth, Firestore, Functions, Storage)
 - **Database**: Firebase Firestore
-- **State Management**: Angular Signals with @ngrx/signals
-- **UI Components**: Custom component library with basecoat-css
+- **State Management (Angular)**: Angular Signals with @ngrx/signals
+- **State Management (React)**: Zustand
+- **UI Components (Angular)**: Custom component library with basecoat-css
+- **UI Components (React)**: shadcn/ui (Radix + Tailwind) via `libs/front/cn/`
 
 ### Project Structure
 
 ```
 norseus/
 ├── apps/
-│   ├── admin/          # Main Angular application
-│   └── functions/      # Firebase Cloud Functions
+│   ├── admin/            # Angular application
+│   ├── admin-react/      # React application (React Router v7, SPA mode)
+│   └── functions/        # Firebase Cloud Functions
 ├── libs/
-│   ├── front/          # Frontend libraries
-│   │   ├── core/       # Business logic (employee, facility, profile, roles)
-│   │   ├── state/      # State management (session)
-│   │   ├── ui/         # UI component library
-│   │   └── utils/      # Utilities (logger)
-│   └── models/         # Shared data models
+│   ├── front/            # Frontend libraries
+│   │   ├── cn/           # shadcn/ui components & utilities (React)
+│   │   ├── core/         # Business logic (employee, facility, profile, roles)
+│   │   ├── state/        # State management (session)
+│   │   ├── ui/           # UI component library (Angular)
+│   │   └── utils/        # Utilities (logger)
+│   └── models/           # Shared data models
+├── components.json       # shadcn/ui configuration
 ```
 
 ## Development Standards
@@ -197,6 +203,45 @@ The project includes a custom UI component library with the following components
 </ui-select>
 ```
 
+### shadcn/ui (React)
+
+The React application uses **shadcn/ui** for its UI component library. Components are stored in `libs/front/cn/` and shared across the React app via path aliases.
+
+#### Configuration
+
+The `components.json` file at the workspace root configures shadcn/ui:
+
+- **Style**: `new-york`
+- **RSC**: `false` (no React Server Components)
+- **Icon Library**: `lucide`
+- **CSS**: `libs/assets/styles/global-react.css`
+- **Components alias**: `@front/cn/components`
+- **Utils alias**: `@front/cn/utils`
+
+#### Adding New Components
+
+**CRITICAL**: In this Nx monorepo, the standard `npx shadcn add` command will NOT work. You MUST use the following command from the workspace root:
+
+```bash
+TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add <component-name>
+```
+
+**Examples:**
+
+```bash
+TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add button
+TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add dialog
+TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add table select alert-dialog badge
+```
+
+#### AI Agent Guidelines for shadcn/ui
+
+1. **Never install shadcn components manually** — always use the command above
+2. **Never modify generated component files directly** unless strictly necessary for customization
+3. **Import from `@front/cn/components`** in the React app (e.g., `import { Button } from '@front/cn/components/button'`)
+4. **Import `cn` utility from `@front/cn/utils`** (e.g., `import { cn } from '@front/cn/utils'`)
+5. **Check existing components first** — look in `libs/front/cn/components/` before adding a new one
+
 ### Code Organization
 
 #### Services
@@ -314,6 +359,8 @@ The project is configured with MCP servers that provide real-time access to Angu
 24. **CRITICAL: Always create index.ts files** - Every component, directive, pipe, or service MUST have its corresponding `index.ts` file for proper module organization and clean imports
 25. **Update parent index files** - When creating new components, always update the parent library's `index.ts` file to export the new component
 26. **NO inline comments** - Do NOT add inline comments (`//` or `/* */`) in any files. Only JSDoc comments (`/** */`) are allowed in `.ts` files
+27. **Use shadcn/ui for React** - Always use `TS_NODE_PROJECT=tsconfig.base.json pnpx shadcn@latest add <component>` to add new shadcn components. Never install them manually
+28. **Import shadcn from `@front/cn`** - Use `@front/cn/components/<name>` for components and `@front/cn/utils` for the `cn` utility
 
 ## Project-Specific Patterns
 

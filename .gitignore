@@ -49,3 +49,8 @@ Thumbs.db
 *.log
 
 firebase-export
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+
+.env*
