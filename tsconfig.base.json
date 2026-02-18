@@ -28,6 +28,7 @@
       "@front/core/profile": ["libs/front/core/profile/src/index.ts"],
       "@front/core/roles": ["libs/front/core/roles/src/index.ts"],
       "@front/core/services": ["libs/front/core/services/src/index.ts"],
+      "@front/employees": ["libs/front/employees/src/index.ts"],
       "@front/facility": ["libs/front/facility/src/index.ts"],
       "@front/roles": ["libs/front/roles/src/index.ts"],
       "@front/state/session": ["libs/front/state/session/src/index.ts"],
@@ -40,7 +41,7 @@
       "@models/plans": ["libs/models/src/plans/index.ts"],
       "@models/services": ["libs/models/src/services/index.ts"],
       "@models/user": ["libs/models/src/user/index.ts"],
-      "@front/employees": ["libs/front/employees/src/index.ts"],
+      "@front/services": ["libs/front/services/src/index.ts"],
       "@ui": ["libs/front/ui/src/index.ts"]
     }
   },

@@ -13,6 +13,9 @@ export default [
       route('permissions', './routes/home/permissions/index.tsx'),
       route('permissions/create', './routes/home/permissions/permissions-create.tsx'),
       route('permissions/:roleId/edit', './routes/home/permissions/permissions-edit.tsx'),
+      route('services', './routes/home/services/index.tsx'),
+      route('services/create', './routes/home/services/services-create.tsx'),
+      route('services/:serviceId/edit', './routes/home/services/services-edit.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig;
