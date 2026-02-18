@@ -10,6 +10,7 @@ facilities/{facilityId}
 members/{uid}
 roles/{roleId}
 facilities/{facilityId}/
+├── employees/{uid}
 └── services/{serviceId}/
     └── schedules/{scheduleId}
 ```
@@ -65,6 +66,58 @@ facilities/{facilityId}/
   "logo": "https://example.com/logo.png"
 }
 ```
+
+### 2.1 Employees Subcollection
+
+**Path:** `facilities/{facilityId}/employees/{uid}`
+
+**Description:** Employees that belong to a specific facility. Contains a projection of the profile data to avoid double reads. The `isActive` field is kept in sync with the Firebase Auth `disabled` state via the `updateEmployee` Cloud Function.
+
+#### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `uid` | `string` | ✅ | User ID of the employee (same as document ID) |
+| `joined` | `timestamp` | ✅ | When the employee joined the facility |
+| `roleId` | `string` | ❌ | ID of the employee's role in this facility |
+| `isAdmin` | `boolean` | ✅ | Whether the employee is an admin of this facility |
+| `isActive` | `boolean` | ✅ | Whether the employee is active. When `false`, the Firebase Auth account is disabled |
+| `profile` | `object` | ✅ | Projection of the employee's profile document |
+
+#### Profile Projection Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | ❌ | User ID |
+| `name` | `string` | ❌ | User's display name |
+| `email` | `string` | ❌ | User's email address |
+| `img` | `string \| null` | ❌ | URL to user's profile photo |
+| `createdAt` | `timestamp` | ✅ | When the profile was created |
+
+#### Example Document
+
+```json
+{
+  "uid": "user-123",
+  "joined": "2024-01-15T10:30:00Z",
+  "roleId": "role-456",
+  "isAdmin": false,
+  "isActive": true,
+  "profile": {
+    "id": "user-123",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "img": null,
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+#### Important Notes
+
+- `isActive` is managed exclusively via the `updateEmployee` Cloud Function, which synchronizes this field with Firebase Auth's `disabled` property.
+- Existing employee documents without `isActive` should be treated as active (`isActive ?? true`).
+- When `isActive` is set to `false`, the user loses the ability to sign in to Firebase.
 
 ---
 

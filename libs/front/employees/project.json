@@ -1,0 +1,9 @@
+{
+  "name": "employees-react",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/employees/src",
+  "projectType": "library",
+  "tags": ["front"],
+  "// targets": "to see all targets run: nx show project employees-react --web",
+  "targets": {}
+}

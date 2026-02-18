@@ -20,3 +20,15 @@ export interface DeleteEmployeeRequest {
   userId: string;
   facilityId: string;
 }
+
+/**
+ * Request payload for updating an employee
+ * Used in updateEmployee cloud function
+ */
+export interface UpdateEmployeeRequest {
+  userId: string;
+  facilityId: string;
+  name: string;
+  roleId: string;
+  isActive: boolean;
+}

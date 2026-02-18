@@ -75,6 +75,7 @@ export const createEmployee = onCall(async (request) => {
       joined: timestamp,
       roleId: data.roleId,
       isAdmin: data.userType === Role.ADMIN,
+      isActive: true,
       profile: profileData,
     };
     await db

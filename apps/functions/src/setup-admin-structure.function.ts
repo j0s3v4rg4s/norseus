@@ -56,6 +56,7 @@ export const setupAdminStructure = onRequest(async (request, response) => {
         roleId: null, // Assign a role if you have a roles collection
         isAdmin: true,
         profile: (await db.collection('profiles').doc(facilityAdmin.uid).get()).data() as ProfileModel,
+        isActive: true,
       };
       await facilityRef.collection('employees').doc(facilityAdmin.uid).set(adminEmployee);
 
@@ -66,6 +67,7 @@ export const setupAdminStructure = onRequest(async (request, response) => {
         joined: FieldValue.serverTimestamp(),
         roleId: null, // Assign a role if you have a roles collection
         isAdmin: false,
+        isActive: true,
         profile: (await db.collection('profiles').doc(facilityEmployer.uid).get()).data() as ProfileModel,
       };
       await facilityRef.collection('employees').doc(facilityEmployer.uid).set(employerEmployee);

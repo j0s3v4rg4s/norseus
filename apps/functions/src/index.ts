@@ -6,6 +6,7 @@ export * from './create-user.function';
 export * from './setup-admin-structure.function';
 export * from './create-employee.function';
 export * from './delete-employee.function';
+export * from './update-employee.function';
 export * from './delete-service-schedules.function';
 export * from './plans/plan-triggers.function';
 
