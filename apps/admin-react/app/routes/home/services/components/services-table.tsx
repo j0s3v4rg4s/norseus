@@ -43,9 +43,9 @@ export function ServicesTable({ services }: ServicesTableProps) {
               </TableCell>
               <TableCell className="text-center">
                 <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                  <Link to={`/home/services/${service.id}/edit`}>
+                  <Link to={`/home/services/${service.id}`}>
                     <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Editar servicio</span>
+                    <span className="sr-only">Ver detalle del servicio</span>
                   </Link>
                 </Button>
               </TableCell>

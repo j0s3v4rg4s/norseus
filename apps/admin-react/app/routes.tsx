@@ -16,6 +16,8 @@ export default [
       route('services', './routes/home/services/index.tsx'),
       route('services/create', './routes/home/services/services-create.tsx'),
       route('services/:serviceId/edit', './routes/home/services/services-edit.tsx'),
+      route('services/:serviceId', './routes/home/services/services-detail.tsx'),
+      route('services/:serviceId/schedules/create', './routes/home/services/schedules/schedules-create.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig;

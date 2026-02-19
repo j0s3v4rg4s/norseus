@@ -12,17 +12,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@front/cn/components/c
 import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
 import { Textarea } from '@front/cn/components/textarea';
+import { WeekCalendar, type ScheduleFormData, schedulesToCalendarSlots } from '@front/ui-react';
 import { createServiceWithSchedules } from '@front/services';
 import { type ServiceSchedule } from '@models/services';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
-import { ScheduleForm, WeekCalendar } from './components';
+import { ScheduleForm } from './components';
 import {
-  type ScheduleFormData,
   createSingleSchedule,
   createMultipleSchedules,
   checkScheduleConflicts,
-  schedulesToCalendarSlots,
 } from './services-create.utils';
 
 const serviceSchema = z.object({

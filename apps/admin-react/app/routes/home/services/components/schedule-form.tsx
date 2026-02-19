@@ -17,8 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@front/cn/components/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@front/cn/components/tooltip';
 import { DAYS_OF_WEEK, DAY_OF_WEEK_LABELS, type DayOfWeek } from '@models/common';
-import { DaySelector } from './day-selector';
-import { type ScheduleFormData } from '../services-create.utils';
+import { DaySelector, type ScheduleFormData } from '@front/ui-react';
 
 const singleSchema = z.object({
   scheduleType: z.literal('single'),

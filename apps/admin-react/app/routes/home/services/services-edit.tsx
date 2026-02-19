@@ -24,6 +24,7 @@ import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
 import { Switch } from '@front/cn/components/switch';
 import { Textarea } from '@front/cn/components/textarea';
+import { WeekCalendar, type ScheduleFormData, schedulesToCalendarSlots } from '@front/ui-react';
 import {
   getService,
   updateService,
@@ -35,13 +36,11 @@ import {
 import type { ServiceSchedule } from '@models/services';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
-import { ScheduleForm, WeekCalendar, ServiceFormSkeleton } from './components';
+import { ScheduleForm, ServiceFormSkeleton } from './components';
 import {
-  type ScheduleFormData,
   createSingleSchedule,
   createMultipleSchedules,
   checkScheduleConflicts,
-  schedulesToCalendarSlots,
 } from './services-create.utils';
 
 const serviceEditSchema = z.object({
@@ -256,7 +255,7 @@ export default function ServicesEditPage() {
           variant="ghost"
           size="icon"
           type="button"
-          onClick={() => navigate('/home/services')}
+          onClick={() => navigate(serviceId ? `/home/services/${serviceId}` : '/home/services')}
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Volver</span>
@@ -428,7 +427,7 @@ export default function ServicesEditPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/home/services')}
+            onClick={() => navigate(serviceId ? `/home/services/${serviceId}` : '/home/services')}
           >
             Cancelar
           </Button>

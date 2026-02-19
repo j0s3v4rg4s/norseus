@@ -5,7 +5,7 @@ import {
   type SlotPosition,
   getTimeRange,
   calculateSlotPosition,
-} from '../services-create.utils';
+} from '../schedule.utils';
 
 const SLOT_HEIGHT = 40;
 
