@@ -1,6 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router';
-import { ArrowLeft, Loader2, Trash2, Pencil, CalendarX2, Plus } from 'lucide-react';
+import {
+  ArrowLeft,
+  CalendarDays,
+  CalendarX2,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Users,
+  Ticket,
+} from 'lucide-react';
 import { sileo } from 'sileo';
 
 import {
@@ -25,7 +35,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@front/cn/components/empty';
-import { getService, deleteService } from '@front/services';
+import { Separator } from '@front/cn/components/separator';
+import { getService, deleteService, getClassesByService } from '@front/services';
+import {
+  DateWeekCalendar,
+  type DateCalendarSlot,
+  getWeekStart,
+} from '@front/ui-react';
+import type { ClassModel } from '@models/classes';
+import { DAYS_OF_WEEK } from '@models/common';
 import type { Service } from '@models/services';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
@@ -36,25 +54,82 @@ export default function ServicesDetailPage() {
   const selectedFacility = useSessionStore((s) => s.selectedFacility);
 
   const [service, setService] = useState<Service | undefined>();
+  const [classes, setClasses] = useState<ClassModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
 
   useEffect(() => {
     if (!selectedFacility?.id || !serviceId) return;
 
     setLoading(true);
-    getService(db, selectedFacility.id, serviceId)
-      .then((result) => {
-        if (!result) {
+    Promise.all([
+      getService(db, selectedFacility.id, serviceId),
+      getClassesByService(db, selectedFacility.id, serviceId),
+    ])
+      .then(([serviceResult, classesResult]) => {
+        if (!serviceResult) {
           setNotFound(true);
           return;
         }
-        setService(result);
+        setService(serviceResult);
+        setClasses(classesResult);
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [selectedFacility?.id, serviceId]);
+
+  const calendarSlots = useMemo<DateCalendarSlot[]>(() => {
+    const jsDayToDayOfWeek = [
+      DAYS_OF_WEEK[6], // 0 = Sunday
+      DAYS_OF_WEEK[0], // 1 = Monday
+      DAYS_OF_WEEK[1], // 2 = Tuesday
+      DAYS_OF_WEEK[2], // 3 = Wednesday
+      DAYS_OF_WEEK[3], // 4 = Thursday
+      DAYS_OF_WEEK[4], // 5 = Friday
+      DAYS_OF_WEEK[5], // 6 = Saturday
+    ];
+
+    return classes.map((c) => {
+      const date = c.date.toDate();
+      return {
+        id: c.id,
+        scheduleId: c.scheduleId,
+        date,
+        dayOfWeek: jsDayToDayOfWeek[date.getDay()],
+        startTime: c.startAt,
+        durationMinutes: c.duration,
+        displayLabel: c.programTitle || c.startAt,
+        displaySubLabel: `${c.duration} min · Cap: ${c.capacity}`,
+        color: 'green' as const,
+      };
+    });
+  }, [classes]);
+
+  const weekRange = useMemo(() => {
+    if (classes.length === 0) return { min: undefined, max: undefined };
+    // classes are sorted by date asc from Firestore
+    const firstDate = classes[0].date.toDate();
+    const lastDate = classes[classes.length - 1].date.toDate();
+    return { min: getWeekStart(firstDate), max: getWeekStart(lastDate) };
+  }, [classes]);
+
+  const stats = useMemo(() => {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const weekClasses = classes.filter((c) => {
+      const d = c.date.toDate();
+      return d >= weekStart && d < weekEnd;
+    });
+
+    return {
+      classesThisWeek: weekClasses.length,
+      totalCapacity: weekClasses.reduce((sum, c) => sum + c.capacity, 0),
+      totalBookings: weekClasses.reduce((sum, c) => sum + c.userBookings.length, 0),
+    };
+  }, [classes, weekStart]);
 
   async function handleDelete() {
     if (!selectedFacility?.id || !serviceId) return;
@@ -105,7 +180,8 @@ export default function ServicesDetailPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -167,37 +243,90 @@ export default function ServicesDetailPage() {
         <p className="text-muted-foreground">{service.description}</p>
       )}
 
+      {/* Stats */}
+      {classes.length > 0 && (
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="py-5">
+            <CardContent className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <CalendarDays className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{stats.classesThisWeek}</p>
+                <p className="text-sm text-muted-foreground">Clases esta semana</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="py-5">
+            <CardContent className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
+                <Users className="h-6 w-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{stats.totalCapacity}</p>
+                <p className="text-sm text-muted-foreground">Capacidad total</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="py-5">
+            <CardContent className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
+                <Ticket className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{stats.totalBookings}</p>
+                <p className="text-sm text-muted-foreground">Reservas</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Calendar / Empty */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Clases programadas</CardTitle>
             <Button size="sm" className="gap-2" asChild>
               <Link to={`/home/services/${serviceId}/schedules/create`}>
+                <Plus className="h-4 w-4" />
                 Nueva clase
               </Link>
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <CalendarX2 />
-              </EmptyMedia>
-              <EmptyTitle>Sin clases programadas</EmptyTitle>
-              <EmptyDescription>
-                Este servicio aun no tiene clases programadas. Crea la primera
-                clase para que los usuarios puedan reservar.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button asChild>
-                <Link to={`/home/services/${serviceId}/schedules/create`}>
-                  Programar clase
-                </Link>
-              </Button>
-            </EmptyContent>
-          </Empty>
+        <Separator />
+        <CardContent className="pt-6">
+          {calendarSlots.length > 0 ? (
+            <DateWeekCalendar
+              slots={calendarSlots}
+              weekStart={weekStart}
+              onWeekChange={setWeekStart}
+              minWeekStart={weekRange.min}
+              maxWeekStart={weekRange.max}
+            />
+          ) : (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CalendarX2 />
+                </EmptyMedia>
+                <EmptyTitle>Sin clases programadas</EmptyTitle>
+                <EmptyDescription>
+                  Este servicio aun no tiene clases programadas. Crea la primera
+                  clase para que los usuarios puedan reservar.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button asChild>
+                  <Link to={`/home/services/${serviceId}/schedules/create`}>
+                    <Plus className="h-4 w-4" />
+                    Programar clase
+                  </Link>
+                </Button>
+              </EmptyContent>
+            </Empty>
+          )}
         </CardContent>
       </Card>
     </div>

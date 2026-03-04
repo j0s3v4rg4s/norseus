@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
+import { CircleAlert, Loader2, TriangleAlert } from 'lucide-react';
 
 import { Button } from '@front/cn/components/button';
 import { Input } from '@front/cn/components/input';
@@ -26,7 +26,7 @@ function getAuthErrorMessage(code: string): string {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/invalid-email':
-      return 'Invalid credentials.';
+      return 'Invalid credentials. Please try again.';
     case 'auth/user-disabled':
       return 'This account has been disabled.';
     case 'auth/too-many-requests':
@@ -68,60 +68,120 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col justify-between bg-foreground p-10 text-primary-foreground">
-        <img
-          src="/logos/icon.svg"
-          alt="Norseus"
-          className="h-20 w-20 brightness-0 invert"
-        />
-        <div className="space-y-4">
-          <blockquote className="text-lg font-medium leading-relaxed">
-            &ldquo;Simplify your gym management. Members, plans, schedules
-            &mdash; all in one place.&rdquo;
-          </blockquote>
-          <p className="text-sm text-primary-foreground/60">
-            Admin Dashboard
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Left Pane — Branding */}
+      <div className="hidden lg:flex w-1/2 bg-foreground relative flex-col justify-between p-12 overflow-hidden">
+        {/* Background image with dark overlay */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-foreground/80 mix-blend-multiply z-10" />
+          <img
+            src="/images/login-bg.jpg"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="relative z-20 flex items-center gap-3">
+          <img
+            src="/logos/icon.svg"
+            alt="Norseus"
+            className="h-10 w-10 brightness-0 invert"
+          />
+          <span className="text-primary-foreground font-bold text-xl tracking-wide uppercase">
+            Norseus
+          </span>
+        </div>
+
+        <div className="relative z-20 max-w-lg">
+          <h1 className="text-primary-foreground text-5xl font-black leading-tight tracking-tight mb-4">
+            Manage your facility with precision.
+          </h1>
+          <p className="text-primary-foreground/60 text-lg leading-relaxed">
+            The premium gym management dashboard designed for operational
+            excellence and seamless member experiences.
           </p>
         </div>
-        <p className="text-xs text-primary-foreground/40">
+
+        <p className="relative z-20 text-primary-foreground/40 text-sm">
           &copy; {new Date().getFullYear()} Norseus
         </p>
       </div>
 
-      <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-sm space-y-8">
-          <div className="flex justify-center lg:hidden">
-            <img src="/logos/logo_name.svg" alt="Norseus" className="h-10" />
+      {/* Right Pane — Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
+        <div className="w-full max-w-md flex flex-col">
+          {/* Mobile Logo */}
+          <div className="flex items-center gap-3 mb-10 lg:hidden">
+            <img
+              src="/logos/icon.svg"
+              alt="Norseus"
+              className="h-10 w-10"
+            />
+            <span className="font-bold text-xl tracking-wide uppercase">
+              Norseus
+            </span>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="grid gap-1.5">
-              <Label htmlFor="email-input">Email</Label>
-              <Input
-                id="email-input"
-                type="email"
-                placeholder="you@example.com"
-                aria-invalid={!!errors.email}
-                {...register('email')}
-              />
+          {/* Header */}
+          <div className="mb-10">
+            <h2 className="text-3xl font-black tracking-tight mb-2">
+              Welcome back
+            </h2>
+            <p className="text-muted-foreground text-base">
+              Please enter your details to access your dashboard.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email-input" className="text-sm font-semibold">
+                Email address
+              </Label>
+              <div className="relative">
+                <Input
+                  id="email-input"
+                  type="email"
+                  placeholder="admin@norseus.com"
+                  className={`h-12 pr-10 ${errors.email ? 'border-destructive focus-visible:ring-destructive/20' : ''}`}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
+                  {...register('email')}
+                />
+                {errors.email && (
+                  <CircleAlert className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive pointer-events-none" />
+                )}
+              </div>
               {errors.email && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm font-medium text-destructive" id="email-error">
                   {errors.email.message}
                 </p>
               )}
             </div>
 
-            <div className="grid gap-1.5">
-              <Label htmlFor="password-input">Password</Label>
-              <Input
-                id="password-input"
-                type="password"
-                aria-invalid={!!errors.password}
-                {...register('password')}
-              />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password-input" className="text-sm font-semibold">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password-input"
+                  type="password"
+                  placeholder="••••••••"
+                  className={`h-12 pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive/20' : ''}`}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
+                  {...register('password')}
+                />
+                {errors.password && (
+                  <CircleAlert className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive pointer-events-none" />
+                )}
+              </div>
               {errors.password && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm font-medium text-destructive" id="password-error">
                   {errors.password.message}
                 </p>
               )}
@@ -129,8 +189,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full"
-              size="lg"
+              className="w-full h-12 mt-2 font-bold"
               disabled={isSubmitting}
             >
               {isSubmitting && <Loader2 className="animate-spin" />}
@@ -138,9 +197,17 @@ export default function Login() {
             </Button>
 
             {errorMessage && (
-              <p className="text-center text-sm text-destructive">
-                {errorMessage}
-              </p>
+              <div className="w-full p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3 mt-2">
+                <TriangleAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <h3 className="text-sm font-semibold text-destructive">
+                    Authentication Failed
+                  </h3>
+                  <p className="text-sm font-medium text-destructive/80 mt-1">
+                    {errorMessage}
+                  </p>
+                </div>
+              </div>
             )}
           </form>
         </div>

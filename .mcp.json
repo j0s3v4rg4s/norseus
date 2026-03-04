@@ -10,7 +10,17 @@
     },
     "shadcn": {
       "command": "npx",
-      "args": ["shadcn@latest", "mcp"]
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
+    "stitch": {
+      "type": "http",
+      "url": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "AQ.Ab8RN6KmMr-9s5sJC2YyGapArOpGWvvFqABr-bZ6rElzk9S-Bg"
+      }
     }
   }
 }
