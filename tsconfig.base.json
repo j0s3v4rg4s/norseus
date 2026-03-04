@@ -26,7 +26,6 @@
       "@front/roles": ["libs/front/roles/src/index.ts"],
       "@front/services": ["libs/front/services/src/index.ts"],
       "@front/ui-react": ["libs/front/ui-react/src/index.ts"],
-      "@front/utils": ["libs/front/utils/src/index.ts"],
       "@models/classes": ["libs/models/src/classes/index.ts"],
       "@models/common": ["libs/models/src/common/index.ts"],
       "@models/facility": ["libs/models/src/facility/index.ts"],
