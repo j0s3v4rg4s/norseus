@@ -1,63 +1,67 @@
 # Firestore Collections Structure
 
-This document defines the complete structure of Firestore collections for the Norseus application, based on the Supabase to Firebase migration.
+Reference guide for the Norseus Firestore database structure.
+
+---
 
 ## Collection Hierarchy
 
 ```
 profiles/{uid}
-facilities/{facilityId}
-members/{uid}
-roles/{roleId}
+
 facilities/{facilityId}/
 ├── employees/{uid}
-└── services/{serviceId}/
-    └── schedules/{scheduleId}
+├── clients/{uid}
+├── roles/{roleId}
+├── services/{serviceId}/
+│   └── schedules/{scheduleId}
+├── classes/{classId}
+└── plans/{planId}
 ```
 
 ---
 
-## 1. Profiles Collection
+## 1. Profiles
 
 **Path:** `profiles/{uid}`
+**Constant:** `PROFILE_COLLECTION = 'profiles'`
 
-**Description:** User profiles that mirror Supabase `profile` table. The Firestore `uid` equals Supabase `auth.users.id`.
-
-### Fields
+Authenticated user profile. The document `uid` matches the Firebase Auth UID.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `createdAt` | `timestamp` | ✅ | When the profile was created |
-| `name` | `string` | ❌ | User's display name |
-| `defaultFacilityId` | `string` | ❌ | ID of the user's default facility |
-
-### Example Document
+| `createdAt` | `Timestamp` | Yes | Creation date |
+| `name` | `string` | Yes | User's display name |
+| `email` | `string` | Yes | User's email |
+| `img` | `string \| null` | No | Profile photo URL |
 
 ```json
 {
   "createdAt": "2024-01-15T10:30:00Z",
   "name": "John Doe",
-  "defaultFacilityId": "facility-123"
+  "email": "john@example.com",
+  "img": null
 }
 ```
 
+### Security Rules
+
+- Only the owner can read and write their own profile (`request.auth.uid == uid`).
+
 ---
 
-## 2. Facilities Collection
+## 2. Facilities
 
 **Path:** `facilities/{facilityId}`
+**Constant:** `FACILITY_COLLECTION = 'facilities'`
 
-**Description:** Facilities that users can belong to. Mirrors Supabase `facility` table.
-
-### Fields
+Each facility represents a business/gym/center within the platform.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `createdAt` | `timestamp` | ✅ | When the facility was created |
-| `name` | `string` | ✅ | Facility name |
-| `logo` | `string` | ❌ | URL to facility logo |
-
-### Example Document
+| `createdAt` | `Timestamp` | Yes | Creation date |
+| `name` | `string` | Yes | Facility name |
+| `logo` | `string \| null` | No | Logo URL |
 
 ```json
 {
@@ -67,34 +71,42 @@ facilities/{facilityId}/
 }
 ```
 
-### 2.1 Employees Subcollection
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | `super_admin` only |
+| `read` | `super_admin` or any facility member (employee/client) |
+| `update` | `super_admin` only |
+| `delete` | `super_admin` only |
+
+---
+
+## 3. Employees (Facility subcollection)
 
 **Path:** `facilities/{facilityId}/employees/{uid}`
+**Constant:** `EMPLOYEE_COLLECTION = 'employees'`
 
-**Description:** Employees that belong to a specific facility. Contains a projection of the profile data to avoid double reads. The `isActive` field is kept in sync with the Firebase Auth `disabled` state via the `updateEmployee` Cloud Function.
-
-#### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `uid` | `string` | ✅ | User ID of the employee (same as document ID) |
-| `joined` | `timestamp` | ✅ | When the employee joined the facility |
-| `roleId` | `string` | ❌ | ID of the employee's role in this facility |
-| `isAdmin` | `boolean` | ✅ | Whether the employee is an admin of this facility |
-| `isActive` | `boolean` | ✅ | Whether the employee is active. When `false`, the Firebase Auth account is disabled |
-| `profile` | `object` | ✅ | Projection of the employee's profile document |
-
-#### Profile Projection Fields
+Facility employees. Contains a profile projection (`profile`) to avoid extra reads.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | `string` | ❌ | User ID |
-| `name` | `string` | ❌ | User's display name |
-| `email` | `string` | ❌ | User's email address |
-| `img` | `string \| null` | ❌ | URL to user's profile photo |
-| `createdAt` | `timestamp` | ✅ | When the profile was created |
+| `uid` | `string` | Yes | Employee UID (same as document ID) |
+| `joined` | `Timestamp` | Yes | Date joined the facility |
+| `roleId` | `string \| null` | No | Assigned role ID within this facility |
+| `isAdmin` | `boolean` | Yes | Whether the employee is a facility admin |
+| `isActive` | `boolean` | Yes | Whether the employee is active. When `false`, the Firebase Auth account is disabled |
+| `profile` | `ProfileModel` | Yes | Employee profile projection |
 
-#### Example Document
+#### `profile` projection fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | User UID |
+| `name` | `string` | Display name |
+| `email` | `string` | Email |
+| `img` | `string \| null` | Profile photo URL |
+| `createdAt` | `Timestamp` | Profile creation date |
 
 ```json
 {
@@ -106,315 +118,413 @@ facilities/{facilityId}/
   "profile": {
     "id": "user-123",
     "name": "John Doe",
-    "email": "john.doe@example.com",
+    "email": "john@example.com",
     "img": null,
     "createdAt": "2024-01-15T10:30:00Z"
   }
 }
 ```
 
-#### Important Notes
+### Security Rules
 
-- `isActive` is managed exclusively via the `updateEmployee` Cloud Function, which synchronizes this field with Firebase Auth's `disabled` property.
-- Existing employee documents without `isActive` should be treated as active (`isActive ?? true`).
-- When `isActive` is set to `false`, the user loses the ability to sign in to Firebase.
+- **Read:** Any authenticated user can read employees (collection group query enabled).
+- **Write:** Facility admins only (via wildcard rule `facilities/{facilityId}/{document=**}`).
+- `isActive` is managed exclusively via the `updateEmployee` Cloud Function, which syncs with Firebase Auth `disabled`.
 
 ---
 
-## 3. Members Collection
+## 4. Clients (Facility subcollection)
 
-**Path:** `members/{uid}`
+**Path:** `facilities/{facilityId}/clients/{uid}`
+**Constant:** `CLIENT_COLLECTION = 'clients'`
 
-**Description:** Facility membership records with support for multi-facility users. Mirrors Supabase `facility_user` table with role references.
-
-### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `uid` | `string` | ✅ | User ID (same as document ID) |
-| `facilities` | `object[]` | ✅ | Array of facility memberships |
-
-### Facility Membership Object
+Facility clients. Similar to employees but without roles or admin permissions.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `facilityId` | `string` | ✅ | ID of the facility |
-| `roleId` | `string` | ❌ | ID of the user's role in this facility |
-| `joined` | `timestamp` | ✅ | When the user joined the facility |
-
-### Example Document
+| `uid` | `string` | Yes | Client UID |
+| `joined` | `Timestamp` | Yes | Date joined |
+| `isActive` | `boolean` | Yes | Whether the client is active |
+| `profile` | `ProfileModel` | Yes | Profile projection |
 
 ```json
 {
-  "uid": "user123",
-  "facilities": [
-    {
-      "facilityId": "facility-456",
-      "roleId": "role-123",
-      "joined": "2024-01-15T10:30:00Z"
-    },
-    {
-      "facilityId": "facility-789",
-      "roleId": "role-456", 
-      "joined": "2024-02-01T09:00:00Z"
-    }
-  ]
+  "uid": "client-789",
+  "joined": "2024-03-01T10:00:00Z",
+  "isActive": true,
+  "profile": {
+    "id": "client-789",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "img": null,
+    "createdAt": "2024-02-28T09:00:00Z"
+  }
 }
 ```
 
+### Security Rules
+
+- Managed by facility admins (via wildcard rule).
+
 ---
 
-## 4. Roles Collection
+## 5. Roles (Facility subcollection)
 
-**Path:** `roles/{roleId}`
+**Path:** `facilities/{facilityId}/roles/{roleId}`
+**Constant:** `ROLE_COLLECTION = 'roles'`
 
-**Description:** Roles within facilities with their permissions. Mirrors Supabase `role` table with embedded permissions.
-
-### Fields
+Roles defined within a facility. Each role has permissions organized by section.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | `string` | ✅ | Role name (unique per facility) |
-| `description` | `string` | ❌ | Role description |
-| `facilityId` | `string` | ✅ | ID of the facility this role belongs to |
-| `permissions` | `string[]` | ✅ | Array of permission keys (e.g., `['services.read', 'users.edit']`) |
+| `id` | `string` | Yes | Role ID |
+| `name` | `string` | Yes | Role name (unique per facility) |
+| `permissions` | `PermissionsBySection` | Yes | Permissions organized by section |
 
-### Permission Key Format
+### `permissions` structure
 
-Permissions follow the pattern: `{section}.{action}`
+Permissions are stored as an object where each key is a **section** and the value is an array of allowed **actions**:
 
-- **Sections:** `permissions`, `users`, `services`
-- **Actions:** `read`, `edit`, `delete`, `create`
+```typescript
+type PermissionsBySection = Partial<Record<PermissionSection, PermissionAction[]>>;
+```
 
-### Example Document
+**Sections (`PermissionSection`):**
+
+| Value | Description |
+|-------|-------------|
+| `roles` | Role management |
+| `employees` | Employee management |
+| `services` | Service management |
+| `programming` | Class/programming management |
+
+**Actions (`PermissionAction`):**
+
+| Value | Description |
+|-------|-------------|
+| `create` | Create |
+| `read` | Read |
+| `update` | Update |
+| `delete` | Delete |
 
 ```json
 {
-  "name": "Admin",
-  "description": "Full administrative access to the facility",
-  "facilityId": "facility-456",
-  "permissions": ["services.read", "services.edit", "services.delete", "users.read", "users.edit", "permissions.edit"]
+  "id": "role-456",
+  "name": "Trainer",
+  "permissions": {
+    "services": ["read"],
+    "programming": ["create", "read", "update"],
+    "employees": ["read"]
+  }
 }
 ```
 
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | Employees with `roles.create` permission |
+| `read` | Any facility employee, or those with `roles.read` permission, or those assigned to that role |
+| `update` | Employees with `roles.update` permission |
+| `delete` | Employees with `roles.delete` permission |
+
 ---
 
-## 5. Facility Services Subcollection
+## 6. Services (Facility subcollection)
 
 **Path:** `facilities/{facilityId}/services/{serviceId}`
+**Constant:** `SERVICES_COLLECTION = 'services'`
 
-**Description:** Services offered by a facility. Mirrors Supabase `service` table.
-
-### Fields
+Services offered by a facility (e.g., "Yoga", "CrossFit", "Pilates").
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `createdAt` | `timestamp` | ✅ | When the service was created |
-| `name` | `string` | ✅ | Service name |
-| `description` | `string` | ❌ | Service description |
-| `isActive` | `boolean` | ✅ | Whether the service is active |
-
-### Example Document
+| `id` | `string` | Yes | Service ID |
+| `name` | `string` | Yes | Service name |
+| `description` | `string` | No | Service description |
+| `isActive` | `boolean` | Yes | Whether the service is active |
+| `createdAt` | `Timestamp` | Yes | Creation date |
+| `updatedAt` | `Timestamp` | Yes | Last update date |
+| `planIds` | `string[]` | No | IDs of plans that include this service |
 
 ```json
 {
-  "createdAt": "2024-01-15T10:30:00Z",
-  "name": "Yoga Class",
+  "id": "service-001",
+  "name": "Yoga",
   "description": "Beginner-friendly yoga sessions",
-  "isActive": true
+  "isActive": true,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-02-01T14:00:00Z",
+  "planIds": ["plan-001", "plan-002"]
 }
 ```
 
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | Employees with `services.create` permission or facility admin |
+| `read` | Employees with `services.read` permission or any facility employee |
+| `update` | Employees with `services.update` permission or facility admin |
+| `delete` | Employees with `services.delete` permission or facility admin |
+
 ---
 
-## 6. Service Schedules Subcollection
+## 7. Schedules (Service subcollection)
 
 **Path:** `facilities/{facilityId}/services/{serviceId}/schedules/{scheduleId}`
+**Constant:** `SCHEDULES_COLLECTION = 'schedules'`
 
-**Description:** Weekly schedules for services. Mirrors Supabase `service_schedule` table.
-
-### Fields
+Recurring weekly schedules for a service.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `dayOfWeek` | `string` | ✅ | Day of week: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun` |
-| `startTime` | `string` | ✅ | Start time in HH:mm format (e.g., "09:00") |
-| `durationMinutes` | `number` | ✅ | Duration in minutes (> 0) |
-| `employeeId` | `string` | ✅ | UID of the employee responsible for this schedule |
-| `capacity` | `number` | ✅ | Maximum number of participants (> 0) |
-| `minReserveMinutes` | `number` | ✅ | Minimum minutes in advance to reserve (≥ 0) |
-| `minCancelMinutes` | `number` | ✅ | Minimum minutes in advance to cancel (≥ 0) |
-| `isActive` | `boolean` | ✅ | Whether this schedule is active |
-
-### Example Document
+| `id` | `string` | Yes | Schedule ID |
+| `dayOfWeek` | `DayOfWeek` | Yes | Day of the week (`mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`) |
+| `startTime` | `string` | Yes | Start time in `HH:mm` format (e.g., `"09:00"`) |
+| `durationMinutes` | `number` | Yes | Duration in minutes (> 0) |
+| `capacity` | `number` | Yes | Maximum participant capacity (> 0) |
+| `minReserveMinutes` | `number` | Yes | Minimum minutes in advance to reserve (>= 0) |
+| `minCancelMinutes` | `number` | Yes | Minimum minutes in advance to cancel (>= 0) |
+| `isActive` | `boolean` | Yes | Whether the schedule is active |
+| `createdAt` | `Timestamp` | Yes | Creation date |
+| `updatedAt` | `Timestamp` | Yes | Last update date |
 
 ```json
 {
+  "id": "schedule-001",
   "dayOfWeek": "mon",
   "startTime": "09:00",
   "durationMinutes": 60,
-  "employeeId": "user-789",
   "capacity": 20,
   "minReserveMinutes": 60,
   "minCancelMinutes": 120,
-  "isActive": true
+  "isActive": true,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
 }
 ```
 
+### Security Rules
+
+- Inherited from parent service (covered by facility admin wildcard rule).
+
 ---
 
-## Data Validation & Business Rules
+## 8. Classes (Facility subcollection)
 
-### Uniqueness Constraints
-- **Roles:** `name` must be unique per facility (enforced via Cloud Functions)
-- **Schedules:** `(dayOfWeek, startTime)` must be unique per service (enforced via Cloud Functions)
+**Path:** `facilities/{facilityId}/classes/{classId}`
+**Constant:** `CLASSES_COLLECTION = 'classes'`
 
-### Document References
-- `members/{uid}.facilities[].roleId` references `roles/{roleId}`
-- `roles/{roleId}.facilityId` references `facilities/{facilityId}`
-- `services/{serviceId}` belongs to `facilities/{facilityId}` (hierarchical)
-- `schedules/{scheduleId}.employeeId` references `profiles/{uid}`
+Concrete class instances generated from schedules. Each represents a class on a specific date and time.
 
-### Field Validation
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Class ID |
+| `serviceId` | `string` | Yes | Parent service ID |
+| `facilityId` | `string` | Yes | Facility ID |
+| `scheduleId` | `string` | Yes | Schedule ID that generated this class |
+| `date` | `Timestamp` | Yes | Class date |
+| `startAt` | `string` | Yes | Start time (`HH:mm` format) |
+| `duration` | `number` | Yes | Duration in minutes |
+| `capacity` | `number` | Yes | Maximum capacity |
+| `instructorId` | `string \| null` | No | Assigned instructor UID |
+| `userBookings` | `string[]` | Yes | Array of UIDs of users who booked |
+| `program` | `ClassProgram \| null` | No | Class program/content |
+| `programTitle` | `string \| null` | No | Program title |
+
+#### `ClassProgram` structure
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `ProgramType` | Content type (`rich_text`) |
+| `value` | `string` | Program content |
+
+```json
+{
+  "id": "class-001",
+  "serviceId": "service-001",
+  "facilityId": "facility-123",
+  "scheduleId": "schedule-001",
+  "date": "2024-03-04T00:00:00Z",
+  "startAt": "09:00",
+  "duration": 60,
+  "capacity": 20,
+  "instructorId": "user-123",
+  "userBookings": ["client-789", "client-456"],
+  "program": {
+    "type": "rich_text",
+    "value": "<p>Warmup 10 min...</p>"
+  },
+  "programTitle": "Strength Class - Week 1"
+}
+```
+
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | Employees with `programming.create` permission or facility admin |
+| `read` | Any authenticated user |
+| `update` | Employees with `programming.update` permission or facility admin |
+| `delete` | Employees with `programming.delete` permission or facility admin |
+
+---
+
+## 9. Plans (Facility subcollection)
+
+**Path:** `facilities/{facilityId}/plans/{planId}`
+**Constant:** `PLANS_COLLECTION = 'plans'`
+
+Subscription/membership plans that bundle services with class limits.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Plan ID |
+| `name` | `string` | Yes | Plan name |
+| `description` | `string` | Yes | Plan description |
+| `cost` | `number` | Yes | Plan cost |
+| `currency` | `string` | Yes | Currency (e.g., `"USD"`, `"MXN"`) |
+| `duration` | `object` | Yes | Plan duration |
+| `services` | `PlanService[]` | Yes | Services included in the plan |
+| `active` | `boolean` | Yes | Whether the plan is active |
+
+#### `duration` structure
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `PlanDuration` | Duration type |
+| `days` | `number \| null` | Custom days (required if `type` is `custom`) |
+
+**`PlanDuration` values:**
+
+| Value | Label |
+|-------|-------|
+| `monthly` | Monthly |
+| `bimonthly` | Bimonthly |
+| `quarterly` | Quarterly |
+| `semiannually` | Semiannually |
+| `annually` | Annually |
+| `custom` | Custom (days) |
+
+#### `PlanService` structure
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `serviceId` | `string` | Included service ID |
+| `classLimitType` | `ClassLimitType` | Limit type (`fixed` or `unlimited`) |
+| `classLimit` | `number \| null` | Number of classes (required if `classLimitType` is `fixed`) |
+
+```json
+{
+  "id": "plan-001",
+  "name": "Premium Plan",
+  "description": "Access to all services",
+  "cost": 1500,
+  "currency": "MXN",
+  "duration": {
+    "type": "monthly",
+    "days": null
+  },
+  "services": [
+    {
+      "serviceId": "service-001",
+      "classLimitType": "unlimited",
+      "classLimit": null
+    },
+    {
+      "serviceId": "service-002",
+      "classLimitType": "fixed",
+      "classLimit": 8
+    }
+  ],
+  "active": true
+}
+```
+
+### Security Rules
+
+- Facility admins only (no specific rules; covered by wildcard rule).
+
+---
+
+## Security Rules Summary
+
+### System Roles
+
+| Role | Description | How it's determined |
+|------|-------------|---------------------|
+| `super_admin` | Global platform administrator | Custom claim `role == 'super_admin'` in Firebase Auth token |
+| Facility Admin | Administrator of a specific facility | `employees/{uid}.isAdmin == true` |
+| Facility Employee | Employee with role-based permissions | Document exists in `employees/{uid}` |
+| Facility Client | Facility client | Document exists in `clients/{uid}` |
+
+### Helper Functions in Rules
+
+| Function | Description |
+|----------|-------------|
+| `isSuperAdmin(request)` | Checks that token has `role == 'super_admin'` |
+| `isAuth(request)` | Checks that user is authenticated |
+| `isFacilityAdmin(request, facilityId)` | Checks that user is an employee with `isAdmin == true` |
+| `isFacilityEmployee(request, facilityId)` | Checks that user exists as a facility employee |
+| `isFacilityClient(request, facilityId)` | Checks that user exists as a facility client |
+| `belongsToFacility(request, facilityId)` | Checks that user is an employee OR client |
+| `hasPermission(request, facilityId, section, action)` | Checks that the employee's role has the specific permission |
+
+### Important Wildcard Rule
+
+```
+match /facilities/{facilityId}/{document=**} {
+  allow read, write: if isFacilityAdmin(request, facilityId);
+}
+```
+
+**Facility admins** have full read and write access to **all** subcollections within their facility. The specific subcollection rules apply to non-admin employees.
+
+### Summary by Collection
+
+| Collection | Create | Read | Update | Delete |
+|------------|--------|------|--------|--------|
+| `profiles/{uid}` | Owner | Owner | Owner | Owner |
+| `facilities/{fId}` | super_admin | super_admin / members | super_admin | super_admin |
+| `employees/{uid}` | Admin | Any authenticated | Admin | Admin |
+| `clients/{uid}` | Admin | Admin | Admin | Admin |
+| `roles/{rId}` | `roles.create` | Employee / `roles.read` / assigned role | `roles.update` | `roles.delete` |
+| `services/{sId}` | `services.create` / Admin | `services.read` / Employee | `services.update` / Admin | `services.delete` / Admin |
+| `schedules/{schId}` | Admin | Admin | Admin | Admin |
+| `classes/{cId}` | `programming.create` / Admin | Any authenticated | `programming.update` / Admin | `programming.delete` / Admin |
+| `plans/{pId}` | Admin | Admin | Admin | Admin |
+
+---
+
+## Validation & Business Rules
+
+- **Role uniqueness:** Role `name` must be unique per facility (enforced via Cloud Functions).
+- **Schedule uniqueness:** The combination `(dayOfWeek, startTime)` must be unique per service (enforced via Cloud Functions).
 - `durationMinutes` > 0
 - `capacity` > 0
-- `minReserveMinutes` ≥ 0
-- `minCancelMinutes` ≥ 0
-- `employeeId` must be a member of the same facility (enforced via Security Rules)
+- `minReserveMinutes` >= 0
+- `minCancelMinutes` >= 0
+- Employee `isActive` syncs with Firebase Auth `disabled` via the `updateEmployee` Cloud Function.
 
 ---
 
-## Security Model
+## Reference Enums
 
-### Access Control
-- **Profiles:** Users can only read/write their own profile
-- **Facilities:** Only members can read facility data
-- **Members:** Users can read their own membership, admins can manage all
-- **Roles:** Members can read, only users with `permissions.edit` can modify
-- **Services:** Members can read, requires `services.*` permissions to modify
-- **Schedules:** Inherits service permissions, plus employee validation
+### DayOfWeek
 
-### Permission System
-Permissions are stored in `roles/{roleId}.permissions` and accessed via role reference:
-- Format: `{section}.{action}`
-- Examples: `services.read`, `users.edit`, `permissions.delete`
-- Access pattern: `members/{uid}.facilities[].roleId` → `roles/{roleId}.permissions`
+| Value | Label |
+|-------|-------|
+| `mon` | Monday |
+| `tue` | Tuesday |
+| `wed` | Wednesday |
+| `thu` | Thursday |
+| `fri` | Friday |
+| `sat` | Saturday |
+| `sun` | Sunday |
 
----
+### ProgramType
 
-## Permission Access Pattern
-
-### Client-Side Permission Check
-```typescript
-async function hasPermission(uid: string, facilityId: string, permission: string): Promise<boolean> {
-  // 1. Get user's memberships
-  const memberDoc = await getDoc(doc(db, 'members', uid));
-  const userFacilities = memberDoc.data()?.facilities || [];
-  
-  // 2. Find the specific facility membership
-  const facilityMembership = userFacilities.find(f => f.facilityId === facilityId);
-  if (!facilityMembership?.roleId) return false;
-  
-  // 3. Get role's permissions
-  const roleDoc = await getDoc(doc(db, 'roles', facilityMembership.roleId));
-  const permissions = roleDoc.data()?.permissions || [];
-  
-  return permissions.includes(permission);
-}
-```
-
-### Security Rules Pattern
-```javascript
-// In firestore.rules
-function hasPermission(uid, facilityId, permission) {
-  return isSignedIn() && 
-         permission in get(/databases/$(database)/documents/roles/$(getUserRoleId(uid, facilityId))).data.permissions;
-}
-
-function getUserRoleId(uid, facilityId) {
-  const memberDoc = get(/databases/$(database)/documents/members/$(uid));
-  const facilities = memberDoc.data.facilities;
-  const facilityMembership = facilities[facilityId];
-  return facilityMembership.roleId;
-}
-```
-
----
-
-## Common Queries
-
-### Get User's Facilities
-```typescript
-async function getUserFacilities(uid: string): Promise<string[]> {
-  const memberDoc = await getDoc(doc(db, 'members', uid));
-  return memberDoc.data()?.facilities?.map(f => f.facilityId) || [];
-}
-```
-
-### Get Facility Users
-```typescript
-async function getFacilityUsers(facilityId: string): Promise<any[]> {
-  const membersQuery = query(
-    collection(db, 'members'),
-    where('facilities', 'array-contains', { facilityId })
-  );
-  const membersSnapshot = await getDocs(membersQuery);
-  
-  return membersSnapshot.docs.map(doc => ({
-    uid: doc.id,
-    ...doc.data()
-  }));
-}
-```
-
-### Get Facility Roles
-```typescript
-async function getFacilityRoles(facilityId: string): Promise<any[]> {
-  const rolesQuery = query(
-    collection(db, 'roles'),
-    where('facilityId', '==', facilityId)
-  );
-  const rolesSnapshot = await getDocs(rolesQuery);
-  
-  return rolesSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-}
-```
-
----
-
-## Migration Notes
-
-### From Supabase
-- `profile.id` → `profiles/{uid}` (uid = auth.users.id)
-- `facility.id` → `facilities/{facilityId}`
-- `facility_user` → `members/{uid}.facilities[]`
-- `role` → `roles/{roleId}`
-- `permissions` → embedded in `roles/{roleId}.permissions`
-- `service` → `facilities/{facilityId}/services/{serviceId}`
-- `service_schedule` → `facilities/{facilityId}/services/{serviceId}/schedules/{scheduleId}`
-
-### Key Differences from Supabase
-- Hierarchical structure for services and schedules under facilities
-- Referential structure for members and roles for better query performance
-- Permissions embedded in roles for better consistency
-- No explicit foreign key constraints (enforced via Security Rules and Cloud Functions)
-- Document IDs can be Supabase UUIDs for traceability
-- Uniqueness constraints enforced via Cloud Functions transactions
-
-### Design Decision: Hybrid Structure
-
-**Chosen Approach:** Referential for members/roles, hierarchical for services/schedules
-
-**Benefits:**
-- ✅ **Query Performance:** Efficient queries for user facilities and facility users
-- ✅ **Data Consistency:** Permissions always in sync with role definitions
-- ✅ **Logical Organization:** Services and schedules naturally hierarchical
-- ✅ **Scalability:** Better performance for multi-facility users
-- ✅ **Cost Effective:** Optimized read patterns for common queries
-
-**Structure Rationale:**
-- **Members/Roles:** Referential for efficient cross-facility queries
-- **Services/Schedules:** Hierarchical for natural organization and facility isolation 
+| Value | Description |
+|-------|-------------|
+| `rich_text` | Rich text content (HTML) |
