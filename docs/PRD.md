@@ -1,8 +1,9 @@
 # Product Requirements Document (PRD)
+
 ## Norseus - Enterprise Facility Management Platform
 
-**Version:** 1.0  
-**Date:** January 2025  
+**Version:** 2.0
+**Date:** March 2026
 **Status:** Active Development
 
 ---
@@ -20,12 +21,14 @@ To become the leading facility management platform that empowers businesses to s
 ### 1.3 Target Audience
 
 **Primary Users:**
+
 - Facility administrators and managers
 - Facility employees (instructors, coaches, receptionists)
 - Facility clients/members
 - Super administrators (platform administrators)
 
 **Target Businesses:**
+
 - Fitness centers and gyms
 - Wellness centers
 - Sports facilities
@@ -58,7 +61,7 @@ To become the leading facility management platform that empowers businesses to s
 2. **Reliability**: 99.9% uptime SLA
 3. **Security**: SOC 2 compliance readiness
 4. **Scalability**: Support 10,000+ concurrent users
-5. **Maintainability**: Modular architecture with 80%+ code coverage
+5. **Maintainability**: Modular architecture with domain-driven library separation
 
 ---
 
@@ -67,22 +70,24 @@ To become the leading facility management platform that empowers businesses to s
 ### 3.1 In Scope (Current Features)
 
 #### 3.1.1 Authentication & Authorization
+
 - Firebase Authentication integration
 - Multi-factor authentication support
-- Session management
+- Session management via Zustand global store
 - Role-based access control (RBAC)
 - Permission-based feature access
 - Facility-level isolation
 
 #### 3.1.2 User Management
+
 - User profiles with basic information
-- Employee management per facility
+- Employee management per facility (create, update, delete via Cloud Functions)
 - Client/member management per facility
-- User creation, update, and deletion
 - Profile image management
 - Email-based user identification
 
 #### 3.1.3 Facility Management
+
 - Multi-facility support
 - Facility creation and configuration
 - Facility logo management
@@ -90,43 +95,46 @@ To become the leading facility management platform that empowers businesses to s
 - Facility switching for multi-facility users
 
 #### 3.1.4 Role & Permission Management
+
 - Custom role creation per facility
-- Granular permission system
-- Permission sections: roles, employees, services
+- Granular permission system organized by sections
+- Permission sections: roles, employees, services, programming
 - Permission actions: create, read, update, delete
 - Role assignment to employees
 - Facility admin override capabilities
 
 #### 3.1.5 Service Management
+
 - Service creation and management
 - Service activation/deactivation
 - Service descriptions
-- Service categorization (future)
+- Plan-service associations (bidirectional via `planIds`)
 
 #### 3.1.6 Schedule Management
+
 - Weekly schedule creation for services
 - Day-of-week scheduling (Monday-Sunday)
-- Time-based scheduling (HH:mm format)
-- Duration configuration
+- Time-based scheduling (HH:mm 24-hour format)
+- Duration configuration (minutes)
 - Capacity management per schedule
 - Minimum reservation time requirements
 - Minimum cancellation time requirements
 - Schedule activation/deactivation
-- Batch schedule creation
-- Employee assignment to schedules
 
 #### 3.1.7 Class Management
+
 - Automatic class generation from schedules
 - Class instance management
 - Class capacity tracking
 - Instructor assignment
-- Class program/content management (rich text)
+- Class program/content management (rich text via Tiptap)
 - Booking management (user bookings array)
 
 #### 3.1.8 Plan Management
-- Membership plan creation
-- Plan-service associations
-- Plan pricing and configuration
+
+- Membership plan creation with cost and currency
+- Plan duration types (monthly, bimonthly, quarterly, semiannually, annually, custom)
+- Plan-service associations with class limits (fixed or unlimited)
 - Plan activation/deactivation
 
 ### 3.2 Out of Scope (Future Considerations)
@@ -144,438 +152,462 @@ To become the leading facility management platform that empowers businesses to s
 
 ---
 
-## 4. User Stories and Use Cases
+## 4. Functional Requirements
 
-### 4.1 Super Administrator
-
-**US-001: Create Facility**
-- **As a** super administrator
-- **I want to** create new facilities in the system
-- **So that** new organizations can use the platform
-
-**US-002: Manage All Facilities**
-- **As a** super administrator
-- **I want to** view and manage all facilities
-- **So that** I can oversee platform operations
-
-### 4.2 Facility Administrator
-
-**US-003: Manage Employees**
-- **As a** facility administrator
-- **I want to** create, edit, and remove employees
-- **So that** I can manage my facility's staff
-
-**US-004: Create Custom Roles**
-- **As a** facility administrator
-- **I want to** create custom roles with specific permissions
-- **So that** I can control what each employee can do
-
-**US-005: Assign Roles to Employees**
-- **As a** facility administrator
-- **I want to** assign roles to employees
-- **So that** they have appropriate access levels
-
-**US-006: Manage Services**
-- **As a** facility administrator
-- **I want to** create and manage services offered by my facility
-- **So that** clients can book them
-
-**US-007: Create Service Schedules**
-- **As a** facility administrator
-- **I want to** create weekly schedules for services
-- **So that** classes are available at consistent times
-
-**US-008: Manage Plans**
-- **As a** facility administrator
-- **I want to** create membership plans
-- **So that** clients can subscribe to services
-
-### 4.3 Facility Employee
-
-**US-009: View Assigned Schedules**
-- **As a** facility employee
-- **I want to** view my assigned service schedules
-- **So that** I know when I'm scheduled to work
-
-**US-010: Manage Class Programs**
-- **As a** facility employee with programming permission
-- **I want to** create and edit class programs
-- **So that** I can prepare class content
-
-**US-011: View Facility Data**
-- **As a** facility employee
-- **I want to** view facility services, schedules, and classes
-- **So that** I can assist clients
-
-### 4.4 Facility Client
-
-**US-012: View Available Services** (Future)
-- **As a** facility client
-- **I want to** view available services and schedules
-- **So that** I can plan my bookings
-
-**US-013: Book Classes** (Future)
-- **As a** facility client
-- **I want to** book available classes
-- **So that** I can attend scheduled sessions
-
----
-
-## 5. Functional Requirements
-
-### 5.1 Authentication & Session Management
+### 4.1 Authentication & Session Management
 
 **FR-001: User Authentication**
+
 - System MUST support Firebase Authentication
 - System MUST support email/password authentication
-- System MUST maintain user sessions securely
-- System MUST support session timeout after inactivity
+- System MUST maintain user sessions securely via Zustand store
+- System MUST redirect unauthenticated users to the login page
+- System MUST support Firebase emulators for local development
 
 **FR-002: Multi-Facility Access**
+
 - Users MUST be able to belong to multiple facilities
 - Users MUST be able to switch between facilities
-- System MUST maintain facility context per session
+- System MUST maintain facility context in session store
 
-### 5.2 User Management
+### 4.2 User Management
 
 **FR-003: Profile Management**
+
 - Users MUST have a profile with: name, email, profile image
-- Users MUST be able to update their own profile
+- Profiles are stored at `profiles/{uid}` with the Firebase Auth UID as document ID
 - System MUST store profile creation timestamp
 
 **FR-004: Employee Management**
-- System MUST allow creation of employees per facility
+
+- System MUST allow creation of employees per facility via Cloud Functions
 - Employees MUST be linked to a user account
-- Employees MUST have a role assigned
-- Employees MUST have an admin flag
+- Employees MUST have an optional role assigned (`roleId`)
+- Employees MUST have an admin flag (`isAdmin`)
+- Employees MUST have an active flag (`isActive`) synced with Firebase Auth `disabled` status
+- System MUST project profile data in employee documents to avoid extra reads
 - System MUST store employee join date
-- System MUST project profile data in employee documents
 
 **FR-005: Client Management**
+
 - System MUST allow creation of clients per facility
 - Clients MUST be linked to a user account
-- Clients MUST have membership status
-- System MUST store client join date
+- Clients MUST have an active status
 - System MUST project profile data in client documents
+- System MUST store client join date
 
-### 5.3 Facility Management
+### 4.3 Facility Management
 
 **FR-006: Facility Operations**
+
 - System MUST support multiple facilities
 - Facilities MUST have: name, logo, creation date
-- Facilities MUST be isolated (data separation)
+- Facilities MUST be isolated (data separation via Firestore subcollections)
 - System MUST allow facility switching for authorized users
 
-### 5.4 Role & Permission System
+### 4.4 Role & Permission System
 
 **FR-007: Role Management**
+
 - System MUST support custom roles per facility
-- Roles MUST have: name, description, permissions object
-- Permissions MUST be organized by sections (roles, employees, services)
-- Permissions MUST support actions: create, read, update, delete
-- System MUST allow role creation, update, and deletion
+- Roles MUST have: id, name, permissions object
+- Permissions MUST be organized by sections: `roles`, `employees`, `services`, `programming`
+- Permissions MUST support actions: `create`, `read`, `update`, `delete`
+- Role names MUST be unique per facility (enforced via Cloud Functions)
 - Facility admins MUST have full access regardless of role
 
 **FR-008: Permission Enforcement**
+
 - System MUST enforce permissions at Firestore security rules level
 - System MUST enforce permissions at application UI level
-- System MUST check permissions before allowing operations
-- System MUST provide permission checking helper functions
+- System MUST provide helper functions for permission checking in security rules
 
-### 5.5 Service Management
+### 4.5 Service Management
 
 **FR-009: Service Operations**
+
 - Services MUST belong to a facility
-- Services MUST have: name, description, active status
-- System MUST track service creation and update timestamps
+- Services MUST have: id, name, description, active status, timestamps
+- Services MAY have `planIds` array referencing associated plans
 - System MUST allow service activation/deactivation
-- Inactive services MUST hide their schedules from active use
 
 **FR-010: Service Validation**
+
 - Service name MUST be required
-- Service name MUST have maximum length validation
 - Service description MUST be optional
 
-### 5.6 Schedule Management
+### 4.6 Schedule Management
 
 **FR-011: Schedule Operations**
-- Schedules MUST belong to a service
-- Schedules MUST have: day of week, start time, duration, capacity
-- Schedules MUST have: minimum reserve minutes, minimum cancel minutes
-- Schedules MUST have an assigned employee
-- Schedules MUST have active status
-- System MUST prevent duplicate schedules (same service, day, time)
-- System MUST validate: duration > 0, capacity > 0, times >= 0
+
+- Schedules MUST belong to a service (subcollection)
+- Schedules MUST have: id, dayOfWeek, startTime, durationMinutes, capacity
+- Schedules MUST have: minReserveMinutes, minCancelMinutes
+- Schedules MUST have active status and timestamps
+- System MUST prevent duplicate schedules (same service, day, time) via Cloud Functions
 
 **FR-012: Schedule Validation**
-- Day of week MUST be: mon, tue, wed, thu, fri, sat, sun
-- Start time MUST be in HH:mm format (24-hour)
+
+- Day of week MUST be: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`
+- Start time MUST be in `HH:mm` format (24-hour)
 - Duration MUST be positive integer (minutes)
 - Capacity MUST be positive integer
-- Employee ID MUST reference valid facility employee
-- System MUST track schedule creation and update timestamps
+- `minReserveMinutes` and `minCancelMinutes` MUST be >= 0
 
-### 5.7 Class Management
+### 4.7 Class Management
 
 **FR-013: Class Operations**
+
 - Classes MUST be generated from service schedules
-- Classes MUST have: service reference, facility reference, date/time
-- Classes MUST have: capacity, start time, duration
-- Classes MUST support instructor assignment
-- Classes MUST track user bookings (array of user IDs)
-- Classes MUST support program content (rich text)
-- System MUST track class creation and update timestamps
+- Classes MUST have: id, serviceId, facilityId, scheduleId, date, startAt, duration, capacity
+- Classes MUST support instructor assignment (`instructorId`)
+- Classes MUST track user bookings (`userBookings` array of UIDs)
+- Classes MUST support program content (rich text via Tiptap editor)
+- Classes MAY have a program title (`programTitle`)
 
 **FR-014: Class Generation**
+
 - System MUST generate classes from active schedules
 - System MUST respect schedule capacity and timing rules
-- System MUST allow manual class creation/editing
-- System MUST validate class dates are in the future (for bookings)
 
-### 5.8 Plan Management
+### 4.8 Plan Management
 
 **FR-015: Plan Operations**
+
 - Plans MUST belong to a facility
-- Plans MUST have: name, description, active status
-- Plans MUST support service associations
-- System MUST track plan creation and update timestamps
+- Plans MUST have: id, name, description, cost, currency, duration, services, active status
+- Plan duration MUST support types: `monthly`, `bimonthly`, `quarterly`, `semiannually`, `annually`, `custom`
+- Custom duration MUST specify number of days
+- Plan services MUST specify: serviceId, classLimitType (`fixed` or `unlimited`), classLimit
 - System MUST allow plan activation/deactivation
 
 ---
 
-## 6. Non-Functional Requirements
+## 5. Non-Functional Requirements
 
-### 6.1 Performance Requirements
+### 5.1 Performance Requirements
 
 **NFR-001: Response Time**
+
 - Page load time MUST be < 2 seconds
 - API response time MUST be < 500ms (p95)
 - Database query time MUST be < 200ms (p95)
 
 **NFR-002: Throughput**
+
 - System MUST support 1,000 concurrent users per facility
 - System MUST handle 10,000 requests per minute
 
-### 6.2 Scalability Requirements
+### 5.2 Scalability Requirements
 
 **NFR-003: Horizontal Scaling**
-- System MUST scale horizontally
+
+- System MUST scale horizontally via Firebase infrastructure
 - System MUST support 100+ facilities
 - System MUST support 100,000+ users
 
 **NFR-004: Data Growth**
+
 - System MUST handle 1M+ documents per facility
 - System MUST maintain performance with data growth
 
-### 6.3 Security Requirements
+### 5.3 Security Requirements
 
 **NFR-005: Authentication Security**
+
 - System MUST use secure authentication (Firebase Auth)
-- System MUST enforce password complexity (if applicable)
 - System MUST support session management
+- Super admin role MUST be determined by Firebase Auth custom claim (`role == 'super_admin'`)
 
 **NFR-006: Authorization Security**
-- System MUST enforce RBAC at database level (Firestore Rules)
+
+- System MUST enforce RBAC at database level (Firestore Security Rules)
 - System MUST enforce RBAC at application level
 - System MUST prevent unauthorized data access
-- System MUST maintain facility data isolation
+- System MUST maintain facility data isolation via subcollection architecture
+- Facility admins MUST have wildcard write access to all subcollections within their facility
 
 **NFR-007: Data Security**
-- System MUST encrypt data in transit (HTTPS)
-- System MUST encrypt sensitive data at rest
-- System MUST comply with data protection regulations
-- System MUST implement audit logging
 
-### 6.4 Reliability Requirements
+- System MUST encrypt data in transit (HTTPS)
+- System MUST encrypt sensitive data at rest (Firebase managed)
+- System MUST comply with data protection regulations
+
+### 5.4 Reliability Requirements
 
 **NFR-008: Availability**
-- System MUST maintain 99.9% uptime
-- System MUST have automated failover
+
+- System MUST maintain 99.9% uptime (Firebase SLA)
+- System MUST have automated failover (Firebase managed)
 - System MUST have backup and recovery procedures
 
 **NFR-009: Error Handling**
-- System MUST handle errors gracefully
-- System MUST provide meaningful error messages
-- System MUST log all errors for debugging
 
-### 6.5 Usability Requirements
+- System MUST handle errors gracefully with user-friendly toast notifications (Sileo)
+- System MUST provide meaningful error messages
+- System MUST log errors for debugging
+
+### 5.5 Usability Requirements
 
 **NFR-010: User Interface**
+
 - System MUST be responsive (mobile, tablet, desktop)
 - System MUST follow accessibility standards (WCAG 2.1 AA)
-- System MUST provide intuitive navigation
+- System MUST provide intuitive navigation via sidebar layout
 - System MUST support keyboard navigation
 
 **NFR-011: Internationalization**
+
 - System MUST use English as primary language
 - System MUST support future i18n (structure ready)
 
-### 6.6 Maintainability Requirements
+### 5.6 Maintainability Requirements
 
 **NFR-012: Code Quality**
-- Code MUST follow Angular 20.1.3 best practices
-- Code MUST have TypeScript strict mode enabled
-- Code MUST follow project coding standards
-- Code MUST be documented (JSDoc for public APIs)
+
+- Code MUST follow React 19 best practices with functional components
+- Code MUST use TypeScript strict mode
+- Code MUST follow project coding standards defined in AGENTS.md
+- Domain libraries MUST be pure functions (no React dependencies)
 
 **NFR-013: Testing**
-- Critical paths MUST have unit tests
-- Components MUST have component tests
-- Services MUST have service tests
-- Target: 80%+ code coverage
+
+- Critical paths SHOULD have unit tests
+- Components SHOULD have component tests
+- Services SHOULD have service tests
 
 ---
 
-## 7. Technical Architecture
+## 6. Technical Architecture
 
-### 7.1 Technology Stack
+### 6.1 Technology Stack
 
 **Frontend:**
-- Angular 20.1.3 (standalone components, signals)
-- Nx 21.3.9 (monorepo management)
+
+- React 19 (functional components, hooks)
+- React Router v7 (SPA mode, file-based routing, no SSR)
+- Zustand 5.x (global state management)
+- React Hook Form 7.x + Zod 4.x (form handling and validation)
 - Tailwind CSS v4 (styling)
-- @p1kka/ui (UI component library)
-- Angular Signals with @ngrx/signals (state management)
+- shadcn/ui via Radix UI primitives (UI component library)
+- Lucide React (icons)
+- Tiptap 3.x (rich text editor)
+- Sileo (toast notifications)
 
 **Backend:**
-- Firebase Authentication (user authentication)
+
+- Firebase Authentication (user authentication, custom claims)
 - Firebase Firestore (NoSQL database)
-- Firebase Cloud Functions (serverless functions)
+- Firebase Cloud Functions (serverless functions via esbuild)
 - Firebase Storage (file storage)
 
 **Development Tools:**
-- TypeScript 5.8.3
+
+- Nx 21.x (monorepo management)
+- Vite 6.x (bundling and dev server)
+- TypeScript 5.8.x
 - pnpm (package manager)
 - ESLint (linting)
 - Prettier (code formatting)
 
-### 7.2 System Architecture
+### 6.2 Monorepo Structure
 
-**Monorepo Structure:**
 ```
 norseus/
 ├── apps/
-│   ├── admin/          # Main Angular application
-│   └── functions/      # Firebase Cloud Functions
+│   ├── admin-react/       # React 19 admin application (SPA)
+│   │   ├── app/
+│   │   │   ├── routes/    # React Router v7 file-based routes
+│   │   │   ├── firebase.ts
+│   │   │   ├── root.tsx
+│   │   │   └── routes.ts
+│   │   ├── react-router.config.ts
+│   │   └── vite.config.ts
+│   └── functions/         # Firebase Cloud Functions
+│       └── src/index.ts
 ├── libs/
 │   ├── front/
-│   │   ├── core/       # Business logic (employee, facility, profile, roles, services)
-│   │   ├── state/      # State management (session)
-│   │   ├── ui/         # UI component library
-│   │   └── utils/      # Utilities (logger)
-│   └── models/         # Shared data models
+│   │   ├── cn/            # shadcn/ui components (28 components), hooks, utils
+│   │   ├── employees/     # Employee domain service (pure functions)
+│   │   ├── facility/      # Facility domain service (pure functions)
+│   │   ├── roles/         # Roles domain service (pure functions)
+│   │   ├── services/      # Services, schedules, classes, plans services (pure functions)
+│   │   └── ui-react/      # Shared React components (DaySelector, WeekCalendar, etc.)
+│   ├── models/            # Shared TypeScript models (front + back)
+│   └── assets/            # Global styles
+├── docs/                  # Project documentation
+├── nx.json
+├── tsconfig.base.json
+└── package.json
 ```
 
-**Database Architecture:**
+### 6.3 Path Aliases
+
+```
+@front/cn/components/*  -> libs/front/cn/components/*
+@front/cn/hooks/*       -> libs/front/cn/hooks/*
+@front/cn/utils         -> libs/front/cn/utils/index.ts
+@front/employees        -> libs/front/employees/src/index.ts
+@front/facility         -> libs/front/facility/src/index.ts
+@front/roles            -> libs/front/roles/src/index.ts
+@front/services         -> libs/front/services/src/index.ts
+@front/ui-react         -> libs/front/ui-react/src/index.ts
+@models/classes         -> libs/models/src/classes/index.ts
+@models/common          -> libs/models/src/common/index.ts
+@models/facility        -> libs/models/src/facility/index.ts
+@models/permissions     -> libs/models/src/permissions/index.ts
+@models/plans           -> libs/models/src/plans/index.ts
+@models/services        -> libs/models/src/services/index.ts
+@models/user            -> libs/models/src/user/index.ts
+```
+
+### 6.4 Application Routes
+
+```
+/                          -> Redirect to /home
+/login                     -> Public login page
+/home                      -> Protected layout (sidebar + header)
+  /home/employees          -> Employees list
+  /home/employees/create   -> Create employee
+  /home/employees/:id/edit -> Edit employee
+  /home/permissions        -> Roles/permissions list
+  /home/permissions/create -> Create role
+  /home/permissions/:id/edit -> Edit role
+  /home/services           -> Services list
+  /home/services/create    -> Create service
+  /home/services/:id/edit  -> Edit service
+  /home/services/:id       -> Service detail (schedules)
+  /home/services/:id/schedules/create -> Create schedule
+  /home/plans              -> Plans list
+  /home/plans/create       -> Create plan
+  /home/plans/:id/edit     -> Edit plan
+  /home/plans/:id          -> Plan detail
+```
+
+### 6.5 Database Architecture
+
 - Firestore with hierarchical subcollections
-- Denormalized data for performance (profile projections)
+- Denormalized data for performance (profile projections in employee/client documents)
 - Facility-based data isolation
 - Collection groups for cross-facility queries
 
-### 7.3 Security Architecture
+```
+profiles/{uid}
+facilities/{facilityId}/
+├── employees/{uid}
+├── clients/{uid}
+├── roles/{roleId}
+├── services/{serviceId}/
+│   └── schedules/{scheduleId}
+├── classes/{classId}
+└── plans/{planId}
+```
+
+### 6.6 Security Architecture
 
 **Authentication:**
+
 - Firebase Authentication for user management
-- JWT-based session tokens
-- Secure session management
+- JWT-based session tokens with custom claims
+- `super_admin` role via custom claim
 
 **Authorization:**
+
 - Firestore Security Rules for database-level enforcement
 - Application-level permission checks
-- Role-based access control (RBAC)
-- Facility-level data isolation
+- Role-based access control (RBAC) with per-section, per-action granularity
+- Facility admin wildcard rule: full read/write on all subcollections
+- Helper functions: `isSuperAdmin`, `isAuth`, `isFacilityAdmin`, `isFacilityEmployee`, `isFacilityClient`, `belongsToFacility`, `hasPermission`
 
-### 7.4 Data Model
+### 6.7 Domain Library Architecture
 
-**Core Collections:**
-- `profiles/{uid}` - User profiles
-- `facilities/{facilityId}` - Facilities
-- `facilities/{facilityId}/employees/{uid}` - Facility employees
-- `facilities/{facilityId}/clients/{uid}` - Facility clients
-- `facilities/{facilityId}/roles/{roleId}` - Facility roles
-- `facilities/{facilityId}/services/{serviceId}` - Facility services
-- `facilities/{facilityId}/services/{serviceId}/schedules/{scheduleId}` - Service schedules
-- `facilities/{facilityId}/classes/{classId}` - Bookable classes
-- `facilities/{facilityId}/plans/{planId}` - Membership plans
+All domain libraries (`@front/employees`, `@front/facility`, `@front/roles`, `@front/services`) follow a pure function pattern:
+
+- No React dependencies (no hooks, no components)
+- Receive Firebase instances (`db: Firestore`, `functions: Functions`) as parameters
+- Return Promises with typed models from `@models/*`
+- Can be consumed by any React component or store
 
 ---
 
-## 8. User Interface Requirements
+## 7. User Interface Requirements
 
-### 8.1 Design Principles
+### 7.1 Design Principles
 
-1. **Consistency**: Use consistent UI components and patterns
-2. **Accessibility**: Follow WCAG 2.1 AA standards
+1. **Consistency**: Use shadcn/ui components with Radix UI primitives
+2. **Accessibility**: Follow WCAG 2.1 AA standards via Radix built-in accessibility
 3. **Responsiveness**: Support mobile, tablet, and desktop
-4. **Performance**: Optimize for fast load times
-5. **Usability**: Intuitive navigation and clear actions
+4. **Performance**: Optimize for fast load times with Vite + code splitting
+5. **Usability**: Sidebar-based navigation with intuitive layout
 
-### 8.2 Key Pages/Features
+### 7.2 Key Pages/Features
 
 **Authentication:**
-- Login page
-- Session management
 
-**Dashboard:**
-- Facility overview
-- Quick actions
-- Recent activity
+- Login page with email/password
 
-**User Management:**
-- Users list
-- User creation
-- User editing
-- User deletion
+**Main Layout:**
+
+- Sidebar navigation (collapsible, via shadcn Sidebar component)
+- Header with facility selector and user menu
+
+**Employee Management:**
+
+- Employees list with table view
+- Employee creation form
+- Employee editing form
 
 **Role Management:**
-- Roles list
-- Role creation
+
+- Roles/permissions list
+- Role creation with section-based permission checkboxes
 - Role editing
-- Permission configuration
 
 **Service Management:**
+
 - Services list
-- Service creation
-- Service editing
-- Service schedules view
-- Schedule creation/editing
+- Service creation form
+- Service editing form
+- Service detail page with schedules view
+- Schedule creation form
 
 **Class Management:**
-- Classes calendar view
+
+- Week calendar view (via `@front/ui-react` WeekCalendar/DateWeekCalendar)
 - Class detail view
-- Class program editing
-- Booking management (future)
+- Class program editing with Tiptap rich text editor
 
 **Plan Management:**
+
 - Plans list
-- Plan creation
-- Plan editing
-- Plan-service associations
+- Plan creation form with service associations and class limits
+- Plan editing form
+- Plan detail view
 
-### 8.3 UI Component Library
+### 7.3 UI Component Library
 
-**Available Components:**
-- Input fields (text, email, etc.)
-- Buttons (primary, secondary, destructive, outline, ghost, link, icon)
-- Select dropdowns
-- Modals and dialogs
-- Tables (CDK Table)
-- Forms (reactive forms)
-- Layout components
+28 shadcn/ui components available via `@front/cn/components/`:
+
+AlertDialog, Alert, Avatar, Badge, Breadcrumb, Button, Card, Checkbox, Collapsible, DropdownMenu, Empty, Field, Input, Label, Select, Separator, Sheet, Sidebar, Skeleton, Switch, Table, Tabs, Textarea, ToggleGroup, Toggle, Tooltip
+
+Custom hooks: `use-mobile`
+Utilities: `cn()` (clsx + tailwind-merge)
 
 ---
 
-## 9. Integration Requirements
+## 8. Integration Requirements
 
-### 9.1 Current Integrations
+### 8.1 Current Integrations
 
 **Firebase Services:**
-- Firebase Authentication
-- Firebase Firestore
-- Firebase Cloud Functions
-- Firebase Storage
 
-### 9.2 Future Integration Considerations
+- Firebase Authentication (email/password, custom claims)
+- Firebase Firestore (document database with security rules)
+- Firebase Cloud Functions (employee CRUD, validation logic)
+- Firebase Storage (images and files)
+- Firebase Emulators (local development: auth:9099, firestore:8080, functions:5001)
+
+### 8.2 Future Integration Considerations
 
 - Payment gateways (Stripe, PayPal)
 - Email service providers (SendGrid, Mailgun)
@@ -585,29 +617,30 @@ norseus/
 
 ---
 
-## 10. Data Requirements
+## 9. Data Requirements
 
-### 10.1 Data Storage
+### 9.1 Data Storage
 
 **Database:**
+
 - Firebase Firestore (NoSQL document database)
-- Hierarchical collection structure
-- Denormalized data for performance
+- Hierarchical subcollection structure under facilities
+- Denormalized profile projections for read performance
 
 **File Storage:**
+
 - Firebase Storage for images and files
 - Profile images
 - Facility logos
-- Class program attachments (future)
 
-### 10.2 Data Retention
+### 9.2 Data Retention
 
 - User data: Retained while account is active
 - Deleted users: Soft delete with 30-day retention
 - Audit logs: 90-day retention
-- Backup: Daily automated backups
+- Backup: Daily automated backups (Firebase managed)
 
-### 10.3 Data Privacy
+### 9.3 Data Privacy
 
 - GDPR compliance considerations
 - User data export capability (future)
@@ -616,112 +649,121 @@ norseus/
 
 ---
 
-## 11. Success Metrics
+## 10. Success Metrics
 
-### 11.1 User Adoption Metrics
+### 10.1 User Adoption Metrics
 
 - Monthly Active Users (MAU)
 - Daily Active Users (DAU)
 - User retention rate (30-day, 90-day)
 - Feature adoption rate
 
-### 11.2 Performance Metrics
+### 10.2 Performance Metrics
 
 - Average page load time
 - API response time (p50, p95, p99)
 - Error rate
 - Uptime percentage
 
-### 11.3 Business Metrics
+### 10.3 Business Metrics
 
 - Number of facilities onboarded
 - Number of services created
 - Number of classes scheduled
 - Booking conversion rate (future)
 
-### 11.4 Technical Metrics
+### 10.4 Technical Metrics
 
-- Code coverage percentage
 - Build time
 - Deployment frequency
 - Mean time to recovery (MTTR)
 
 ---
 
-## 12. Risks and Mitigation
+## 11. Risks and Mitigation
 
-### 12.1 Technical Risks
+### 11.1 Technical Risks
 
 **Risk 1: Firebase Service Limits**
+
 - **Impact**: High
 - **Probability**: Medium
 - **Mitigation**: Monitor usage, implement caching, plan for scaling
 
 **Risk 2: Data Consistency**
+
 - **Impact**: High
 - **Probability**: Low
-- **Mitigation**: Use Cloud Functions for critical operations, implement validation
+- **Mitigation**: Use Cloud Functions for critical operations (employee management, uniqueness validation), implement validation at both client and server
 
 **Risk 3: Security Vulnerabilities**
+
 - **Impact**: Critical
 - **Probability**: Low
-- **Mitigation**: Regular security audits, automated security scanning, security rules testing
+- **Mitigation**: Firestore Security Rules with comprehensive helper functions, regular security audits, permission enforcement at both database and application layers
 
-### 12.2 Business Risks
+### 11.2 Business Risks
 
 **Risk 4: User Adoption**
+
 - **Impact**: High
 - **Probability**: Medium
 - **Mitigation**: User testing, feedback collection, iterative improvements
 
 **Risk 5: Scalability Challenges**
+
 - **Impact**: Medium
 - **Probability**: Medium
-- **Mitigation**: Load testing, performance monitoring, architectural reviews
+- **Mitigation**: Load testing, performance monitoring, Firestore indexing strategy
 
 ---
 
-## 13. Dependencies
+## 12. Dependencies
 
-### 13.1 External Dependencies
+### 12.1 External Dependencies
 
 - Firebase services (Auth, Firestore, Functions, Storage)
-- Angular framework and ecosystem
+- React and React Router ecosystem
 - Nx monorepo tools
-- Third-party UI libraries (@p1kka/ui)
+- shadcn/ui + Radix UI component primitives
+- Tailwind CSS v4
 
-### 13.2 Internal Dependencies
+### 12.2 Internal Dependencies
 
-- Shared models library
-- Core business logic libraries
-- UI component library
-- State management libraries
+- `@models/*` shared TypeScript models
+- `@front/cn` UI component library
+- `@front/*` domain service libraries
+- `@front/ui-react` shared React components
 
 ---
 
-## 14. Timeline and Milestones
+## 13. Timeline and Milestones
 
-### 14.1 Current Status
+### 13.1 Current Status
 
 **Phase 1: Foundation (Completed)**
-- ✅ Authentication system
-- ✅ User management
-- ✅ Facility management
-- ✅ RBAC system
-- ✅ Service management
-- ✅ Schedule management
-- ✅ Class management
-- ✅ Plan management
 
-### 14.2 Future Milestones
+- Authentication system (Firebase Auth)
+- User/employee management
+- Facility management
+- RBAC system (roles + permissions)
+- Service management
+- Schedule management
+- Class management
+- Plan management
+- Migration from Angular to React 19
+
+### 13.2 Future Milestones
 
 **Phase 2: Enhancement (Planned)**
-- Booking system
+
+- Client-facing booking system
 - Payment integration
 - Email notifications
 - Mobile optimization
 
 **Phase 3: Advanced Features (Future)**
+
 - Analytics dashboard
 - Reporting system
 - Third-party integrations
@@ -729,9 +771,9 @@ norseus/
 
 ---
 
-## 15. Appendices
+## 14. Appendices
 
-### 15.1 Glossary
+### 14.1 Glossary
 
 - **RBAC**: Role-Based Access Control
 - **Facility**: A business location or establishment
@@ -740,27 +782,23 @@ norseus/
 - **Service**: An offering provided by a facility (e.g., yoga class)
 - **Schedule**: A recurring weekly time slot for a service
 - **Class**: A specific instance of a service at a date/time
-- **Plan**: A membership plan that includes services
-- **Profile**: User account information
+- **Plan**: A membership plan that includes services with class limits
+- **Profile**: User account information (Firebase Auth linked)
 
-### 15.2 References
+### 14.2 References
 
-- [AGENTS.md](../AGENTS.md) - Development guidelines
-- [project-overview.md](./project-overview.md) - Project overview
-- [rbac-design.md](./rbac-design.md) - RBAC system design
-- [services.md](./services.md) - Services feature specification
-- [employees-technical-plan.md](./employees-technical-plan.md) - Employee management plan
-- [FIRESTORE_DATABASE_STRUCTURE.md](../FIRESTORE_DATABASE_STRUCTURE.md) - Database structure
+- [AGENTS.md](../AGENTS.md) - Development guidelines and coding standards
+- [firestore-collections.md](./firestore-collections.md) - Firestore database structure
 
-### 15.3 Document History
+### 14.3 Document History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | January 2025 | AI Assistant | Initial PRD creation |
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | January 2025 | Initial PRD creation (Angular stack) |
+| 2.0 | March 2026 | Complete rewrite reflecting React 19 migration, updated tech stack, removed Angular references |
 
 ---
 
-**Document Status:** Active  
-**Last Updated:** January 2025  
+**Document Status:** Active
+**Last Updated:** March 2026
 **Next Review:** Quarterly
-
