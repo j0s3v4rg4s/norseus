@@ -1,22 +1,17 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { PROFILE_COLLECTION, ProfileModel } from '@models/user';
+import {
+  PROFILE_COLLECTION,
+  ProfileModel,
+  CheckClientExistsRequest,
+  CheckClientExistsResponse,
+} from '@models/user';
 import { z } from 'zod';
 
 const CheckClientExistsSchema = z.object({
   email: z.string().email('Invalid email format'),
 });
-
-interface CheckClientExistsRequest {
-  email: string;
-}
-
-interface CheckClientExistsResponse {
-  exists: boolean;
-  uid?: string;
-  profile?: ProfileModel;
-}
 
 export const checkClientExists = onCall(async (request): Promise<CheckClientExistsResponse> => {
   const validationResult = CheckClientExistsSchema.safeParse(request.data);
