@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSuperAdmin(request) {
-      return request.auth != null && request.auth.token.role == 'super_admin';
+      return request.auth != null && 'super_admin' in request.auth.token.roles;
     }
 
     function isAuth(request) {
