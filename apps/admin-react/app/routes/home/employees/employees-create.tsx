@@ -31,7 +31,7 @@ const employeeCreateSchema = z.object({
     .min(1, 'Email requerido')
     .pipe(z.email({ error: 'Email invalido' })),
   roleId: z.string().min(1, 'Rol requerido'),
-  userType: z.enum([Role.ADMIN, Role.USER], {
+  userType: z.enum([Role.ADMIN, Role.EMPLOYEE], {
     error: 'Tipo de usuario requerido',
   }),
 });
@@ -40,7 +40,7 @@ type EmployeeCreateFormValues = z.infer<typeof employeeCreateSchema>;
 
 const USER_TYPE_LABELS: Record<string, string> = {
   [Role.ADMIN]: 'Administrador',
-  [Role.USER]: 'Usuario',
+  [Role.EMPLOYEE]: 'Empleado',
 };
 
 export default function EmployeesCreatePage() {
@@ -177,7 +177,7 @@ export default function EmployeesCreatePage() {
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[Role.ADMIN, Role.USER].map((type) => (
+                      {[Role.ADMIN, Role.EMPLOYEE].map((type) => (
                         <SelectItem key={type} value={type}>
                           {USER_TYPE_LABELS[type]}
                         </SelectItem>
