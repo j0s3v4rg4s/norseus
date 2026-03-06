@@ -19,7 +19,7 @@ const _createUser = async (name: string, role: Role): Promise<UserRecord> => {
     emailVerified: true,
   });
 
-  await auth.setCustomUserClaims(userRecord.uid, { role });
+  await auth.setCustomUserClaims(userRecord.uid, { roles: [role] });
 
   const profile: Omit<ProfileModel, 'createdAt' | 'email'> & { createdAt: FieldValue} = {
     createdAt: FieldValue.serverTimestamp(),

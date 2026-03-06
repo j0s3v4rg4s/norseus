@@ -58,7 +58,7 @@ export const createEmployee = onCall(async (request) => {
       emailVerified: false,
     });
 
-    await auth.setCustomUserClaims(userRecord.uid, { role: data.userType });
+    await auth.setCustomUserClaims(userRecord.uid, { roles: [data.userType] });
     const timestamp = Timestamp.fromDate(new Date());
 
     const profileData: ProfileModelForAdmin = {
