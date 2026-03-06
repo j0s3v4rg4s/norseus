@@ -10,4 +10,5 @@ export * from './update-employee.function';
 export * from './delete-service-schedules.function';
 export * from './plans/plan-triggers.function';
 export * from './check-client-exists.function';
+export * from './create-client.function';
 
