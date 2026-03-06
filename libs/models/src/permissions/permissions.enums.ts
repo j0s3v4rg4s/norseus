@@ -3,6 +3,7 @@ export enum PermissionSection {
   EMPLOYEES = 'employees',
   SERVICES = 'services',
   PROGRAMMING = 'programming',
+  CLIENTS = 'clients',
 }
 
 export enum PermissionAction {
