@@ -21,7 +21,7 @@ const CreateEmployeeSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   roleId: z.string().min(1, 'Role ID is required'),
   facilityId: z.string().min(1, 'Facility ID is required'),
-  userType: z.enum(Role),
+  userType: z.enum([Role.ADMIN, Role.EMPLOYEE]),
 });
 
 export const createEmployee = onCall(async (request) => {
@@ -58,7 +58,7 @@ export const createEmployee = onCall(async (request) => {
       emailVerified: false,
     });
 
-    await auth.setCustomUserClaims(userRecord.uid, { role: data.userType });
+    await auth.setCustomUserClaims(userRecord.uid, { roles: [data.userType] });
     const timestamp = Timestamp.fromDate(new Date());
 
     const profileData: ProfileModelForAdmin = {
