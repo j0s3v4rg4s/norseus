@@ -148,7 +148,10 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
 
       if (!currentRoles.includes(Role.USER)) {
         const updatedRoles = [...currentRoles, Role.USER];
-        await auth.setCustomUserClaims(userRecord.uid, { roles: updatedRoles });
+        await auth.setCustomUserClaims(userRecord.uid, {
+          ...currentClaims,
+          roles: updatedRoles,
+        });
       }
 
       return {
