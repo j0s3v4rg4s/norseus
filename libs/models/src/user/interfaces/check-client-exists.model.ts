@@ -6,6 +6,7 @@ import { ProfileModel } from './profile.model';
  */
 export interface CheckClientExistsRequest {
   email: string;
+  facilityId: string;
 }
 
 /**

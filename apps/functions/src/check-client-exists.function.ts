@@ -7,13 +7,21 @@ import {
   CheckClientExistsRequest,
   CheckClientExistsResponse,
 } from '@models/user';
+import { PermissionSection, PermissionAction } from '@models/permissions';
+import { checkUserPermission } from './utilities/permissions';
 import { z } from 'zod';
 
 const CheckClientExistsSchema = z.object({
   email: z.string().email('Invalid email format'),
+  facilityId: z.string().min(1, 'Facility ID is required'),
 });
 
 export const checkClientExists = onCall(async (request): Promise<CheckClientExistsResponse> => {
+  // 1. Check authentication
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Authentication required');
+  }
+
   const validationResult = CheckClientExistsSchema.safeParse(request.data);
   if (!validationResult.success) {
     const errors = validationResult.error.issues
@@ -25,6 +33,22 @@ export const checkClientExists = onCall(async (request): Promise<CheckClientExis
   const data: CheckClientExistsRequest = validationResult.data;
   const db = getFirestore();
   const auth = getAuth();
+
+  // 2. Validate user belongs to requested facilityId and has permission
+  const hasPermission = await checkUserPermission(
+    db,
+    data.facilityId,
+    request.auth.uid,
+    PermissionSection.CLIENTS,
+    PermissionAction.READ,
+  );
+
+  if (!hasPermission) {
+    throw new HttpsError(
+      'permission-denied',
+      'You do not have permission to check clients in this facility',
+    );
+  }
 
   try {
     // Try to get user by email from Firebase Auth
