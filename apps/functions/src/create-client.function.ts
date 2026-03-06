@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { CLIENT_COLLECTION, FACILITY_COLLECTION } from '@models/facility';
+import { CLIENT_COLLECTION, FACILITY_COLLECTION, EMPLOYEE_COLLECTION, ClientModel, EmployeeModel } from '@models/facility';
 import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
 import { z } from 'zod';
@@ -27,17 +27,6 @@ interface CreateClientResponse {
   passwordResetLink?: string;
   message: string;
 }
-
-type ProfileModelForAdmin = Omit<ProfileModel, 'createdAt'> & {
-  createdAt: Timestamp;
-};
-
-type ClientModelForAdmin = {
-  uid: string;
-  joined: Timestamp;
-  isActive: boolean;
-  profile: ProfileModelForAdmin;
-};
 
 /**
  * Firebase callable function to create or associate a client with a facility
@@ -73,17 +62,35 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
   const auth = getAuth();
   const currentUserId = request.auth.uid;
 
-  // 3. Check permissions
-  const hasPermission = await checkUserPermission(
-    db,
-    data.facilityId,
-    currentUserId,
-    PermissionSection.CLIENTS,
-    PermissionAction.CREATE,
-  );
+  // 3. Check if user is facility admin (bypass permission check for admins)
+  const employeeRef = db
+    .collection(FACILITY_COLLECTION)
+    .doc(data.facilityId)
+    .collection(EMPLOYEE_COLLECTION)
+    .doc(currentUserId);
 
-  if (!hasPermission) {
-    throw new HttpsError('permission-denied', 'Insufficient permissions to create clients');
+  const employeeDoc = await employeeRef.get();
+
+  if (!employeeDoc.exists) {
+    throw new HttpsError('permission-denied', 'You are not an employee of this facility');
+  }
+
+  const employeeData = employeeDoc.data() as EmployeeModel;
+
+  // Facility admins have full access - skip permission check
+  if (!employeeData.isAdmin) {
+    // Non-admins need explicit CLIENTS.CREATE permission
+    const hasPermission = await checkUserPermission(
+      db,
+      data.facilityId,
+      currentUserId,
+      PermissionSection.CLIENTS,
+      PermissionAction.CREATE,
+    );
+
+    if (!hasPermission) {
+      throw new HttpsError('permission-denied', 'You do not have permission to create clients');
+    }
   }
 
   try {
@@ -113,7 +120,7 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
         throw new HttpsError('not-found', 'User profile not found');
       }
 
-      const profileData = profileDoc.data() as ProfileModelForAdmin;
+      const profileData = profileDoc.data() as ProfileModel;
 
       // 5b. Check if already a client in this facility
       const clientDoc = await db
@@ -128,12 +135,12 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
       }
 
       // 5c. Create client document
-      const clientData: ClientModelForAdmin = {
+      const clientData = {
         uid: userRecord.uid,
         joined: timestamp,
         isActive: true,
         profile: profileData,
-      };
+      } as ClientModel;
 
       await db
         .collection(FACILITY_COLLECTION)
@@ -173,23 +180,23 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
     await auth.setCustomUserClaims(userRecord.uid, { roles: [Role.USER] });
 
     // 6c. Create profile document
-    const profileData: ProfileModelForAdmin = {
+    const profileData = {
       id: userRecord.uid,
       createdAt: timestamp,
       name: data.name,
       email: data.email,
       img: null,
-    };
+    } as ProfileModel;
 
     await db.collection(PROFILE_COLLECTION).doc(userRecord.uid).set(profileData);
 
     // 6d. Create client document
-    const clientData: ClientModelForAdmin = {
+    const clientData = {
       uid: userRecord.uid,
       joined: timestamp,
       isActive: true,
       profile: profileData,
-    };
+    } as ClientModel;
 
     await db
       .collection(FACILITY_COLLECTION)
