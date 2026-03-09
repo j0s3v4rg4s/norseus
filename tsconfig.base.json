@@ -21,6 +21,7 @@
       "@front/cn/hooks/*": ["libs/front/cn/hooks/*"],
       "@front/cn/lib": ["libs/front/cn/lib"],
       "@front/cn/utils": ["libs/front/cn/utils/index.ts"],
+      "@front/clients": ["libs/front/clients/src/index.ts"],
       "@front/employees": ["libs/front/employees/src/index.ts"],
       "@front/facility": ["libs/front/facility/src/index.ts"],
       "@front/roles": ["libs/front/roles/src/index.ts"],

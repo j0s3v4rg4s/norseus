@@ -2,7 +2,13 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { CLIENT_COLLECTION, FACILITY_COLLECTION, EMPLOYEE_COLLECTION, ClientModel, EmployeeModel } from '@models/facility';
-import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
+import {
+  CreateClientRequest,
+  CreateClientResponse,
+  PROFILE_COLLECTION,
+  ProfileModel,
+  Role,
+} from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
 import { z } from 'zod';
 import { checkUserPermission } from './utilities/permissions';
@@ -15,18 +21,6 @@ const CreateClientSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   facilityId: z.string().min(1, 'Facility ID is required'),
 });
-
-type CreateClientRequest = z.infer<typeof CreateClientSchema>;
-
-/**
- * Response interface for create-client function
- */
-interface CreateClientResponse {
-  success: boolean;
-  uid: string;
-  passwordResetLink?: string;
-  message: string;
-}
 
 /**
  * Firebase callable function to create or associate a client with a facility

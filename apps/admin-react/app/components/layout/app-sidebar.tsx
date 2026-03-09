@@ -37,6 +37,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { title: 'Home', icon: Home, url: '/home' },
+  { title: 'Clientes', icon: Users, url: '/home/clients' },
   { title: 'Empleados', icon: Users, url: '/home/employees' },
   { title: 'Permisos', icon: Lock, url: '/home/permissions' },
   { title: 'Servicios', icon: Dumbbell, url: '/home/services' },
