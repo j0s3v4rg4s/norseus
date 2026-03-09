@@ -20,6 +20,7 @@ import { checkClientExists, createClient } from '@front/clients';
 import type { CheckClientExistsResponse } from '@models/user';
 import { functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { resolveClientsCreateErrorMessage } from './clients-create.config';
 
 const emailSchema = z.object({
   email: z
@@ -77,10 +78,10 @@ export default function ClientsCreatePage() {
         setStep('new');
       }
     } catch (error: unknown) {
-      const message =
-        error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string'
-          ? (error as { message: string }).message
-          : 'Error al verificar el email';
+      const message = resolveClientsCreateErrorMessage(
+        error,
+        'Error al verificar el email'
+      );
       sileo.error({ title: message, duration: 5000 });
     }
   }
@@ -98,10 +99,10 @@ export default function ClientsCreatePage() {
       sileo.success({ title: 'Cliente asociado correctamente', duration: 3000 });
       navigate('/home/clients');
     } catch (error: unknown) {
-      const message =
-        error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string'
-          ? (error as { message: string }).message
-          : 'Error al asociar el cliente';
+      const message = resolveClientsCreateErrorMessage(
+        error,
+        'Error al asociar el cliente'
+      );
       sileo.error({ title: message, duration: 5000 });
     } finally {
       setIsAssociating(false);
@@ -120,10 +121,10 @@ export default function ClientsCreatePage() {
       sileo.success({ title: 'Cliente creado correctamente', duration: 3000 });
       navigate('/home/clients');
     } catch (error: unknown) {
-      const message =
-        error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string'
-          ? (error as { message: string }).message
-          : 'Error al crear el cliente';
+      const message = resolveClientsCreateErrorMessage(
+        error,
+        'Error al crear el cliente'
+      );
       sileo.error({ title: message, duration: 5000 });
     }
   }

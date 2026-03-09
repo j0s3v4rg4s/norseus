@@ -12,26 +12,9 @@ import {
 import type {
   CheckClientExistsRequest,
   CheckClientExistsResponse,
+  CreateClientRequest,
+  CreateClientResponse,
 } from '@models/user';
-
-/**
- * Request payload for creating a client via the createClient Cloud Function.
- */
-export interface CreateClientRequest {
-  email: string;
-  name: string;
-  facilityId: string;
-}
-
-/**
- * Response payload from the createClient Cloud Function.
- */
-export interface CreateClientResponse {
-  success: boolean;
-  uid: string;
-  passwordResetLink?: string;
-  message: string;
-}
 
 /**
  * Retrieves all clients for a given facility.

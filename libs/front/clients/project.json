@@ -1,5 +1,5 @@
 {
-  "name": "clients-react",
+  "name": "clients",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/front/clients/src",
   "projectType": "library",
