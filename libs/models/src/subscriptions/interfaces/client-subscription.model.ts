@@ -10,6 +10,7 @@ export interface ClientSubscription {
   id: string;
   clientId: string;
   planId: string;
+  planName: string;
   facilityId: string;
   status: SubscriptionStatus;
   startDate: Timestamp;

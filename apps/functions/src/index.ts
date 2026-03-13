@@ -13,4 +13,5 @@ export * from './check-client-exists.function';
 export * from './create-client.function';
 export * from './book-class.function';
 export * from './cancel-booking.function';
+export * from './create-subscription.function';
 

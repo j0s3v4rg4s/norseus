@@ -33,7 +33,10 @@
       "@models/permissions": ["libs/models/src/permissions/index.ts"],
       "@models/plans": ["libs/models/src/plans/index.ts"],
       "@models/services": ["libs/models/src/services/index.ts"],
-      "@models/user": ["libs/models/src/user/index.ts"]
+      "@models/subscriptions": ["libs/models/src/subscriptions/index.ts"],
+      "@models/bookings": ["libs/models/src/bookings/index.ts"],
+      "@models/user": ["libs/models/src/user/index.ts"],
+      "@front/subscriptions": ["libs/front/subscriptions/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -8,6 +8,7 @@ export const PERMISSIONS_SECTIONS: PermissionSection[] = [
   PermissionSection.ROLES,
   PermissionSection.SERVICES,
   PermissionSection.PROGRAMMING,
+  PermissionSection.CLIENTS,
 ] as const;
 
 export const PERMISSIONS_ACTIONS: PermissionAction[] = [
@@ -22,6 +23,7 @@ export const PERMISSIONS_SECTIONS_DICTIONARY: Record<string, string> = {
   [PermissionSection.ROLES]: 'Roles',
   [PermissionSection.SERVICES]: 'Servicios',
   [PermissionSection.PROGRAMMING]: 'Programación',
+  [PermissionSection.CLIENTS]: 'Clientes',
 };
 
 export const PERMISSIONS_ACTIONS_DICTIONARY: Record<string, string> = {

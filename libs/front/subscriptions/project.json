@@ -1,0 +1,8 @@
+{
+  "name": "subscriptions",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/subscriptions/src",
+  "projectType": "library",
+  "tags": ["front"],
+  "targets": {}
+}

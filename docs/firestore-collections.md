@@ -462,6 +462,7 @@ Links a client to a plan within a facility. Tracks class usage per service.
 | `id` | `string` | Yes | Subscription ID |
 | `clientId` | `string` | Yes | Client UID |
 | `planId` | `string` | Yes | Associated plan ID |
+| `planName` | `string` | Yes | Plan name (denormalized at creation time) |
 | `facilityId` | `string` | Yes | Facility ID |
 | `status` | `SubscriptionStatus` | Yes | Subscription status (`active`, `expired`, `cancelled`) |
 | `startDate` | `Timestamp` | Yes | Subscription start date |
@@ -474,6 +475,7 @@ Links a client to a plan within a facility. Tracks class usage per service.
   "id": "sub-001",
   "clientId": "client-789",
   "planId": "plan-001",
+  "planName": "Premium Plan",
   "facilityId": "facility-123",
   "status": "active",
   "startDate": "2024-03-01T00:00:00Z",
