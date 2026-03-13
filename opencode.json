@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mode": {
+    "build": {
+      "permission": {
+        "edit": "ask"
+      }
+    }
+  },
+  "mcp": {
+    "nx-mcp": {
+      "type": "local",
+      "command": ["npx", "nx-mcp"],
+      "enabled": true
+    },
+    "shadcn": {
+      "type": "local",
+      "command": ["npx", "shadcn@latest", "mcp"],
+      "enabled": true
+    },
+    "stitch": {
+      "type": "remote",
+      "url": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "AQ.Ab8RN6KmMr-9s5sJC2YyGapArOpGWvvFqABr-bZ6rElzk9S-Bg"
+      },
+      "enabled": true
+    },
+    "firebase": {
+      "type": "local",
+      "command": ["npx", "-y", "firebase-tools@latest", "mcp"],
+      "enabled": true
+    }
+  }
+}

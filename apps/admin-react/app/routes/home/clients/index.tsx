@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router';
+import { sileo } from 'sileo';
 
 import { Button } from '@front/cn/components/button';
-import { getClients } from '@front/clients';
+import { getClients, deleteClient } from '@front/clients';
 import type { ClientModel } from '@models/facility';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
@@ -14,7 +15,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<ClientModel[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadClients = useCallback(() => {
     if (!selectedFacility?.id) return;
 
     setLoading(true);
@@ -22,6 +23,22 @@ export default function ClientsPage() {
       .then(setClients)
       .finally(() => setLoading(false));
   }, [selectedFacility?.id]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
+
+  async function handleDelete(clientId: string) {
+    if (!selectedFacility?.id) return;
+
+    try {
+      await deleteClient(db, selectedFacility.id, clientId);
+      sileo.success({ title: 'Cliente eliminado correctamente', duration: 3000 });
+      loadClients();
+    } catch {
+      sileo.error({ title: 'Error al eliminar el cliente', duration: 3000 });
+    }
+  }
 
   if (loading) {
     return (
@@ -49,7 +66,7 @@ export default function ClientsPage() {
       </div>
 
       {clients.length > 0 ? (
-        <ClientsTable clients={clients} />
+        <ClientsTable clients={clients} onDelete={handleDelete} />
       ) : (
         <div className="flex h-24 items-center justify-center rounded-lg border text-muted-foreground">
           No hay clientes registrados.

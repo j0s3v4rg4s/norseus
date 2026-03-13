@@ -5,3 +5,5 @@ export * from './user';
 export * from './facility';
 export * from './common';
 export * from './classes';
+export * from './subscriptions';
+export * from './bookings';

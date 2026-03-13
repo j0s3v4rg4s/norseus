@@ -77,6 +77,18 @@ service cloud.firestore {
         allow update: if hasPermission(request, facilityId, 'programming', 'update') || isFacilityAdmin(request, facilityId);
         allow delete: if hasPermission(request, facilityId, 'programming', 'delete') || isFacilityAdmin(request, facilityId);
       }
+
+      match /subscriptions/{subscriptionId} {
+        allow read: if isFacilityClient(request, facilityId) &&
+          resource.data.clientId == request.auth.uid;
+        allow create, update, delete: if false;
+      }
+
+      match /bookings/{bookingId} {
+        allow read: if isFacilityClient(request, facilityId) &&
+          resource.data.clientId == request.auth.uid;
+        allow create, update, delete: if false;
+      }
     }
 
     match /{path=**}/employees/{uid} {

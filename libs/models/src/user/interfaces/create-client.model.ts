@@ -15,6 +15,5 @@ export interface CreateClientRequest {
 export interface CreateClientResponse {
   success: boolean;
   uid: string;
-  passwordResetLink?: string;
   message: string;
 }

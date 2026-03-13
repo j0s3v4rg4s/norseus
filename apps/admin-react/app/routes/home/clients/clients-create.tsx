@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Loader2, Search, UserCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Mail, Search, UserCheck } from 'lucide-react';
 import { sileo } from 'sileo';
 
 import { Button } from '@front/cn/components/button';
@@ -18,7 +18,8 @@ import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
 import { checkClientExists, createClient } from '@front/clients';
 import type { CheckClientExistsResponse } from '@models/user';
-import { functions } from '../../../firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
 import { resolveClientsCreateErrorMessage } from './clients-create.config';
 
@@ -118,7 +119,8 @@ export default function ClientsCreatePage() {
         name: data.name,
         facilityId: selectedFacility.id,
       });
-      sileo.success({ title: 'Cliente creado correctamente', duration: 3000 });
+      await sendPasswordResetEmail(auth, data.email);
+      sileo.success({ title: 'Cliente creado. Se envio un correo para crear su contrasena', duration: 5000 });
       navigate('/home/clients');
     } catch (error: unknown) {
       const message = resolveClientsCreateErrorMessage(
@@ -207,28 +209,39 @@ export default function ClientsCreatePage() {
       {/* Step 2a: Existing user found */}
       {step === 'existing' && existingUser?.profile && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-green-600" />
+          <Card className="overflow-hidden border-emerald-200/70 bg-gradient-to-br from-emerald-50/70 via-background to-background">
+            <CardHeader className="space-y-4 pb-4">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-300/60 bg-emerald-100/70 px-3 py-1 text-xs font-semibold tracking-wide text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Usuario existente
+              </div>
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <UserCheck className="h-5 w-5 text-emerald-600" />
                 Usuario encontrado
               </CardTitle>
-              <CardDescription>
-                Ya existe un usuario con este correo electronico. Puedes
-                asociarlo como cliente de tu instalacion.
+              <CardDescription className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Ya existe un usuario con este correo electronico. Puedes asociarlo
+                directamente como cliente de tu instalacion.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-lg border p-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Nombre</span>
-                  <span className="text-sm font-medium">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-emerald-300/40 bg-background/80 p-4 backdrop-blur-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700/90">
+                    Nombre
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-foreground">
                     {existingUser.profile.name}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Email</span>
-                  <span className="text-sm font-medium">{checkedEmail}</span>
+                <div className="rounded-xl border border-emerald-300/40 bg-background/80 p-4 backdrop-blur-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700/90">
+                    Correo electronico
+                  </p>
+                  <div className="mt-2 flex items-center gap-2 text-base font-semibold text-foreground">
+                    <Mail className="h-4 w-4 text-emerald-600" />
+                    <span className="truncate">{checkedEmail}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>

@@ -12,6 +12,7 @@ export default [
       route('employees/:employeeId/edit', './routes/home/employees/employees-edit.tsx'),
       route('clients', './routes/home/clients/index.tsx'),
       route('clients/create', './routes/home/clients/clients-create.tsx'),
+      route('clients/:clientId', './routes/home/clients/clients-detail.tsx'),
       route('permissions', './routes/home/permissions/index.tsx'),
       route('permissions/create', './routes/home/permissions/permissions-create.tsx'),
       route('permissions/:roleId/edit', './routes/home/permissions/permissions-edit.tsx'),

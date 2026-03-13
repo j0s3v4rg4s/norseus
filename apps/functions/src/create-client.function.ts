@@ -199,13 +199,9 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
       .doc(userRecord.uid)
       .set(clientData);
 
-    // 6e. Generate password reset link
-    const passwordResetLink = await auth.generatePasswordResetLink(data.email);
-
     return {
       success: true,
       uid: userRecord.uid,
-      passwordResetLink,
       message: 'New user created and associated with facility as client',
     };
   } catch (error) {

@@ -16,7 +16,9 @@ facilities/{facilityId}/
 ├── services/{serviceId}/
 │   └── schedules/{scheduleId}
 ├── classes/{classId}
-└── plans/{planId}
+├── plans/{planId}
+├── subscriptions/{subscriptionId}
+└── bookings/{bookingId}
 ```
 
 ---
@@ -448,6 +450,101 @@ Subscription/membership plans that bundle services with class limits.
 
 ---
 
+## 10. Subscriptions (Facility subcollection)
+
+**Path:** `facilities/{facilityId}/subscriptions/{subscriptionId}`
+**Constant:** `SUBSCRIPTION_COLLECTION = 'subscriptions'`
+
+Links a client to a plan within a facility. Tracks class usage per service.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Subscription ID |
+| `clientId` | `string` | Yes | Client UID |
+| `planId` | `string` | Yes | Associated plan ID |
+| `facilityId` | `string` | Yes | Facility ID |
+| `status` | `SubscriptionStatus` | Yes | Subscription status (`active`, `expired`, `cancelled`) |
+| `startDate` | `Timestamp` | Yes | Subscription start date |
+| `endDate` | `Timestamp` | Yes | Subscription end date (calculated from plan duration) |
+| `classesUsed` | `Record<string, number>` | Yes | Classes used per service: `{ [serviceId]: count }` |
+| `createdBy` | `string` | Yes | UID of whoever created this (admin or client) |
+
+```json
+{
+  "id": "sub-001",
+  "clientId": "client-789",
+  "planId": "plan-001",
+  "facilityId": "facility-123",
+  "status": "active",
+  "startDate": "2024-03-01T00:00:00Z",
+  "endDate": "2024-04-01T00:00:00Z",
+  "classesUsed": {
+    "service-001": 5,
+    "service-002": 2
+  },
+  "createdBy": "admin-456"
+}
+```
+
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | Via Cloud Function only |
+| `read` | Facility admin or the subscription owner (`clientId == uid`) |
+| `update` | Via Cloud Functions only (`bookClass`, `cancelBooking`) |
+| `delete` | Facility admin |
+
+---
+
+## 11. Bookings (Facility subcollection)
+
+**Path:** `facilities/{facilityId}/bookings/{bookingId}`
+**Constant:** `BOOKING_COLLECTION = 'bookings'`
+
+Individual class booking records. Created and cancelled via Cloud Functions.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Booking ID |
+| `clientId` | `string` | Yes | Client UID |
+| `classId` | `string` | Yes | Booked class ID |
+| `serviceId` | `string` | Yes | Service ID (denormalized for queries) |
+| `facilityId` | `string` | Yes | Facility ID |
+| `subscriptionId` | `string` | Yes | Subscription used for this booking |
+| `status` | `BookingStatus` | Yes | Booking status (`confirmed`, `cancelled`, `completed`) |
+| `bookedAt` | `Timestamp` | Yes | When the booking was made |
+| `cancelledAt` | `Timestamp \| null` | No | When the booking was cancelled |
+| `classDate` | `Timestamp` | Yes | Class date (denormalized) |
+| `classStartAt` | `string` | Yes | Class start time in `HH:mm` format (denormalized) |
+
+```json
+{
+  "id": "booking-001",
+  "clientId": "client-789",
+  "classId": "class-001",
+  "serviceId": "service-001",
+  "facilityId": "facility-123",
+  "subscriptionId": "sub-001",
+  "status": "confirmed",
+  "bookedAt": "2024-03-02T08:00:00Z",
+  "cancelledAt": null,
+  "classDate": "2024-03-04T00:00:00Z",
+  "classStartAt": "09:00"
+}
+```
+
+### Security Rules
+
+| Action | Who can |
+|--------|---------|
+| `create` | Via `bookClass` Cloud Function only |
+| `read` | Facility admin or the booking owner (`clientId == uid`) |
+| `update` | Via `cancelBooking` Cloud Function only |
+| `delete` | Facility admin |
+
+---
+
 ## Security Rules Summary
 
 ### System Roles
@@ -494,6 +591,8 @@ match /facilities/{facilityId}/{document=**} {
 | `schedules/{schId}` | Admin | Admin | Admin | Admin |
 | `classes/{cId}` | `programming.create` / Admin | Any authenticated | `programming.update` / Admin | `programming.delete` / Admin |
 | `plans/{pId}` | Admin | Admin | Admin | Admin |
+| `subscriptions/{sId}` | Cloud Function | Admin / Owner | Cloud Function | Admin |
+| `bookings/{bId}` | Cloud Function | Admin / Owner | Cloud Function | Admin |
 
 ---
 
@@ -528,3 +627,19 @@ match /facilities/{facilityId}/{document=**} {
 | Value | Description |
 |-------|-------------|
 | `rich_text` | Rich text content (HTML) |
+
+### SubscriptionStatus
+
+| Value | Label |
+|-------|-------|
+| `active` | Activo |
+| `expired` | Expirado |
+| `cancelled` | Cancelado |
+
+### BookingStatus
+
+| Value | Label |
+|-------|-------|
+| `confirmed` | Confirmado |
+| `cancelled` | Cancelado |
+| `completed` | Completado |

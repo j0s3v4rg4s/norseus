@@ -1,7 +1,11 @@
 import {
   type Firestore,
   collection,
+  doc,
   getDocs,
+  getDoc,
+  deleteDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import { type Functions, httpsCallable } from 'firebase/functions';
 import {
@@ -31,6 +35,62 @@ export async function getClients(
   );
   const snapshot = await getDocs(clientsRef);
   return snapshot.docs.map((d) => d.data() as ClientModel);
+}
+
+/**
+ * Retrieves a single client by ID from a facility.
+ */
+export async function getClient(
+  db: Firestore,
+  facilityId: string,
+  clientId: string
+): Promise<ClientModel | undefined> {
+  const clientRef = doc(
+    db,
+    FACILITY_COLLECTION,
+    facilityId,
+    CLIENT_COLLECTION,
+    clientId
+  );
+  const snapshot = await getDoc(clientRef);
+  return snapshot.exists() ? (snapshot.data() as ClientModel) : undefined;
+}
+
+/**
+ * Deletes a client from a facility.
+ */
+export async function deleteClient(
+  db: Firestore,
+  facilityId: string,
+  clientId: string
+): Promise<void> {
+  const clientRef = doc(
+    db,
+    FACILITY_COLLECTION,
+    facilityId,
+    CLIENT_COLLECTION,
+    clientId
+  );
+  await deleteDoc(clientRef);
+}
+
+/**
+ * Toggles the active status of a client.
+ */
+export async function toggleClientStatus(
+  db: Firestore,
+  facilityId: string,
+  clientId: string,
+  isActive: boolean
+): Promise<void> {
+  const clientRef = doc(
+    db,
+    FACILITY_COLLECTION,
+    facilityId,
+    CLIENT_COLLECTION,
+    clientId
+  );
+  await updateDoc(clientRef, { isActive });
 }
 
 /**
