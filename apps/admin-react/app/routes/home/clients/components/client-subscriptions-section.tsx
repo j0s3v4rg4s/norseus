@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Inbox } from 'lucide-react';
 import { sileo } from 'sileo';
 
 import { Button } from '@front/cn/components/button';
+import { Card, CardContent } from '@front/cn/components/card';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@front/cn/components/card';
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@front/cn/components/empty';
 import {
   getClientSubscriptions,
   getActivePlans,
@@ -40,7 +42,7 @@ export function ClientSubscriptionsSection({
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isCompactEmptyState = subscriptions.length === 0 && !selectedPlan;
+  const hasSubscriptions = subscriptions.length > 0;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -110,34 +112,42 @@ export function ClientSubscriptionsSection({
   }
 
   return (
-    <Card className="overflow-hidden border-border/70 pt-0 shadow-sm gap-0">
-      <CardHeader className="border-b bg-gradient-to-br from-primary/5 via-background to-background pt-6 gap-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">Suscripciones</CardTitle>
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Asignar Plan
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className={isCompactEmptyState ? 'p-0' : 'space-y-4 p-6'}>
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold tracking-tight">Suscripciones</h2>
+        <Button
+          size="sm"
+          className="gap-1.5"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Asignar Plan
+        </Button>
+      </div>
+      {hasSubscriptions ? (
         <SubscriptionsTable subscriptions={subscriptions} />
-
-        {selectedPlan && (
-          <AssignPlanForm
-            plan={selectedPlan}
-            isSubmitting={isSubmitting}
-            onChangePlan={handleChangePlan}
-            onCancel={handleCancel}
-            onConfirm={handleConfirm}
-          />
-        )}
-      </CardContent>
-
+      ) : selectedPlan ? null : (
+        <Empty className="border border-border/70 py-6 md:py-10">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Inbox className="h-5 w-5" />
+            </EmptyMedia>
+            <EmptyTitle>No hay suscripciones registradas</EmptyTitle>
+            <EmptyDescription>
+              Asigna un plan para crear la primera suscripcion de este cliente.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+      {selectedPlan && (
+        <AssignPlanForm
+          plan={selectedPlan}
+          isSubmitting={isSubmitting}
+          onChangePlan={handleChangePlan}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+        />
+      )}
       <AssignPlanModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
@@ -145,6 +155,6 @@ export function ClientSubscriptionsSection({
         activeSubscriptions={subscriptions}
         onSelectPlan={handleSelectPlan}
       />
-    </Card>
+    </section>
   );
 }

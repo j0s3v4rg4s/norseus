@@ -1,5 +1,4 @@
 import { Badge } from '@front/cn/components/badge';
-import { Inbox } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -30,17 +29,6 @@ function formatDate(timestamp: { toDate: () => Date }): string {
 }
 
 export function SubscriptionsTable({ subscriptions }: SubscriptionsTableProps) {
-  if (subscriptions.length === 0) {
-    return (
-      <div className="flex h-14 items-center justify-center">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Inbox className="h-4 w-4" />
-          <span>No hay suscripciones registradas.</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="overflow-hidden rounded-lg border">
       <Table>

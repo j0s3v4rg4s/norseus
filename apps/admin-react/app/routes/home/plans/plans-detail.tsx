@@ -16,16 +16,9 @@ import {
 } from '@front/cn/components/alert-dialog';
 import { Badge } from '@front/cn/components/badge';
 import { Button } from '@front/cn/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@front/cn/components/card';
-import { Separator } from '@front/cn/components/separator';
+import { Card, CardContent } from '@front/cn/components/card';
 import { getPlan, getServices } from '@front/services';
-import {
-  type Plan,
-  PlanDuration,
-  PlanDurationNames,
-  ClassLimitType,
-  ClassLimitTypeNames,
-} from '@models/plans';
+import { type Plan, PlanDuration, PlanDurationNames, ClassLimitType, ClassLimitTypeNames } from '@models/plans';
 import type { Service } from '@models/services';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
@@ -46,10 +39,7 @@ export default function PlansDetailPage() {
     if (!selectedFacility?.id || !planId) return;
 
     setLoading(true);
-    Promise.all([
-      getPlan(db, selectedFacility.id, planId),
-      getServices(db, selectedFacility.id),
-    ])
+    Promise.all([getPlan(db, selectedFacility.id, planId), getServices(db, selectedFacility.id)])
       .then(([planResult, servicesResult]) => {
         if (!planResult) {
           setNotFound(true);
@@ -101,17 +91,11 @@ export default function PlansDetailPage() {
     return (
       <div className="mx-auto w-full max-w-3xl space-y-6">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home/plans')}
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/home/plans')}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Volver</span>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Plan no encontrado
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Plan no encontrado</h1>
         </div>
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
@@ -125,19 +109,13 @@ export default function PlansDetailPage() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/home/plans')}
-        >
+        <Button variant="ghost" size="icon" onClick={() => navigate('/home/plans')}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Volver</span>
         </Button>
         <div className="flex flex-1 items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">{plan.name}</h1>
-          <Badge variant={plan.active ? 'default' : 'secondary'}>
-            {plan.active ? 'Activo' : 'Inactivo'}
-          </Badge>
+          <Badge variant={plan.active ? 'default' : 'secondary'}>{plan.active ? 'Activo' : 'Inactivo'}</Badge>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" asChild>
@@ -148,17 +126,8 @@ export default function PlansDetailPage() {
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="gap-2"
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
+              <Button variant="destructive" size="sm" className="gap-2" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 Eliminar
               </Button>
             </AlertDialogTrigger>
@@ -166,8 +135,7 @@ export default function PlansDetailPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Eliminar plan</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta accion no se puede deshacer. Se eliminara el plan
-                  permanentemente.
+                  Esta accion no se puede deshacer. Se eliminara el plan permanentemente.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -181,71 +149,60 @@ export default function PlansDetailPage() {
         </div>
       </div>
 
-      {plan.description && (
-        <p className="text-muted-foreground">{plan.description}</p>
-      )}
+      {plan.description && <p className="text-muted-foreground">{plan.description}</p>}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalles</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent className="pt-6">
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">Costo</dt>
-              <dd className="text-lg font-semibold">
-                {plan.cost.toLocaleString()} {plan.currency}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">Duracion</dt>
-              <dd className="text-lg font-semibold">{getDurationLabel()}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">Estado</dt>
-              <dd>
-                <Badge variant={plan.active ? 'default' : 'secondary'}>
-                  {plan.active ? 'Activo' : 'Inactivo'}
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold tracking-tight">Detalles</h2>
+        <Card className="border-border/70 shadow-sm">
+          <CardContent>
+            <dl className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <dt className="text-sm text-muted-foreground">Costo</dt>
+                <dd className="text-base font-medium">
+                  {plan.cost.toLocaleString()} {plan.currency}
+                </dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm text-muted-foreground">Duracion</dt>
+                <dd className="text-base font-medium">{getDurationLabel()}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm text-muted-foreground">Estado</dt>
+                <dd>
+                  <Badge variant={plan.active ? 'default' : 'secondary'}>{plan.active ? 'Activo' : 'Inactivo'}</Badge>
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold tracking-tight">Servicios incluidos</h2>
+
+        {plan.services.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {plan.services.map((ps, index) => (
+              <div
+                key={index}
+                className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-3 py-2"
+              >
+                <span className="text-sm font-medium">{getServiceName(ps.serviceId)}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {ClassLimitTypeNames[ps.classLimitType]}
+                  {ps.classLimitType === ClassLimitType.FIXED && ps.classLimit
+                    ? ` — ${ps.classLimit} clases`
+                    : ''}
                 </Badge>
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Servicios incluidos</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent className="pt-6">
-          {plan.services.length > 0 ? (
-            <div className="space-y-3">
-              {plan.services.map((ps, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div>
-                    <p className="font-medium">{getServiceName(ps.serviceId)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {ClassLimitTypeNames[ps.classLimitType]}
-                      {ps.classLimitType === ClassLimitType.FIXED && ps.classLimit
-                        ? ` — ${ps.classLimit} clases`
-                        : ''}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Este plan no tiene servicios asociados.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Este plan no tiene servicios asociados.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

@@ -163,7 +163,7 @@ export default function PlansEditPage() {
 
   if (!plan) {
     return (
-      <div className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="mx-auto w-full max-w-4xl space-y-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -179,7 +179,7 @@ export default function PlansEditPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
