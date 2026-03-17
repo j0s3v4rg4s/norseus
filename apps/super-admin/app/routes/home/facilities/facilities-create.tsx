@@ -17,8 +17,9 @@ import {
 } from '@front/cn/components/card';
 import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
-import { createFacilityWithAdmin, updateFacilityLogo } from '@front/super-admin';
+import { createFacilityWithAdmin, updateFacilityImages } from '@front/super-admin';
 import { db, functions, storage } from '../../../firebase';
+import { FacilityImageUpload } from '../../../components/facility-image-upload';
 
 const facilityCreateSchema = z.object({
   adminEmail: z
@@ -33,8 +34,8 @@ type FacilityCreateFormValues = z.infer<typeof facilityCreateSchema>;
 
 export default function FacilitiesCreatePage() {
   const navigate = useNavigate();
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [iconFile, setIconFile] = useState<File | null>(null);
 
   const {
     register,
@@ -49,25 +50,26 @@ export default function FacilitiesCreatePage() {
     },
   });
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
-    setLogoFile(file);
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    } else {
-      setLogoPreview(null);
-    }
-  }
-
   async function onSubmit(data: FacilityCreateFormValues) {
     try {
       const result = await createFacilityWithAdmin(functions, data);
 
-      if (logoFile) {
-        const logoRef = ref(storage, `facilities/${result.facilityId}/logo`);
-        await uploadBytes(logoRef, logoFile);
-        const logoUrl = await getDownloadURL(logoRef);
-        await updateFacilityLogo(db, result.facilityId, logoUrl);
+      const images: { logo?: string; logoIcon?: string } = {};
+
+      if (bannerFile) {
+        const bannerRef = ref(storage, `facilities/${result.facilityId}/logo`);
+        await uploadBytes(bannerRef, bannerFile);
+        images.logo = await getDownloadURL(bannerRef);
+      }
+
+      if (iconFile) {
+        const iconRef = ref(storage, `facilities/${result.facilityId}/logoIcon`);
+        await uploadBytes(iconRef, iconFile);
+        images.logoIcon = await getDownloadURL(iconRef);
+      }
+
+      if (Object.keys(images).length > 0) {
+        await updateFacilityImages(db, result.facilityId, images);
       }
 
       sileo.success({
@@ -128,22 +130,23 @@ export default function FacilitiesCreatePage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="logo">Logo (opcional)</Label>
-              <Input
-                id="logo"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-              />
-              {logoPreview && (
-                <img
-                  src={logoPreview}
-                  alt="Logo preview"
-                  className="h-16 w-16 rounded-lg object-cover border"
-                />
-              )}
-            </div>
+            <FacilityImageUpload
+              label="Logo del sidebar (expandido)"
+              description="Imagen horizontal que se muestra cuando el sidebar esta abierto"
+              aspectRatio={3 / 1}
+              previewClassName="h-20 w-full object-cover"
+              value={bannerFile}
+              onChange={setBannerFile}
+            />
+
+            <FacilityImageUpload
+              label="Icono del sidebar (colapsado)"
+              description="Imagen cuadrada que se muestra cuando el sidebar esta cerrado"
+              aspectRatio={1 / 1}
+              previewClassName="h-16 w-16 object-cover"
+              value={iconFile}
+              onChange={setIconFile}
+            />
           </CardContent>
         </Card>
 

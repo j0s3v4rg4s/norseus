@@ -56,6 +56,7 @@ export const createFacilityWithAdmin = onCall(async (request) => {
       createdAt: timestamp,
       name: facilityName,
       logo: null,
+      logoIcon: null,
     });
 
     // 4. Create employee (admin) in facility

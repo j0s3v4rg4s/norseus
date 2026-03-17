@@ -45,6 +45,7 @@ export const setupAdminStructure = onRequest(async (request, response) => {
         createdAt: FieldValue.serverTimestamp(),
         name: 'Norseus Gym',
         logo: 'https://via.placeholder.com/150',
+        logoIcon: null,
       };
       await facilityRef.set(facility);
 

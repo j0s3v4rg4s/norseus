@@ -46,6 +46,15 @@ export async function updateFacilityLogo(
   await updateDoc(facilityRef, { logo: logoUrl });
 }
 
+export async function updateFacilityImages(
+  db: Firestore,
+  facilityId: string,
+  images: { logo?: string; logoIcon?: string },
+): Promise<void> {
+  const facilityRef = doc(db, FACILITY_COLLECTION, facilityId);
+  await updateDoc(facilityRef, images);
+}
+
 // -- Super Admins --
 
 export async function createSuperAdmin(

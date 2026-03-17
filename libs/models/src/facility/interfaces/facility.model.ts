@@ -9,4 +9,5 @@ export interface FacilityModel {
   createdAt: Timestamp;
   name: string;
   logo: string | null;
+  logoIcon: string | null;
 }

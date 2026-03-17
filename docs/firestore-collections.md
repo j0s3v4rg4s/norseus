@@ -63,13 +63,15 @@ Each facility represents a business/gym/center within the platform.
 |-------|------|----------|-------------|
 | `createdAt` | `Timestamp` | Yes | Creation date |
 | `name` | `string` | Yes | Facility name |
-| `logo` | `string \| null` | No | Logo URL |
+| `logo` | `string \| null` | No | Logo URL (horizontal, shown when sidebar is expanded) |
+| `logoIcon` | `string \| null` | No | Icon URL (square, shown when sidebar is collapsed) |
 
 ```json
 {
   "createdAt": "2024-01-01T00:00:00Z",
   "name": "Norseus Gym",
-  "logo": "https://example.com/logo.png"
+  "logo": "https://example.com/logo.png",
+  "logoIcon": "https://example.com/icon.png"
 }
 ```
 
