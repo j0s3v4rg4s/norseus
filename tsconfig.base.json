@@ -10,34 +10,90 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@front/clients": ["libs/front/clients/src/index.ts"],
-      "@front/cn/components": ["libs/front/cn/components"],
-      "@front/cn/components/*": ["libs/front/cn/components/*"],
-      "@front/cn/hooks": ["libs/front/cn/hooks"],
-      "@front/cn/hooks/*": ["libs/front/cn/hooks/*"],
-      "@front/cn/lib": ["libs/front/cn/lib"],
-      "@front/cn/utils": ["libs/front/cn/utils/index.ts"],
-      "@front/employees": ["libs/front/employees/src/index.ts"],
-      "@front/facility": ["libs/front/facility/src/index.ts"],
-      "@front/roles": ["libs/front/roles/src/index.ts"],
-      "@front/services": ["libs/front/services/src/index.ts"],
-      "@front/ui-react": ["libs/front/ui-react/src/index.ts"],
-      "@models/classes": ["libs/models/src/classes/index.ts"],
-      "@models/common": ["libs/models/src/common/index.ts"],
-      "@models/facility": ["libs/models/src/facility/index.ts"],
-      "@models/permissions": ["libs/models/src/permissions/index.ts"],
-      "@models/plans": ["libs/models/src/plans/index.ts"],
-      "@models/services": ["libs/models/src/services/index.ts"],
-      "@models/subscriptions": ["libs/models/src/subscriptions/index.ts"],
-      "@models/bookings": ["libs/models/src/bookings/index.ts"],
-      "@models/user": ["libs/models/src/user/index.ts"],
-      "@front/subscriptions": ["libs/front/subscriptions/src/index.ts"]
+      "@front/clients": [
+        "libs/front/clients/src/index.ts"
+      ],
+      "@front/cn/components": [
+        "libs/front/cn/components"
+      ],
+      "@front/cn/components/*": [
+        "libs/front/cn/components/*"
+      ],
+      "@front/cn/hooks": [
+        "libs/front/cn/hooks"
+      ],
+      "@front/cn/hooks/*": [
+        "libs/front/cn/hooks/*"
+      ],
+      "@front/cn/lib": [
+        "libs/front/cn/lib"
+      ],
+      "@front/cn/utils": [
+        "libs/front/cn/utils/index.ts"
+      ],
+      "@front/employees": [
+        "libs/front/employees/src/index.ts"
+      ],
+      "@front/facility": [
+        "libs/front/facility/src/index.ts"
+      ],
+      "@front/roles": [
+        "libs/front/roles/src/index.ts"
+      ],
+      "@front/services": [
+        "libs/front/services/src/index.ts"
+      ],
+      "@front/subscriptions": [
+        "libs/front/subscriptions/src/index.ts"
+      ],
+      "@front/ui-react": [
+        "libs/front/ui-react/src/index.ts"
+      ],
+      "@models/bookings": [
+        "libs/models/src/bookings/index.ts"
+      ],
+      "@models/classes": [
+        "libs/models/src/classes/index.ts"
+      ],
+      "@models/common": [
+        "libs/models/src/common/index.ts"
+      ],
+      "@models/facility": [
+        "libs/models/src/facility/index.ts"
+      ],
+      "@models/permissions": [
+        "libs/models/src/permissions/index.ts"
+      ],
+      "@models/plans": [
+        "libs/models/src/plans/index.ts"
+      ],
+      "@models/services": [
+        "libs/models/src/services/index.ts"
+      ],
+      "@models/super-admin": [
+        "libs/models/src/super-admin/index.ts"
+      ],
+      "@models/subscriptions": [
+        "libs/models/src/subscriptions/index.ts"
+      ],
+      "@models/user": [
+        "libs/models/src/user/index.ts"
+      ],
+      "@front/super-admin": [
+        "libs/front/super-admin/src/index.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

@@ -1,0 +1,11 @@
+{
+  "name": "super-admin-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/front/super-admin/src",
+  "projectType": "library",
+  "tags": [
+    "front"
+  ],
+  "// targets": "to see all targets run: nx show project super-admin-service --web",
+  "targets": {}
+}

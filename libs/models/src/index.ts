@@ -7,3 +7,6 @@ export * from './common';
 export * from './classes';
 export * from './subscriptions';
 export * from './bookings';
+export * from './super-admin';
+export { Role } from './user';
+export { Role as PermissionRole } from './permissions';

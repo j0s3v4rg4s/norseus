@@ -48,7 +48,7 @@ service cloud.firestore {
     }
 
     match /facilities/{facilityId}/{document=**} {
-      allow read, write: if isFacilityAdmin(request, facilityId);
+      allow read, write: if isFacilityAdmin(request, facilityId) || isSuperAdmin(request);
     }
 
     match /facilities/{facilityId} {
@@ -99,7 +99,13 @@ service cloud.firestore {
     }
 
     match /profiles/{uid} {
-      allow read, write: if isAuth(request) && request.auth.uid == uid;
+      allow read: if isAuth(request) && (request.auth.uid == uid || isSuperAdmin(request));
+      allow write: if isAuth(request) && request.auth.uid == uid;
+    }
+
+    match /super_admins/{uid} {
+      allow read: if isSuperAdmin(request);
+      allow write: if false;
     }
   }
 }

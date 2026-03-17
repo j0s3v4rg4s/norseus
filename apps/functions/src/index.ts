@@ -8,3 +8,4 @@ export * from './services';
 export * from './plans';
 export * from './subscriptions';
 export * from './bookings';
+export * from './super-admin';
