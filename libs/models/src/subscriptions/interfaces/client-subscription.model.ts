@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import { PlanService } from '../../plans/models/plan-service.model';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
 
 /**
@@ -19,4 +20,12 @@ export interface ClientSubscription {
   classesUsed: Record<string, number>;
   /** UID of whoever created this subscription (admin or the client themselves) */
   createdBy: string;
+  /** Snapshot of plan services at subscription creation time */
+  planServices: PlanService[];
+  /** Snapshot of plan cost at subscription creation time */
+  planCost: number;
+  /** Snapshot of plan currency at subscription creation time */
+  planCurrency: string;
+  /** Flat array of serviceIds for Firestore array-contains queries */
+  serviceIds: string[];
 }

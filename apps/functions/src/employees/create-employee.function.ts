@@ -14,7 +14,7 @@ type EmployeeModelForAdmin = Omit<EmployeeModel, 'joined' | 'profile'> & {
   profile: ProfileModelForAdmin;
 };
 import { z } from 'zod';
-import { checkUserPermission } from './utilities/permissions';
+import { checkUserPermission } from '../utilities/permissions';
 
 const CreateEmployeeSchema = z.object({
   email: z.email('Invalid email format'),

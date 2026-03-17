@@ -2,7 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { DeleteEmployeeRequest, EMPLOYEE_COLLECTION, FACILITY_COLLECTION } from '@models/facility';
 import { PermissionSection, PermissionAction } from '@models/permissions';
-import { checkUserPermission, isFacilityEmployee } from './utilities/permissions';
+import { checkUserPermission, isFacilityEmployee } from '../utilities/permissions';
 import { z } from 'zod';
 
 const DeleteEmployeeSchema = z.object({

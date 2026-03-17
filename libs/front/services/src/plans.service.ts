@@ -91,6 +91,24 @@ export async function updatePlan(
 }
 
 /**
+ * Archives a plan by setting active to false.
+ */
+export async function archivePlan(
+  db: Firestore,
+  facilityId: string,
+  planId: string
+): Promise<void> {
+  const ref = doc(
+    db,
+    FACILITY_COLLECTION,
+    facilityId,
+    PLANS_COLLECTION,
+    planId
+  );
+  await updateDoc(ref, { active: false });
+}
+
+/**
  * Deletes a plan from the specified facility.
  */
 export async function deletePlan(

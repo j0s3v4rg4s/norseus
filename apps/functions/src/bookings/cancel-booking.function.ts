@@ -2,7 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { FACILITY_COLLECTION } from '@models/facility';
 import { CLASSES_COLLECTION } from '@models/classes';
-import { PLANS_COLLECTION, Plan, ClassLimitType } from '@models/plans';
+import { ClassLimitType } from '@models/plans';
 import { SUBSCRIPTION_COLLECTION, ClientSubscription } from '@models/subscriptions';
 import {
   BOOKING_COLLECTION,
@@ -76,20 +76,15 @@ export const cancelBooking = onCall(async (request): Promise<CancelBookingRespon
 
       if (subscriptionDoc.exists) {
         const subscription = subscriptionDoc.data() as ClientSubscription;
-        const planRef = facilityRef.collection(PLANS_COLLECTION).doc(subscription.planId);
-        const planDoc = await transaction.get(planRef);
 
-        if (planDoc.exists) {
-          const plan = planDoc.data() as Plan;
-          const planService = plan.services.find((s) => s.serviceId === booking.serviceId);
+        const planService = subscription.planServices.find((s) => s.serviceId === booking.serviceId);
 
-          if (planService?.classLimitType === ClassLimitType.FIXED) {
-            const currentUsed = subscription.classesUsed[booking.serviceId] || 0;
-            if (currentUsed > 0) {
-              transaction.update(subscriptionRef, {
-                [`classesUsed.${booking.serviceId}`]: FieldValue.increment(-1),
-              });
-            }
+        if (planService?.classLimitType === ClassLimitType.FIXED) {
+          const currentUsed = subscription.classesUsed[booking.serviceId] || 0;
+          if (currentUsed > 0) {
+            transaction.update(subscriptionRef, {
+              [`classesUsed.${booking.serviceId}`]: FieldValue.increment(-1),
+            });
           }
         }
       }

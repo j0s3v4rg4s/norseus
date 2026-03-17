@@ -247,7 +247,6 @@ Services offered by a facility (e.g., "Yoga", "CrossFit", "Pilates").
 | `isActive` | `boolean` | Yes | Whether the service is active |
 | `createdAt` | `Timestamp` | Yes | Creation date |
 | `updatedAt` | `Timestamp` | Yes | Last update date |
-| `planIds` | `string[]` | No | IDs of plans that include this service |
 
 ```json
 {
@@ -256,8 +255,7 @@ Services offered by a facility (e.g., "Yoga", "CrossFit", "Pilates").
   "description": "Beginner-friendly yoga sessions",
   "isActive": true,
   "createdAt": "2024-01-15T10:30:00Z",
-  "updatedAt": "2024-02-01T14:00:00Z",
-  "planIds": ["plan-001", "plan-002"]
+  "updatedAt": "2024-02-01T14:00:00Z"
 }
 ```
 
@@ -469,6 +467,10 @@ Links a client to a plan within a facility. Tracks class usage per service.
 | `endDate` | `Timestamp` | Yes | Subscription end date (calculated from plan duration) |
 | `classesUsed` | `Record<string, number>` | Yes | Classes used per service: `{ [serviceId]: count }` |
 | `createdBy` | `string` | Yes | UID of whoever created this (admin or client) |
+| `planServices` | `PlanService[]` | Yes | Snapshot of plan services at creation time |
+| `planCost` | `number` | Yes | Snapshot of plan cost at creation time |
+| `planCurrency` | `string` | Yes | Snapshot of plan currency at creation time |
+| `serviceIds` | `string[]` | Yes | Flat array of service IDs for queries |
 
 ```json
 {
@@ -484,7 +486,22 @@ Links a client to a plan within a facility. Tracks class usage per service.
     "service-001": 5,
     "service-002": 2
   },
-  "createdBy": "admin-456"
+  "createdBy": "admin-456",
+  "planServices": [
+    {
+      "serviceId": "service-001",
+      "classLimitType": "unlimited",
+      "classLimit": null
+    },
+    {
+      "serviceId": "service-002",
+      "classLimitType": "fixed",
+      "classLimit": 8
+    }
+  ],
+  "planCost": 1500,
+  "planCurrency": "MXN",
+  "serviceIds": ["service-001", "service-002"]
 }
 ```
 

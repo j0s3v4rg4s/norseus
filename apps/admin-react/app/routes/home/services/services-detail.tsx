@@ -37,6 +37,7 @@ import {
 } from '@front/cn/components/empty';
 import { Separator } from '@front/cn/components/separator';
 import { getService, deleteService, getClassesByService } from '@front/services';
+import { checkServiceHasActiveSubscriptions } from '@front/subscriptions';
 import {
   DateWeekCalendar,
   type DateCalendarSlot,
@@ -45,7 +46,7 @@ import {
 import type { ClassModel } from '@models/classes';
 import { DAYS_OF_WEEK } from '@models/common';
 import type { Service } from '@models/services';
-import { db } from '../../../firebase';
+import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
 
 export default function ServicesDetailPage() {
@@ -136,6 +137,21 @@ export default function ServicesDetailPage() {
 
     setIsDeleting(true);
     try {
+      const { hasActiveSubscriptions } = await checkServiceHasActiveSubscriptions(
+        functions,
+        selectedFacility.id,
+        serviceId,
+      );
+
+      if (hasActiveSubscriptions) {
+        sileo.error({
+          title: 'No se puede eliminar',
+          description: 'Hay suscripciones activas que utilizan este servicio.',
+          duration: 5000,
+        });
+        return;
+      }
+
       await deleteService(db, selectedFacility.id, serviceId);
       sileo.success({ title: 'Servicio eliminado correctamente', duration: 3000 });
       navigate('/home/services');

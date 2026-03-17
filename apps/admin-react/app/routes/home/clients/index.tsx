@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Users } from 'lucide-react';
 import { Link } from 'react-router';
 import { sileo } from 'sileo';
 
 import { Button } from '@front/cn/components/button';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@front/cn/components/empty';
 import { getClients, deleteClient } from '@front/clients';
 import type { ClientModel } from '@models/facility';
 import { db } from '../../../firebase';
@@ -68,9 +76,25 @@ export default function ClientsPage() {
       {clients.length > 0 ? (
         <ClientsTable clients={clients} onDelete={handleDelete} />
       ) : (
-        <div className="flex h-24 items-center justify-center rounded-lg border text-muted-foreground">
-          No hay clientes registrados.
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users />
+            </EmptyMedia>
+            <EmptyTitle>Sin clientes registrados</EmptyTitle>
+            <EmptyDescription>
+              Aun no has registrado ningun cliente. Comienza creando el primero.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button asChild>
+              <Link to="/home/clients/create">
+                <Plus className="h-4 w-4" />
+                Nuevo cliente
+              </Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
     </div>
   );

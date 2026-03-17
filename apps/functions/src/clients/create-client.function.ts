@@ -11,7 +11,7 @@ import {
 } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
 import { z } from 'zod';
-import { checkUserPermission } from './utilities/permissions';
+import { checkUserPermission } from '../utilities/permissions';
 
 /**
  * Request schema for creating a client

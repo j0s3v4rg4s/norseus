@@ -72,3 +72,35 @@ export async function createSubscription(
   const result = await createSubscriptionFn(payload);
   return result.data;
 }
+
+/**
+ * Checks if a plan has any active subscriptions.
+ */
+export async function checkPlanHasActiveSubscriptions(
+  functions: Functions,
+  facilityId: string,
+  planId: string
+): Promise<{ hasActiveSubscriptions: boolean }> {
+  const fn = httpsCallable<
+    { facilityId: string; planId: string },
+    { hasActiveSubscriptions: boolean }
+  >(functions, 'checkPlanSubscriptions');
+  const result = await fn({ facilityId, planId });
+  return result.data;
+}
+
+/**
+ * Checks if a service has any active subscriptions.
+ */
+export async function checkServiceHasActiveSubscriptions(
+  functions: Functions,
+  facilityId: string,
+  serviceId: string
+): Promise<{ hasActiveSubscriptions: boolean }> {
+  const fn = httpsCallable<
+    { facilityId: string; serviceId: string },
+    { hasActiveSubscriptions: boolean }
+  >(functions, 'checkServiceSubscriptions');
+  const result = await fn({ facilityId, serviceId });
+  return result.data;
+}

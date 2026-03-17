@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router';
-import { ArrowLeft, Loader2, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArrowLeft, Loader2, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { sileo } from 'sileo';
 
 import {
@@ -17,12 +17,12 @@ import {
 import { Badge } from '@front/cn/components/badge';
 import { Button } from '@front/cn/components/button';
 import { Card, CardContent } from '@front/cn/components/card';
-import { getPlan, getServices } from '@front/services';
+import { getPlan, getServices, archivePlan, deletePlan, updatePlan } from '@front/services';
+import { checkPlanHasActiveSubscriptions } from '@front/subscriptions';
 import { type Plan, PlanDuration, PlanDurationNames, ClassLimitType, ClassLimitTypeNames } from '@models/plans';
 import type { Service } from '@models/services';
-import { db } from '../../../firebase';
+import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
-import { deletePlan } from '@front/services';
 
 export default function PlansDetailPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -33,7 +33,7 @@ export default function PlansDetailPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (!selectedFacility?.id || !planId) return;
@@ -52,18 +52,63 @@ export default function PlansDetailPage() {
       .finally(() => setLoading(false));
   }, [selectedFacility?.id, planId]);
 
+  async function handleArchive() {
+    if (!selectedFacility?.id || !planId) return;
+
+    setIsProcessing(true);
+    try {
+      await archivePlan(db, selectedFacility.id, planId);
+      setPlan((prev) => (prev ? { ...prev, active: false } : prev));
+      sileo.success({ title: 'Plan archivado correctamente', duration: 3000 });
+    } catch {
+      sileo.error({ title: 'Error al archivar el plan', duration: 3000 });
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function handleReactivate() {
+    if (!selectedFacility?.id || !planId) return;
+
+    setIsProcessing(true);
+    try {
+      await updatePlan(db, selectedFacility.id, planId, { active: true });
+      setPlan((prev) => (prev ? { ...prev, active: true } : prev));
+      sileo.success({ title: 'Plan reactivado correctamente', duration: 3000 });
+    } catch {
+      sileo.error({ title: 'Error al reactivar el plan', duration: 3000 });
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   async function handleDelete() {
     if (!selectedFacility?.id || !planId) return;
 
-    setIsDeleting(true);
+    setIsProcessing(true);
     try {
+      const { hasActiveSubscriptions } = await checkPlanHasActiveSubscriptions(
+        functions,
+        selectedFacility.id,
+        planId,
+      );
+
+      if (hasActiveSubscriptions) {
+        sileo.error({
+          title: 'No se puede eliminar',
+          description: 'Hay suscripciones activas asociadas a este plan.',
+          duration: 5000,
+        });
+        return;
+      }
+
       await deletePlan(db, selectedFacility.id, planId);
       sileo.success({ title: 'Plan eliminado correctamente', duration: 3000 });
       navigate('/home/plans');
     } catch {
       sileo.error({ title: 'Error al eliminar el plan', duration: 3000 });
     } finally {
-      setIsDeleting(false);
+      setIsProcessing(false);
     }
   }
 
@@ -115,7 +160,9 @@ export default function PlansDetailPage() {
         </Button>
         <div className="flex flex-1 items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">{plan.name}</h1>
-          <Badge variant={plan.active ? 'default' : 'secondary'}>{plan.active ? 'Activo' : 'Inactivo'}</Badge>
+          <Badge variant={plan.active ? 'default' : 'secondary'}>
+            {plan.active ? 'Activo' : 'Archivado'}
+          </Badge>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" asChild>
@@ -124,30 +171,76 @@ export default function PlansDetailPage() {
               Editar
             </Link>
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" className="gap-2" disabled={isDeleting}>
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                Eliminar
+
+          {plan.active ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="gap-2" disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                  Archivar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Archivar plan</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    El plan sera archivado y no se podran crear nuevas suscripciones. Las suscripciones activas
+                    seguiran vigentes hasta su fecha de vencimiento.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={handleArchive}>
+                    Archivar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={isProcessing}
+                onClick={handleReactivate}
+              >
+                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                Reactivar
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Eliminar plan</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta accion no se puede deshacer. Se eliminara el plan permanentemente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={handleDelete}>
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="gap-2" disabled={isProcessing}>
+                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    Eliminar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminar plan permanentemente</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta accion no se puede deshacer. Se eliminara el plan permanentemente. Solo es posible si no
+                      hay suscripciones activas asociadas.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
         </div>
       </div>
+
+      {!plan.active && (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
+          Este plan esta archivado. No se pueden crear nuevas suscripciones con este plan.
+        </div>
+      )}
 
       {plan.description && <p className="text-muted-foreground">{plan.description}</p>}
 
@@ -169,7 +262,9 @@ export default function PlansDetailPage() {
               <div className="space-y-1">
                 <dt className="text-sm text-muted-foreground">Estado</dt>
                 <dd>
-                  <Badge variant={plan.active ? 'default' : 'secondary'}>{plan.active ? 'Activo' : 'Inactivo'}</Badge>
+                  <Badge variant={plan.active ? 'default' : 'secondary'}>
+                    {plan.active ? 'Activo' : 'Archivado'}
+                  </Badge>
                 </dd>
               </div>
             </dl>

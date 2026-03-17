@@ -1,17 +1,10 @@
 import { initializeApp } from 'firebase-admin/app';
 initializeApp();
 
-
-export * from './create-user.function';
-export * from './setup-admin-structure.function';
-export * from './create-employee.function';
-export * from './delete-employee.function';
-export * from './update-employee.function';
-export * from './delete-service-schedules.function';
-export * from './plans/plan-triggers.function';
-export * from './check-client-exists.function';
-export * from './create-client.function';
-export * from './book-class.function';
-export * from './cancel-booking.function';
-export * from './create-subscription.function';
-
+export * from './auth';
+export * from './employees';
+export * from './clients';
+export * from './services';
+export * from './plans';
+export * from './subscriptions';
+export * from './bookings';

@@ -8,7 +8,7 @@ import {
   CheckClientExistsResponse,
 } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
-import { checkUserPermission } from './utilities/permissions';
+import { checkUserPermission } from '../utilities/permissions';
 import { z } from 'zod';
 
 const CheckClientExistsSchema = z.object({

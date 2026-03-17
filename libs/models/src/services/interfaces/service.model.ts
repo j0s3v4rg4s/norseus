@@ -23,8 +23,5 @@ export interface Service {
 
   /** Timestamp when the service was last updated */
   updatedAt: Timestamp;
-
-  /** Optional array of plan IDs this service belongs to */
-  planIds?: string[];
 }
 

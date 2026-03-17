@@ -91,10 +91,17 @@ export function ClientSubscriptionsSection({
       });
       setSelectedPlan(null);
       await loadData();
-    } catch {
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      const descriptions: Record<string, string> = {
+        'functions/failed-precondition': 'El cliente o el plan no estan activos.',
+        'functions/already-exists': 'El cliente ya tiene una suscripcion activa para este plan.',
+        'functions/not-found': 'El plan o el cliente no fueron encontrados.',
+      };
       sileo.error({
         title: 'Error al asignar el plan',
-        duration: 3000,
+        description: descriptions[code ?? ''] ?? 'Ocurrio un error inesperado.',
+        duration: 5000,
       });
     } finally {
       setIsSubmitting(false);

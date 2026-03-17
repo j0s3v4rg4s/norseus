@@ -35,7 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <TooltipProvider>
           {children}
         </TooltipProvider>
-        <Toaster options={{ fill: '#171717' }} />
+        <Toaster options={{ fill: '#171717', styles: { description: 'text-zinc-400' } }} />
         <ScrollRestoration />
         <Scripts />
       </body>

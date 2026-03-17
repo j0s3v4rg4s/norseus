@@ -2,7 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { FACILITY_COLLECTION, CLIENT_COLLECTION } from '@models/facility';
 import { CLASSES_COLLECTION, ClassModel } from '@models/classes';
-import { PLANS_COLLECTION, Plan, ClassLimitType } from '@models/plans';
+import { ClassLimitType } from '@models/plans';
 import {
   SUBSCRIPTION_COLLECTION,
   SubscriptionStatus,
@@ -79,15 +79,7 @@ export const bookClass = onCall(async (request): Promise<BookClassResponse> => {
       }
 
       // Check subscription covers this service and class limit
-      const planRef = facilityRef.collection(PLANS_COLLECTION).doc(subscription.planId);
-      const planDoc = await transaction.get(planRef);
-
-      if (!planDoc.exists) {
-        throw new HttpsError('not-found', 'Plan not found');
-      }
-
-      const plan = planDoc.data() as Plan;
-      const planService = plan.services.find((s) => s.serviceId === classData.serviceId);
+      const planService = subscription.planServices.find((s) => s.serviceId === classData.serviceId);
 
       if (!planService) {
         throw new HttpsError('failed-precondition', 'Subscription does not cover this service');

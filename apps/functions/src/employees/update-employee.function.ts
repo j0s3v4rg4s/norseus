@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { UpdateEmployeeRequest, EMPLOYEE_COLLECTION, FACILITY_COLLECTION } from '@models/facility';
 import { PROFILE_COLLECTION } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
-import { checkUserPermission } from './utilities/permissions';
+import { checkUserPermission } from '../utilities/permissions';
 
 const UpdateEmployeeSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),

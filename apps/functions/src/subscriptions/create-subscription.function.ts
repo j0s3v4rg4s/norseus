@@ -11,7 +11,7 @@ import {
 } from '@models/subscriptions';
 import { PermissionSection, PermissionAction } from '@models/permissions';
 import { z } from 'zod';
-import { checkUserPermission } from './utilities/permissions';
+import { checkUserPermission } from '../utilities/permissions';
 
 const CreateSubscriptionSchema = z.object({
   facilityId: z.string().min(1, 'Facility ID is required'),
@@ -140,6 +140,10 @@ export const createSubscription = onCall(
         endDate: Timestamp.fromDate(endDate),
         classesUsed: {},
         createdBy: currentUserId,
+        planServices: plan.services,
+        planCost: plan.cost,
+        planCurrency: plan.currency,
+        serviceIds: plan.services.map((s) => s.serviceId),
       };
 
       await subscriptionRef.set(subscriptionData);
