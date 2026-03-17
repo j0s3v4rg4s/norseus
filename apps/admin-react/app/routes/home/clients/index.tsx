@@ -13,7 +13,9 @@ import {
   EmptyTitle,
 } from '@front/cn/components/empty';
 import { getClients, deleteClient } from '@front/clients';
+import { getClientSubscriptions } from '@front/subscriptions';
 import type { ClientModel } from '@models/facility';
+import { SubscriptionStatus } from '@models/subscriptions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
 import { ClientsTable } from './components';
@@ -40,6 +42,18 @@ export default function ClientsPage() {
     if (!selectedFacility?.id) return;
 
     try {
+      const subscriptions = await getClientSubscriptions(db, selectedFacility.id, clientId);
+      const hasActive = subscriptions.some((s) => s.status === SubscriptionStatus.ACTIVE);
+
+      if (hasActive) {
+        sileo.error({
+          title: 'No se puede eliminar',
+          description: 'El cliente tiene suscripciones activas. Cancelalas o espera a que expiren antes de eliminarlo.',
+          duration: 4000,
+        });
+        return;
+      }
+
       await deleteClient(db, selectedFacility.id, clientId);
       sileo.success({ title: 'Cliente eliminado correctamente', duration: 3000 });
       loadClients();
