@@ -18,6 +18,8 @@ import {
 } from '@front/subscriptions';
 import type { ClientSubscription } from '@models/subscriptions';
 import type { Plan } from '@models/plans';
+import { PermissionSection, PermissionAction } from '@models/permissions';
+import { Can } from '../../../../components/can';
 
 import { SubscriptionsTable } from './subscriptions-table';
 import { AssignPlanModal } from './assign-plan-modal';
@@ -122,14 +124,16 @@ export function ClientSubscriptionsSection({
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold tracking-tight">Suscripciones</h2>
-        <Button
-          size="sm"
-          className="gap-1.5"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Asignar Plan
-        </Button>
+        <Can section={PermissionSection.CLIENTS} action={PermissionAction.UPDATE}>
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Asignar Plan
+          </Button>
+        </Can>
       </div>
       {hasSubscriptions ? (
         <SubscriptionsTable subscriptions={subscriptions} />

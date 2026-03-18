@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
 import { ChevronDown, Home, Users, Lock, Dumbbell, CreditCard, LogOut } from 'lucide-react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { PermissionSection } from '@models/permissions';
+import { usePermissionsStore } from '../../stores/permissions.store';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@front/cn/components/collapsible';
 import {
@@ -33,15 +35,16 @@ interface MenuItem {
   icon: LucideIcon;
   url?: string;
   subItems?: MenuSubItem[];
+  section?: PermissionSection;
 }
 
 const menuItems: MenuItem[] = [
   { title: 'Home', icon: Home, url: '/home' },
-  { title: 'Clientes', icon: Users, url: '/home/clients' },
-  { title: 'Empleados', icon: Users, url: '/home/employees' },
-  { title: 'Permisos', icon: Lock, url: '/home/permissions' },
-  { title: 'Servicios', icon: Dumbbell, url: '/home/services' },
-  { title: 'Planes', icon: CreditCard, url: '/home/plans' },
+  { title: 'Clientes', icon: Users, url: '/home/clients', section: PermissionSection.CLIENTS },
+  { title: 'Empleados', icon: Users, url: '/home/employees', section: PermissionSection.EMPLOYEES },
+  { title: 'Permisos', icon: Lock, url: '/home/permissions', section: PermissionSection.ROLES },
+  { title: 'Servicios', icon: Dumbbell, url: '/home/services', section: PermissionSection.SERVICES },
+  { title: 'Planes', icon: CreditCard, url: '/home/plans', section: PermissionSection.PLANS },
 ];
 
 function SidebarLogo() {
@@ -86,6 +89,10 @@ function SidebarLogo() {
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasSectionAccess = usePermissionsStore((s) => s.hasSectionAccess);
+  const visibleItems = menuItems.filter(
+    (item) => !item.section || hasSectionAccess(item.section)
+  );
 
   async function handleLogout() {
     await signOut(auth);
@@ -113,7 +120,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>Menú</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) =>
+              {visibleItems.map((item) =>
                 item.subItems && item.subItems.length > 0 ? (
                   <Collapsible
                     key={item.title}

@@ -13,8 +13,11 @@ import {
 } from '@front/cn/components/empty';
 import { getPlans } from '@front/services';
 import type { Plan } from '@models/plans';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 import { PlansTable } from './components';
 
 export default function PlansPage() {
@@ -40,42 +43,48 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Planes</h1>
-        </div>
-        <Button size="lg" className="gap-2" asChild>
-          <Link to="/home/plans/create">
-            <Plus className="h-4 w-4" />
-            Nuevo plan
-          </Link>
-        </Button>
-      </div>
-
-      {plans.length > 0 ? (
-        <PlansTable plans={plans} />
-      ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ClipboardList />
-            </EmptyMedia>
-            <EmptyTitle>Sin planes registrados</EmptyTitle>
-            <EmptyDescription>
-              Aun no has creado ningun plan. Comienza creando el primero.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button asChild>
+    <PermissionGuard section={PermissionSection.PLANS}>
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Planes</h1>
+          </div>
+          <Can section={PermissionSection.PLANS} action={PermissionAction.CREATE}>
+            <Button size="lg" className="gap-2" asChild>
               <Link to="/home/plans/create">
                 <Plus className="h-4 w-4" />
                 Nuevo plan
               </Link>
             </Button>
-          </EmptyContent>
-        </Empty>
-      )}
-    </div>
+          </Can>
+        </div>
+
+        {plans.length > 0 ? (
+          <PlansTable plans={plans} />
+        ) : (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ClipboardList />
+              </EmptyMedia>
+              <EmptyTitle>Sin planes registrados</EmptyTitle>
+              <EmptyDescription>
+                Aun no has creado ningun plan. Comienza creando el primero.
+              </EmptyDescription>
+            </EmptyHeader>
+            <Can section={PermissionSection.PLANS} action={PermissionAction.CREATE}>
+              <EmptyContent>
+                <Button asChild>
+                  <Link to="/home/plans/create">
+                    <Plus className="h-4 w-4" />
+                    Nuevo plan
+                  </Link>
+                </Button>
+              </EmptyContent>
+            </Can>
+          </Empty>
+        )}
+      </div>
+    </PermissionGuard>
   );
 }

@@ -131,8 +131,8 @@ Facility employees. Contains a profile projection (`profile`) to avoid extra rea
 
 ### Security Rules
 
-- **Read:** Any authenticated user can read employees (collection group query enabled).
-- **Write:** Facility admins only (via wildcard rule `facilities/{facilityId}/{document=**}`).
+- **Read:** Any authenticated user can read employees (collection group query enabled via `/{path=**}/employees/{uid}` rule).
+- **Write:** Via Cloud Functions only (`createEmployee`, `updateEmployee`, `deleteEmployee`).
 - `isActive` is managed exclusively via the `updateEmployee` Cloud Function, which syncs with Firebase Auth `disabled`.
 
 ---
@@ -168,7 +168,12 @@ Facility clients. Similar to employees but without roles or admin permissions.
 
 ### Security Rules
 
-- Managed by facility admins (via wildcard rule).
+| Action | Who can |
+|--------|---------|
+| `create` | Employees with `clients.create` permission |
+| `read` | The client themselves (`clientId == uid`), employees with `clients.read` permission, or facility admin |
+| `update` | Employees with `clients.update` permission |
+| `delete` | Employees with `clients.delete` permission |
 
 ---
 
@@ -201,6 +206,8 @@ type PermissionsBySection = Partial<Record<PermissionSection, PermissionAction[]
 | `employees` | Employee management |
 | `services` | Service management |
 | `programming` | Class/programming management |
+| `clients` | Client management |
+| `plans` | Plan management |
 
 **Actions (`PermissionAction`):**
 
@@ -309,7 +316,7 @@ Recurring weekly schedules for a service.
 
 ### Security Rules
 
-- Inherited from parent service (covered by facility admin wildcard rule).
+- Inherited from parent service rules. No explicit subcollection rules defined; managed via Cloud Functions and parent service permissions.
 
 ---
 
@@ -446,7 +453,12 @@ Subscription/membership plans that bundle services with class limits.
 
 ### Security Rules
 
-- Facility admins only (no specific rules; covered by wildcard rule).
+| Action | Who can |
+|--------|---------|
+| `create` | Employees with `plans.create` permission or facility admin |
+| `read` | Any authenticated user |
+| `update` | Employees with `plans.update` permission or facility admin |
+| `delete` | Employees with `plans.delete` permission or facility admin |
 
 ---
 
@@ -512,9 +524,9 @@ Links a client to a plan within a facility. Tracks class usage per service.
 | Action | Who can |
 |--------|---------|
 | `create` | Via Cloud Function only |
-| `read` | Facility admin or the subscription owner (`clientId == uid`) |
+| `read` | The subscription owner (`clientId == uid`) or employees with `clients.read` permission |
 | `update` | Via Cloud Functions only (`bookClass`, `cancelBooking`) |
-| `delete` | Facility admin |
+| `delete` | Via Cloud Functions only |
 
 ---
 
@@ -560,9 +572,9 @@ Individual class booking records. Created and cancelled via Cloud Functions.
 | Action | Who can |
 |--------|---------|
 | `create` | Via `bookClass` Cloud Function only |
-| `read` | Facility admin or the booking owner (`clientId == uid`) |
+| `read` | The booking owner (`clientId == uid`) |
 | `update` | Via `cancelBooking` Cloud Function only |
-| `delete` | Facility admin |
+| `delete` | Via Cloud Functions only |
 
 ---
 
@@ -589,15 +601,19 @@ Individual class booking records. Created and cancelled via Cloud Functions.
 | `belongsToFacility(request, facilityId)` | Checks that user is an employee OR client |
 | `hasPermission(request, facilityId, section, action)` | Checks that the employee's role has the specific permission |
 
-### Important Wildcard Rule
+### Collection Group Rule
 
 ```
-match /facilities/{facilityId}/{document=**} {
-  allow read, write: if isFacilityAdmin(request, facilityId);
+match /{path=**}/employees/{uid} {
+  allow read: if isAuth(request);
 }
 ```
 
-**Facility admins** have full read and write access to **all** subcollections within their facility. The specific subcollection rules apply to non-admin employees.
+Enables the collection group query used to find which facilities an employee belongs to. Any authenticated user can read employee documents across facilities.
+
+### Admin Access
+
+Facility admins (`isAdmin == true`) have elevated access through the `isFacilityAdmin` check included in most subcollection write rules. Each subcollection defines its own rules explicitly — there is no catch-all wildcard rule.
 
 ### Summary by Collection
 
@@ -605,15 +621,15 @@ match /facilities/{facilityId}/{document=**} {
 |------------|--------|------|--------|--------|
 | `profiles/{uid}` | Owner | Owner | Owner | Owner |
 | `facilities/{fId}` | super_admin | super_admin / members | super_admin | super_admin |
-| `employees/{uid}` | Admin | Any authenticated | Admin | Admin |
-| `clients/{uid}` | Admin | Admin | Admin | Admin |
+| `employees/{uid}` | Cloud Function | Any authenticated | Cloud Function | Cloud Function |
+| `clients/{uid}` | `clients.create` | Owner / `clients.read` / Admin | `clients.update` | `clients.delete` |
 | `roles/{rId}` | `roles.create` | Employee / `roles.read` / assigned role | `roles.update` | `roles.delete` |
 | `services/{sId}` | `services.create` / Admin | `services.read` / Employee | `services.update` / Admin | `services.delete` / Admin |
-| `schedules/{schId}` | Admin | Admin | Admin | Admin |
+| `schedules/{schId}` | Via parent service | Via parent service | Via parent service | Via parent service |
 | `classes/{cId}` | `programming.create` / Admin | Any authenticated | `programming.update` / Admin | `programming.delete` / Admin |
-| `plans/{pId}` | Admin | Admin | Admin | Admin |
-| `subscriptions/{sId}` | Cloud Function | Admin / Owner | Cloud Function | Admin |
-| `bookings/{bId}` | Cloud Function | Admin / Owner | Cloud Function | Admin |
+| `plans/{pId}` | `plans.create` / Admin | Any authenticated | `plans.update` / Admin | `plans.delete` / Admin |
+| `subscriptions/{sId}` | Cloud Function | Owner / `clients.read` | Cloud Function | Cloud Function |
+| `bookings/{bId}` | Cloud Function | Owner | Cloud Function | Cloud Function |
 
 ---
 

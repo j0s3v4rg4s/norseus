@@ -10,8 +10,10 @@ import {
 } from '@front/cn/components/card';
 import { getClient, toggleClientStatus } from '@front/clients';
 import type { ClientModel } from '@models/facility';
+import { PermissionSection } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
 import { ClientInfoCard, ClientSubscriptionsSection } from './components';
 
 export default function ClientsDetailPage() {
@@ -96,6 +98,7 @@ export default function ClientsDetailPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.CLIENTS}>
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -128,5 +131,6 @@ export default function ClientsDetailPage() {
         />
       )}
     </div>
+    </PermissionGuard>
   );
 }

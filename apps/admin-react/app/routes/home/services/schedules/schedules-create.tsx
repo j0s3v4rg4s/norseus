@@ -15,8 +15,10 @@ import { getEmployees } from '@front/employees';
 import type { ServiceSchedule } from '@models/services';
 import type { ProgramDraft, ClassModel, ProgramType } from '@models/classes';
 import type { EmployeeModel } from '@models/facility';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../../firebase';
 import { useSessionStore } from '../../../../stores/session.store';
+import { PermissionGuard } from '../../../../components/permission-guard';
 import { ProgramsStep, DescriptionsStep, CoachesStep } from './components';
 
 const STEP_LABELS = ['Crear programas', 'Descripción de programas', 'Asignar coaches'];
@@ -134,6 +136,7 @@ export default function SchedulesCreatePage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.PROGRAMMING} action={PermissionAction.CREATE}>
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -235,5 +238,6 @@ export default function SchedulesCreatePage() {
         )}
       </div>
     </div>
+    </PermissionGuard>
   );
 }

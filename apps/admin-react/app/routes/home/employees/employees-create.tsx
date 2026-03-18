@@ -21,8 +21,10 @@ import { createEmployee } from '@front/employees';
 import { getAllRoles } from '@front/roles';
 import type { Role as RoleModel } from '@models/permissions';
 import { Role } from '@models/user';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
 
 const employeeCreateSchema = z.object({
   name: z.string().min(1, 'Nombre requerido').max(50, 'Maximo 50 caracteres'),
@@ -88,6 +90,7 @@ export default function EmployeesCreatePage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.EMPLOYEES} action={PermissionAction.CREATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -210,5 +213,6 @@ export default function EmployeesCreatePage() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }

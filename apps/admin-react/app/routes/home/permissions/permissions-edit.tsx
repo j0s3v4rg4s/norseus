@@ -20,9 +20,12 @@ import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
 import { TooltipProvider } from '@front/cn/components/tooltip';
 import type { PermissionsBySection } from '@models/permissions';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { getRoleById, updateRole, deleteRole } from '@front/roles';
 import { useSessionStore } from '../../../stores/session.store';
 import { db } from '../../../firebase';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 import { PermissionsEditPageSkeleton, PermissionsMatrix } from './components';
 
 function normalizeRoleName(name: string): string {
@@ -131,6 +134,7 @@ export default function PermissionsEditRolePage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.ROLES} action={PermissionAction.UPDATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/home/permissions')}>
@@ -140,28 +144,30 @@ export default function PermissionsEditRolePage() {
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Editar rol</h1>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" className="gap-2" disabled={isDeleting}>
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              Eliminar
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Eliminar rol</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminará el rol permanentemente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={handleDelete}>
+        <Can section={PermissionSection.ROLES} action={PermissionAction.DELETE}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-2" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar rol</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Se eliminará el rol permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </Can>
       </div>
 
       <div className="space-y-6">
@@ -206,5 +212,6 @@ export default function PermissionsEditRolePage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

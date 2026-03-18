@@ -15,8 +15,10 @@ import { Textarea } from '@front/cn/components/textarea';
 import { WeekCalendar, type ScheduleFormData, schedulesToCalendarSlots } from '@front/ui-react';
 import { createServiceWithSchedules } from '@front/services';
 import { type ServiceSchedule } from '@models/services';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
 import { ScheduleForm } from './components';
 import {
   createSingleSchedule,
@@ -131,6 +133,7 @@ export default function ServicesCreatePage() {
   const calendarSlots = schedulesToCalendarSlots(schedules);
 
   return (
+    <PermissionGuard section={PermissionSection.SERVICES} action={PermissionAction.CREATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -261,5 +264,6 @@ export default function ServicesCreatePage() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }

@@ -1,19 +1,24 @@
 import { create } from 'zustand';
-import type { FacilityModel } from '@models/facility';
+import type { FacilityModel, EmployeeModel } from '@models/facility';
 import { getEmployeeFacilities } from '@front/facility';
+import { getEmployee } from '@front/employees';
 import { db } from '../firebase';
 
 interface SessionState {
   facilities: FacilityModel[];
   selectedFacility: FacilityModel | null;
+  currentEmployee: EmployeeModel | null;
   loading: boolean;
   error: string | null;
   loadFacilities: (userId: string) => Promise<void>;
+  setSelectedFacility: (facility: FacilityModel, userId: string) => Promise<void>;
+  resetSession: () => void;
 }
 
 export const useSessionStore = create<SessionState>((set, get) => ({
   facilities: [],
   selectedFacility: null,
+  currentEmployee: null,
   loading: false,
   error: null,
 
@@ -23,9 +28,17 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const facilities = await getEmployeeFacilities(db, userId);
+      const selectedFacility = facilities[0] ?? null;
+      let currentEmployee: EmployeeModel | null = null;
+
+      if (selectedFacility) {
+        currentEmployee = (await getEmployee(db, selectedFacility.id as string, userId)) ?? null;
+      }
+
       set({
         facilities,
-        selectedFacility: facilities[0] ?? null,
+        selectedFacility,
+        currentEmployee,
         loading: false,
       });
     } catch (error) {
@@ -34,5 +47,15 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         error: 'Failed to load facilities',
       });
     }
+  },
+
+  setSelectedFacility: async (facility: FacilityModel, userId: string) => {
+    set({ selectedFacility: facility, currentEmployee: null });
+    const employee = (await getEmployee(db, facility.id as string, userId)) ?? null;
+    set({ currentEmployee: employee });
+  },
+
+  resetSession: () => {
+    set({ facilities: [], selectedFacility: null, currentEmployee: null, loading: false, error: null });
   },
 }));

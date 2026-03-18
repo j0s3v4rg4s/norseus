@@ -23,6 +23,8 @@ import {
   TableRow,
 } from '@front/cn/components/table';
 import type { ClientModel } from '@models/facility';
+import { PermissionSection, PermissionAction } from '@models/permissions';
+import { Can } from '../../../../components/can';
 
 interface ClientsTableProps {
   clients: ClientModel[];
@@ -71,16 +73,18 @@ export function ClientsTable({ clients, onDelete }: ClientsTableProps) {
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">Ver detalle</span>
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => setDeleteClientId(client.uid)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Eliminar</span>
-                    </Button>
+                    <Can section={PermissionSection.CLIENTS} action={PermissionAction.DELETE}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setDeleteClientId(client.uid)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar</span>
+                      </Button>
+                    </Can>
                   </div>
                 </TableCell>
               </TableRow>

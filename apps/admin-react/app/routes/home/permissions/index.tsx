@@ -10,12 +10,15 @@ import {
   PERMISSIONS_ACTIONS_DICTIONARY,
   PERMISSIONS_SECTIONS,
   PERMISSIONS_SECTIONS_DICTIONARY,
+  PermissionSection,
   PermissionAction,
   type Role,
 } from '@models/permissions';
 import { getAllRoles } from '@front/roles';
 import { useSessionStore } from '../../../stores/session.store';
 import { db } from '../../../firebase';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 
 function getSectionLabel(section: string): string {
   return PERMISSIONS_SECTIONS_DICTIONARY[section] ?? section;
@@ -74,18 +77,21 @@ export default function PermissionsPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.ROLES}>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Roles y permisos</h1>
           <p className="text-sm text-muted-foreground">Administra los roles y sus permisos asociados</p>
         </div>
-        <Button size="lg" className="gap-2" asChild>
-          <Link to="/home/permissions/create">
-            <Plus className="h-4 w-4" />
-            Crear rol
-          </Link>
-        </Button>
+        <Can section={PermissionSection.ROLES} action={PermissionAction.CREATE}>
+          <Button size="lg" className="gap-2" asChild>
+            <Link to="/home/permissions/create">
+              <Plus className="h-4 w-4" />
+              Crear rol
+            </Link>
+          </Button>
+        </Can>
       </div>
 
       <div className="overflow-hidden rounded-lg border">
@@ -127,5 +133,6 @@ export default function PermissionsPage() {
         )}
       </div>
     </div>
+    </PermissionGuard>
   );
 }

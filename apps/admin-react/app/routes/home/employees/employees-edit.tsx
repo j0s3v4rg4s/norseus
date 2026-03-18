@@ -32,8 +32,11 @@ import { Switch } from '@front/cn/components/switch';
 import { deleteEmployee, getEmployee, updateEmployee } from '@front/employees';
 import { getAllRoles } from '@front/roles';
 import type { Role as RoleModel } from '@models/permissions';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 import { EmployeeFormSkeleton } from './components';
 
 const employeeEditSchema = z.object({
@@ -163,6 +166,7 @@ export default function EmployeesEditPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.EMPLOYEES} action={PermissionAction.UPDATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -176,38 +180,40 @@ export default function EmployeesEditPage() {
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Editar empleado</h1>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-2"
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              Eliminar
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Eliminar empleado</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta accion no se puede deshacer. Se eliminara el empleado
-                permanentemente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={handleDelete}>
+        <Can section={PermissionSection.EMPLOYEES} action={PermissionAction.DELETE}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
                 Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar empleado</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta accion no se puede deshacer. Se eliminara el empleado
+                  permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </Can>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -311,5 +317,6 @@ export default function EmployeesEditPage() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }

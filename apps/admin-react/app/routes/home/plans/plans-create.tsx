@@ -21,8 +21,10 @@ import {
 import { createPlan, getServices } from '@front/services';
 import { PlanDuration, PlanDurationNames, ClassLimitType } from '@models/plans';
 import type { Service } from '@models/services';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
 import { PlanServiceForm } from './components';
 
 interface PlanFormValues {
@@ -121,6 +123,7 @@ export default function PlansCreatePage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.PLANS} action={PermissionAction.CREATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -283,5 +286,6 @@ export default function PlansCreatePage() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }

@@ -21,8 +21,11 @@ import { getPlan, getServices, archivePlan, deletePlan, updatePlan } from '@fron
 import { checkPlanHasActiveSubscriptions } from '@front/subscriptions';
 import { type Plan, PlanDuration, PlanDurationNames, ClassLimitType, ClassLimitTypeNames } from '@models/plans';
 import type { Service } from '@models/services';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 
 export default function PlansDetailPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -152,6 +155,7 @@ export default function PlansDetailPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.PLANS}>
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/home/plans')}>
@@ -165,72 +169,80 @@ export default function PlansDetailPage() {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2" asChild>
-            <Link to={`/home/plans/${planId}/edit`}>
-              <Pencil className="h-4 w-4" />
-              Editar
-            </Link>
-          </Button>
+          <Can section={PermissionSection.PLANS} action={PermissionAction.UPDATE}>
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link to={`/home/plans/${planId}/edit`}>
+                <Pencil className="h-4 w-4" />
+                Editar
+              </Link>
+            </Button>
+          </Can>
 
           {plan.active ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="gap-2" disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
-                  Archivar
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Archivar plan</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    El plan sera archivado y no se podran crear nuevas suscripciones. Las suscripciones activas
-                    seguiran vigentes hasta su fecha de vencimiento.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={handleArchive}>
-                    Archivar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                disabled={isProcessing}
-                onClick={handleReactivate}
-              >
-                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                Reactivar
-              </Button>
+            <Can section={PermissionSection.PLANS} action={PermissionAction.UPDATE}>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="gap-2" disabled={isProcessing}>
-                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                    Eliminar
+                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                    Archivar
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Eliminar plan permanentemente</AlertDialogTitle>
+                    <AlertDialogTitle>Archivar plan</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta accion no se puede deshacer. Se eliminara el plan permanentemente. Solo es posible si no
-                      hay suscripciones activas asociadas.
+                      El plan sera archivado y no se podran crear nuevas suscripciones. Las suscripciones activas
+                      seguiran vigentes hasta su fecha de vencimiento.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction variant="destructive" onClick={handleDelete}>
-                      Eliminar
+                    <AlertDialogAction variant="destructive" onClick={handleArchive}>
+                      Archivar
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+            </Can>
+          ) : (
+            <>
+              <Can section={PermissionSection.PLANS} action={PermissionAction.UPDATE}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isProcessing}
+                  onClick={handleReactivate}
+                >
+                  {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                  Reactivar
+                </Button>
+              </Can>
+              <Can section={PermissionSection.PLANS} action={PermissionAction.DELETE}>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="gap-2" disabled={isProcessing}>
+                      {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Eliminar plan permanentemente</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta accion no se puede deshacer. Se eliminara el plan permanentemente. Solo es posible si no
+                        hay suscripciones activas asociadas.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </Can>
             </>
           )}
         </div>
@@ -299,5 +311,6 @@ export default function PlansDetailPage() {
         )}
       </section>
     </div>
+    </PermissionGuard>
   );
 }

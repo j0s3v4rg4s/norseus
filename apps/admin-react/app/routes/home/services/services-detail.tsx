@@ -46,8 +46,11 @@ import {
 import type { ClassModel } from '@models/classes';
 import { DAYS_OF_WEEK } from '@models/common';
 import type { Service } from '@models/services';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 
 export default function ServicesDetailPage() {
   const { serviceId } = useParams<{ serviceId: string }>();
@@ -196,6 +199,7 @@ export default function ServicesDetailPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.SERVICES}>
     <div className="mx-auto w-full max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -214,44 +218,48 @@ export default function ServicesDetailPage() {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2" asChild>
-            <Link to={`/home/services/${serviceId}/edit`}>
-              <Pencil className="h-4 w-4" />
-              Editar
-            </Link>
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="gap-2"
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-                Eliminar
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Eliminar servicio</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta accion no se puede deshacer. Se eliminara el servicio y
-                  todos sus horarios permanentemente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+          <Can section={PermissionSection.SERVICES} action={PermissionAction.UPDATE}>
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link to={`/home/services/${serviceId}/edit`}>
+                <Pencil className="h-4 w-4" />
+                Editar
+              </Link>
+            </Button>
+          </Can>
+          <Can section={PermissionSection.SERVICES} action={PermissionAction.DELETE}>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                   Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar servicio</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta accion no se puede deshacer. Se eliminara el servicio y
+                    todos sus horarios permanentemente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </Can>
         </div>
       </div>
 
@@ -303,12 +311,14 @@ export default function ServicesDetailPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Clases programadas</CardTitle>
-            <Button size="sm" className="gap-2" asChild>
-              <Link to={`/home/services/${serviceId}/schedules/create`}>
-                <Plus className="h-4 w-4" />
-                Nueva clase
-              </Link>
-            </Button>
+            <Can section={PermissionSection.PROGRAMMING} action={PermissionAction.CREATE}>
+              <Button size="sm" className="gap-2" asChild>
+                <Link to={`/home/services/${serviceId}/schedules/create`}>
+                  <Plus className="h-4 w-4" />
+                  Nueva clase
+                </Link>
+              </Button>
+            </Can>
           </div>
         </CardHeader>
         <Separator />
@@ -333,18 +343,21 @@ export default function ServicesDetailPage() {
                   clase para que los usuarios puedan reservar.
                 </EmptyDescription>
               </EmptyHeader>
-              <EmptyContent>
-                <Button asChild>
-                  <Link to={`/home/services/${serviceId}/schedules/create`}>
-                    <Plus className="h-4 w-4" />
-                    Programar clase
-                  </Link>
-                </Button>
-              </EmptyContent>
+              <Can section={PermissionSection.PROGRAMMING} action={PermissionAction.CREATE}>
+                <EmptyContent>
+                  <Button asChild>
+                    <Link to={`/home/services/${serviceId}/schedules/create`}>
+                      <Plus className="h-4 w-4" />
+                      Programar clase
+                    </Link>
+                  </Button>
+                </EmptyContent>
+              </Can>
             </Empty>
           )}
         </CardContent>
       </Card>
     </div>
+    </PermissionGuard>
   );
 }

@@ -23,8 +23,10 @@ import { getPlan, updatePlan, getServices } from '@front/services';
 import { PlanDuration, PlanDurationNames, ClassLimitType } from '@models/plans';
 import type { Plan } from '@models/plans';
 import type { Service } from '@models/services';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
 import { PlanServiceForm } from './components';
 
 interface PlanEditFormValues {
@@ -179,6 +181,7 @@ export default function PlansEditPage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.PLANS} action={PermissionAction.UPDATE}>
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -356,5 +359,6 @@ export default function PlansEditPage() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }

@@ -16,8 +16,11 @@ import { getClients, deleteClient } from '@front/clients';
 import { getClientSubscriptions } from '@front/subscriptions';
 import type { ClientModel } from '@models/facility';
 import { SubscriptionStatus } from '@models/subscriptions';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 import { ClientsTable } from './components';
 
 export default function ClientsPage() {
@@ -71,45 +74,51 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona los clientes de tu instalacion
-          </p>
-        </div>
-        <Button size="lg" className="gap-2" asChild>
-          <Link to="/home/clients/create">
-            <Plus className="h-4 w-4" />
-            Nuevo cliente
-          </Link>
-        </Button>
-      </div>
-
-      {clients.length > 0 ? (
-        <ClientsTable clients={clients} onDelete={handleDelete} />
-      ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Users />
-            </EmptyMedia>
-            <EmptyTitle>Sin clientes registrados</EmptyTitle>
-            <EmptyDescription>
-              Aun no has registrado ningun cliente. Comienza creando el primero.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button asChild>
+    <PermissionGuard section={PermissionSection.CLIENTS}>
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+            <p className="text-sm text-muted-foreground">
+              Gestiona los clientes de tu instalacion
+            </p>
+          </div>
+          <Can section={PermissionSection.CLIENTS} action={PermissionAction.CREATE}>
+            <Button size="lg" className="gap-2" asChild>
               <Link to="/home/clients/create">
                 <Plus className="h-4 w-4" />
                 Nuevo cliente
               </Link>
             </Button>
-          </EmptyContent>
-        </Empty>
-      )}
-    </div>
+          </Can>
+        </div>
+
+        {clients.length > 0 ? (
+          <ClientsTable clients={clients} onDelete={handleDelete} />
+        ) : (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Users />
+              </EmptyMedia>
+              <EmptyTitle>Sin clientes registrados</EmptyTitle>
+              <EmptyDescription>
+                Aun no has registrado ningun cliente. Comienza creando el primero.
+              </EmptyDescription>
+            </EmptyHeader>
+            <Can section={PermissionSection.CLIENTS} action={PermissionAction.CREATE}>
+              <EmptyContent>
+                <Button asChild>
+                  <Link to="/home/clients/create">
+                    <Plus className="h-4 w-4" />
+                    Nuevo cliente
+                  </Link>
+                </Button>
+              </EmptyContent>
+            </Can>
+          </Empty>
+        )}
+      </div>
+    </PermissionGuard>
   );
 }

@@ -9,6 +9,10 @@ export const SECTION_TOOLTIPS: Record<PermissionSection, string> = {
     'Permite gestionar los servicios ofrecidos por el establecimiento (entrenamientos, planes, actividades, etc.).',
   [PermissionSection.PROGRAMMING]:
     'Permite gestionar la programación de clases, horarios y sesiones del gimnasio.',
+  [PermissionSection.CLIENTS]:
+    'Controla el acceso a la gestión de clientes: registro, consulta, asignación de planes y seguimiento de suscripciones.',
+  [PermissionSection.PLANS]:
+    'Permite gestionar los planes de membresía: creación, edición, archivado y eliminación de planes disponibles.',
 };
 
 export const ACTION_SELECTION_IMPLIES: Record<PermissionAction, PermissionAction[]> = {

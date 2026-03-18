@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "format:changed": "(git diff --name-only --diff-filter=ACM; git ls-files --others --exclude-standard) | sort -u | grep -v \"$(cat .prettierignore | tr '\\n' '|' | sed 's/|$//')\" | xargs -r npx prettier --write",
+    "prefirebase:emulators": "for p in 4000 9099 8080 9000 5002 8085 9199 4400 4401 4500 4501; do pid=$(lsof -ti :$p 2>/dev/null); [ -n \"$pid\" ] && kill -9 $pid && echo \"Killed port $p\"; done || true",
     "firebase:emulators": "firebase emulators:start --import=./firebase-export"
   },
   "private": true,

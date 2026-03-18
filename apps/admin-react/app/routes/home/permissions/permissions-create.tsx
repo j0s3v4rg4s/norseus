@@ -9,9 +9,11 @@ import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
 import { TooltipProvider } from '@front/cn/components/tooltip';
 import type { PermissionsBySection } from '@models/permissions';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { createRole } from '@front/roles';
 import { useSessionStore } from '../../../stores/session.store';
 import { db } from '../../../firebase';
+import { PermissionGuard } from '../../../components/permission-guard';
 import { PermissionsMatrix } from './components';
 
 function normalizeRoleName(name: string): string {
@@ -57,6 +59,7 @@ export default function PermissionsCreateRolePage() {
   }
 
   return (
+    <PermissionGuard section={PermissionSection.ROLES} action={PermissionAction.CREATE}>
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/home/permissions')}>
@@ -110,5 +113,6 @@ export default function PermissionsCreateRolePage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

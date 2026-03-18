@@ -1,6 +1,8 @@
 import { Card, CardContent } from '@front/cn/components/card';
 import { Switch } from '@front/cn/components/switch';
 import type { ClientModel } from '@models/facility';
+import { PermissionSection, PermissionAction } from '@models/permissions';
+import { Can } from '../../../../components/can';
 
 interface ClientInfoCardProps {
   client: ClientModel;
@@ -39,11 +41,13 @@ export function ClientInfoCard({
               <span className="text-sm text-muted-foreground">
                 {client.isActive ? 'Activo' : 'Inactivo'}
               </span>
-              <Switch
-                checked={client.isActive}
-                onCheckedChange={onToggleStatus}
-                disabled={isToggling}
-              />
+              <Can section={PermissionSection.CLIENTS} action={PermissionAction.UPDATE}>
+                <Switch
+                  checked={client.isActive}
+                  onCheckedChange={onToggleStatus}
+                  disabled={isToggling}
+                />
+              </Can>
             </div>
           </div>
         </CardContent>

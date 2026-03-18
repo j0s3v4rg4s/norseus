@@ -7,8 +7,11 @@ import { getEmployees } from '@front/employees';
 import { getAllRoles } from '@front/roles';
 import type { EmployeeModel } from '@models/facility';
 import type { Role } from '@models/permissions';
+import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
+import { PermissionGuard } from '../../../components/permission-guard';
+import { Can } from '../../../components/can';
 import { EmployeesTable, type EmployeeWithRole } from './components';
 
 export default function EmployeesPage() {
@@ -55,29 +58,33 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Empleados</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona los empleados de tu instalacion
-          </p>
+    <PermissionGuard section={PermissionSection.EMPLOYEES}>
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Empleados</h1>
+            <p className="text-sm text-muted-foreground">
+              Gestiona los empleados de tu instalacion
+            </p>
+          </div>
+          <Can section={PermissionSection.EMPLOYEES} action={PermissionAction.CREATE}>
+            <Button size="lg" className="gap-2" asChild>
+              <Link to="/home/employees/create">
+                <Plus className="h-4 w-4" />
+                Nuevo empleado
+              </Link>
+            </Button>
+          </Can>
         </div>
-        <Button size="lg" className="gap-2" asChild>
-          <Link to="/home/employees/create">
-            <Plus className="h-4 w-4" />
-            Nuevo empleado
-          </Link>
-        </Button>
-      </div>
 
-      {employeesWithRoles.length > 0 ? (
-        <EmployeesTable employees={employeesWithRoles} />
-      ) : (
-        <div className="flex h-24 items-center justify-center rounded-lg border text-muted-foreground">
-          No hay empleados registrados.
-        </div>
-      )}
-    </div>
+        {employeesWithRoles.length > 0 ? (
+          <EmployeesTable employees={employeesWithRoles} />
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-lg border text-muted-foreground">
+            No hay empleados registrados.
+          </div>
+        )}
+      </div>
+    </PermissionGuard>
   );
 }

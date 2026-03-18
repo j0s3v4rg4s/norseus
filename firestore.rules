@@ -47,10 +47,6 @@ service cloud.firestore {
       get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.roleId == roleId;
     }
 
-    match /facilities/{facilityId}/{document=**} {
-      allow read, write: if isFacilityAdmin(request, facilityId) || isSuperAdmin(request);
-    }
-
     match /facilities/{facilityId} {
       allow create: if isSuperAdmin(request);
       allow read: if isSuperAdmin(request) || belongsToFacility(request, facilityId);
@@ -78,10 +74,15 @@ service cloud.firestore {
         allow delete: if hasPermission(request, facilityId, 'programming', 'delete') || isFacilityAdmin(request, facilityId);
       }
 
+      match /plans/{planId} {
+        allow create: if hasPermission(request, facilityId, 'plans', 'create') || isFacilityAdmin(request, facilityId);
+        allow read: if isAuth(request);
+        allow update: if hasPermission(request, facilityId, 'plans', 'update') || isFacilityAdmin(request, facilityId);
+        allow delete: if hasPermission(request, facilityId, 'plans', 'delete') || isFacilityAdmin(request, facilityId);
+      }
+
       match /subscriptions/{subscriptionId} {
-        allow read: if (isFacilityClient(request, facilityId) &&
-          resource.data.clientId == request.auth.uid)
-          || hasPermission(request, facilityId, 'clients', 'read');
+        allow read: if (isFacilityClient(request, facilityId) && resource.data.clientId == request.auth.uid) || hasPermission(request, facilityId, 'clients', 'read');
         allow create: if false;
         allow update: if false;
         allow delete: if false;
@@ -91,6 +92,13 @@ service cloud.firestore {
         allow read: if isFacilityClient(request, facilityId) &&
           resource.data.clientId == request.auth.uid;
         allow create, update, delete: if false;
+      }
+
+      match /clients/{clientId} {
+        allow create: if hasPermission(request, facilityId, 'clients', 'create');
+        allow update: if hasPermission(request, facilityId, 'clients', 'update');
+        allow delete: if hasPermission(request, facilityId, 'clients', 'delete');
+        allow read: if resource.data.clientId == request.auth.uid || hasPermission(request, facilityId, 'clients', 'read') || isFacilityAdmin(request, facilityId);
       }
     }
 
