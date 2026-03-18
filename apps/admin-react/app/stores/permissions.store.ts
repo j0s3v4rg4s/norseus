@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Firestore } from 'firebase/firestore';
-import type { EmployeeModel } from '@models/facility';
+import type { EmployeeModel, FacilityModel } from '@models/facility';
 import { type PermissionsBySection, PermissionSection, PermissionAction } from '@models/permissions';
 import { getRoleById } from '@front/roles';
 
@@ -9,7 +9,7 @@ interface PermissionsState {
   isAdmin: boolean;
   loading: boolean;
 
-  loadPermissions: (db: Firestore, facilityId: string, employee: EmployeeModel, isSuperAdmin: boolean) => Promise<void>;
+  loadPermissions: (db: Firestore, facility: FacilityModel, employee: EmployeeModel, isSuperAdmin: boolean) => Promise<void>;
   hasPermission: (section: PermissionSection, action: PermissionAction) => boolean;
   hasSectionAccess: (section: PermissionSection) => boolean;
   resetPermissions: () => void;
@@ -20,10 +20,12 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   isAdmin: false,
   loading: false,
 
-  loadPermissions: async (db, facilityId, employee, isSuperAdmin) => {
+  loadPermissions: async (db, facility, employee, isSuperAdmin) => {
     set({ loading: true });
 
-    if (isSuperAdmin || employee.isAdmin) {
+    const isFacilityAdmin = facility.admins?.includes(employee.uid) ?? false;
+
+    if (isSuperAdmin || isFacilityAdmin) {
       set({ isAdmin: true, permissions: {}, loading: false });
       return;
     }
@@ -34,7 +36,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     }
 
     try {
-      const role = await getRoleById(db, facilityId, employee.roleId);
+      const role = await getRoleById(db, facility.id as string, employee.roleId);
       set({
         isAdmin: false,
         permissions: role?.permissions ?? {},

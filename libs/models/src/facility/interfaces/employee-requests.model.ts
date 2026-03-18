@@ -1,5 +1,3 @@
-import { Role } from '../../user/constants';
-
 /**
  * Request payload for creating an employee
  * Used in createEmployee cloud function
@@ -9,7 +7,7 @@ export interface CreateEmployeeRequest {
   name: string;
   roleId: string;
   facilityId: string;
-  userType: Role;
+  isAdmin: boolean;
 }
 
 /**

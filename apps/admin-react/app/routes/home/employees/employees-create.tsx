@@ -10,6 +10,7 @@ import { Button } from '@front/cn/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@front/cn/components/card';
 import { Input } from '@front/cn/components/input';
 import { Label } from '@front/cn/components/label';
+import { Checkbox } from '@front/cn/components/checkbox';
 import {
   Select,
   SelectContent,
@@ -20,7 +21,6 @@ import {
 import { createEmployee } from '@front/employees';
 import { getAllRoles } from '@front/roles';
 import type { Role as RoleModel } from '@models/permissions';
-import { Role } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
 import { db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
@@ -33,17 +33,10 @@ const employeeCreateSchema = z.object({
     .min(1, 'Email requerido')
     .pipe(z.email({ error: 'Email invalido' })),
   roleId: z.string().min(1, 'Rol requerido'),
-  userType: z.enum([Role.ADMIN, Role.EMPLOYEE], {
-    error: 'Tipo de usuario requerido',
-  }),
+  isAdmin: z.boolean(),
 });
 
 type EmployeeCreateFormValues = z.infer<typeof employeeCreateSchema>;
-
-const USER_TYPE_LABELS: Record<string, string> = {
-  [Role.ADMIN]: 'Administrador',
-  [Role.EMPLOYEE]: 'Empleado',
-};
 
 export default function EmployeesCreatePage() {
   const navigate = useNavigate();
@@ -61,7 +54,7 @@ export default function EmployeesCreatePage() {
       name: '',
       email: '',
       roleId: '',
-      userType: undefined,
+      isAdmin: false,
     },
   });
 
@@ -169,31 +162,19 @@ export default function EmployeesCreatePage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="userType">Tipo de usuario</Label>
+            <div className="flex items-center gap-2 pt-6">
               <Controller
-                name="userType"
+                name="isAdmin"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="userType" aria-invalid={!!errors.userType} className="w-full">
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[Role.ADMIN, Role.EMPLOYEE].map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {USER_TYPE_LABELS[type]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Checkbox
+                    id="isAdmin"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 )}
               />
-              {errors.userType && (
-                <p className="text-sm text-destructive">
-                  {errors.userType.message}
-                </p>
-              )}
+              <Label htmlFor="isAdmin">Es administrador de esta sede</Label>
             </div>
           </CardContent>
         </Card>

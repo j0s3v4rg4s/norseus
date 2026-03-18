@@ -36,38 +36,34 @@ export const setupAdminStructure = onRequest(async (request, response) => {
     const db = getFirestore();
 
     try {
-      // 1. Create Super Admin
       const superAdmin = await _createUser('Super Admin', Role.SUPER_ADMIN);
 
-      // 2. Create Facility
+      const facilityAdmin = await _createUser('Facility Admin', Role.EMPLOYEE);
+
       const facilityRef = db.collection('facilities').doc();
       const facility: Omit<FacilityModel, 'createdAt'> & { createdAt: FieldValue } = {
         createdAt: FieldValue.serverTimestamp(),
         name: 'Norseus Gym',
         logo: 'https://via.placeholder.com/150',
         logoIcon: null,
+        admins: [facilityAdmin.uid],
       };
       await facilityRef.set(facility);
 
-      // 3. Create Facility Admin
-      const facilityAdmin = await _createUser('Facility Admin', Role.ADMIN);
       const adminEmployee: Omit<EmployeeModel, 'joined'> & { joined: FieldValue } = {
         uid: facilityAdmin.uid,
         joined: FieldValue.serverTimestamp(),
-        roleId: null, // Assign a role if you have a roles collection
-        isAdmin: true,
+        roleId: null,
         profile: (await db.collection('profiles').doc(facilityAdmin.uid).get()).data() as ProfileModel,
         isActive: true,
       };
       await facilityRef.collection('employees').doc(facilityAdmin.uid).set(adminEmployee);
 
-      // 4. Create Facility Employer
-      const facilityEmployer = await _createUser('Facility Employer', Role.USER);
+      const facilityEmployer = await _createUser('Facility Employer', Role.EMPLOYEE);
       const employerEmployee: Omit<EmployeeModel, 'joined'> & { joined: FieldValue } = {
         uid: facilityEmployer.uid,
         joined: FieldValue.serverTimestamp(),
-        roleId: null, // Assign a role if you have a roles collection
-        isAdmin: false,
+        roleId: null,
         isActive: true,
         profile: (await db.collection('profiles').doc(facilityEmployer.uid).get()).data() as ProfileModel,
       };

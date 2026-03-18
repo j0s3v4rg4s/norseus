@@ -10,4 +10,5 @@ export interface FacilityModel {
   name: string;
   logo: string | null;
   logoIcon: string | null;
+  admins: string[];
 }
