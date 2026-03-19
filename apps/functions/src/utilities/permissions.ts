@@ -4,6 +4,10 @@ import { PermissionSection, PermissionAction } from '@models/permissions';
 
 /**
  * Check if the user is a facility admin by checking the facility's admins array
+ * @param db Firestore database instance
+ * @param facilityId ID of the facility
+ * @param userId ID of the user to check
+ * @returns Promise<boolean> - true if user is a facility admin, false otherwise
  */
 export async function isFacilityAdminCheck(
   db: FirebaseFirestore.Firestore,
@@ -28,6 +32,12 @@ export async function isFacilityAdminCheck(
 
 /**
  * Check if the user has a specific permission in a facility
+ * @param db Firestore database instance
+ * @param facilityId ID of the facility
+ * @param userId ID of the user to check permissions for
+ * @param section Permission section (e.g., 'employees', 'roles')
+ * @param permission Permission action (e.g., 'create', 'read', 'update', 'delete')
+ * @returns Promise<boolean> - true if user has permission, false otherwise
  */
 export async function checkUserPermission(
   db: FirebaseFirestore.Firestore,
@@ -42,6 +52,7 @@ export async function checkUserPermission(
       return true;
     }
 
+    // Get user's employee document
     const employeeRef = db
       .collection(FACILITY_COLLECTION)
       .doc(facilityId)
@@ -56,10 +67,12 @@ export async function checkUserPermission(
 
     const employeeData = employeeDoc.data() as EmployeeModel;
 
+    // If user has no role assigned, they can't have specific permissions
     if (!employeeData.roleId) {
       return false;
     }
 
+    // Get user's role document
     const roleRef = db
       .collection(FACILITY_COLLECTION)
       .doc(facilityId)
@@ -74,10 +87,12 @@ export async function checkUserPermission(
 
     const roleData = roleDoc.data();
 
+    // Check if role has permissions for the specified section
     if (!roleData?.permissions || !roleData.permissions[section]) {
       return false;
     }
 
+    // Check if role has the specific permission for the section
     const sectionPermissions = roleData.permissions[section];
     return sectionPermissions.includes(permission);
 
@@ -89,6 +104,10 @@ export async function checkUserPermission(
 
 /**
  * Check if the user is an employee of the facility
+ * @param db Firestore database instance
+ * @param facilityId ID of the facility
+ * @param userId ID of the user to check
+ * @returns Promise<boolean> - true if user is facility employee, false otherwise
  */
 export async function isFacilityEmployee(
   db: FirebaseFirestore.Firestore,
