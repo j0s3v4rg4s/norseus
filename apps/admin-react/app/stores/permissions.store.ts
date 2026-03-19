@@ -9,7 +9,7 @@ interface PermissionsState {
   isAdmin: boolean;
   loading: boolean;
 
-  loadPermissions: (db: Firestore, facility: FacilityModel, employee: EmployeeModel, isSuperAdmin: boolean) => Promise<void>;
+  loadPermissions: (db: Firestore, facility: FacilityModel, employee: EmployeeModel) => Promise<void>;
   hasPermission: (section: PermissionSection, action: PermissionAction) => boolean;
   hasSectionAccess: (section: PermissionSection) => boolean;
   resetPermissions: () => void;
@@ -20,12 +20,12 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   isAdmin: false,
   loading: false,
 
-  loadPermissions: async (db, facility, employee, isSuperAdmin) => {
+  loadPermissions: async (db, facility, employee) => {
     set({ loading: true });
 
     const isFacilityAdmin = facility.admins?.includes(employee.uid) ?? false;
 
-    if (isSuperAdmin || isFacilityAdmin) {
+    if (isFacilityAdmin) {
       set({ isAdmin: true, permissions: {}, loading: false });
       return;
     }
