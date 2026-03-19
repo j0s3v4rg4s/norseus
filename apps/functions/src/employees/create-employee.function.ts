@@ -1,20 +1,12 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
-import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { CreateEmployeeRequest, EMPLOYEE_COLLECTION, EmployeeModel, FACILITY_COLLECTION } from '@models/facility';
-import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { CreateEmployeeRequest, FACILITY_COLLECTION } from '@models/facility';
+import { PROFILE_COLLECTION, Role } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
-
-type ProfileModelForAdmin = Omit<ProfileModel, 'createdAt'> & {
-  createdAt: Timestamp;
-};
-
-type EmployeeModelForAdmin = Omit<EmployeeModel, 'joined' | 'profile'> & {
-  joined: Timestamp;
-  profile: ProfileModelForAdmin;
-};
 import { z } from 'zod';
 import { checkUserPermission } from '../utilities/permissions';
+import { createEmployeeDocument, addFacilityAdmin, type ProfileModelForAdmin } from './employee.utils';
 
 const CreateEmployeeSchema = z.object({
   email: z.email('Invalid email format'),
@@ -38,12 +30,11 @@ export const createEmployee = onCall(async (request) => {
   const data: CreateEmployeeRequest = validationResult.data;
   const db = getFirestore();
   const auth = getAuth();
-  const currentUserId = request.auth.uid;
 
   const hasPermission = await checkUserPermission(
     db,
     data.facilityId,
-    currentUserId,
+    request.auth.uid,
     PermissionSection.EMPLOYEES,
     PermissionAction.CREATE,
   );
@@ -70,25 +61,10 @@ export const createEmployee = onCall(async (request) => {
     };
     await db.collection(PROFILE_COLLECTION).doc(userRecord.uid).set(profileData);
 
-    const employeeData: EmployeeModelForAdmin = {
-      uid: userRecord.uid,
-      joined: timestamp,
-      roleId: data.roleId,
-      isActive: true,
-      profile: profileData,
-    };
-    await db
-      .collection(FACILITY_COLLECTION)
-      .doc(data.facilityId)
-      .collection(EMPLOYEE_COLLECTION)
-      .doc(userRecord.uid)
-      .set(employeeData);
+    await createEmployeeDocument(db, data.facilityId, userRecord.uid, data.roleId, profileData);
 
     if (data.isAdmin) {
-      await db
-        .collection(FACILITY_COLLECTION)
-        .doc(data.facilityId)
-        .update({ admins: FieldValue.arrayUnion(userRecord.uid) });
+      await addFacilityAdmin(db, data.facilityId, userRecord.uid);
     }
 
     const passwordResetLink = await auth.generatePasswordResetLink(data.email);

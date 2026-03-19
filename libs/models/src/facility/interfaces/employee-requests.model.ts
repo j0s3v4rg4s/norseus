@@ -1,10 +1,21 @@
 /**
- * Request payload for creating an employee
+ * Request payload for creating a new user and adding them as employee
  * Used in createEmployee cloud function
  */
 export interface CreateEmployeeRequest {
   email: string;
   name: string;
+  roleId: string;
+  facilityId: string;
+  isAdmin: boolean;
+}
+
+/**
+ * Request payload for adding an existing user as employee
+ * Used in addExistingEmployee cloud function
+ */
+export interface AddExistingEmployeeRequest {
+  email: string;
   roleId: string;
   facilityId: string;
   isAdmin: boolean;

@@ -9,11 +9,16 @@ import { type Functions, httpsCallable } from 'firebase/functions';
 import {
   EMPLOYEE_COLLECTION,
   FACILITY_COLLECTION,
+  type AddExistingEmployeeRequest,
   type CreateEmployeeRequest,
   type DeleteEmployeeRequest,
   type UpdateEmployeeRequest,
   type EmployeeModel,
 } from '@models/facility';
+import type {
+  CheckEmployeeExistsRequest,
+  CheckEmployeeExistsResponse,
+} from '@models/user';
 
 /**
  * Retrieves all employees for a given facility.
@@ -50,6 +55,25 @@ export async function getEmployee(
   const snapshot = await getDoc(employeeRef);
   if (!snapshot.exists()) return undefined;
   return snapshot.data() as EmployeeModel;
+}
+
+export async function checkEmployeeExists(
+  functions: Functions,
+  data: CheckEmployeeExistsRequest
+): Promise<CheckEmployeeExistsResponse> {
+  const fn = httpsCallable<CheckEmployeeExistsRequest, CheckEmployeeExistsResponse>(
+    functions, 'checkEmployeeExists'
+  );
+  const result = await fn(data);
+  return result.data;
+}
+
+export async function addExistingEmployee(
+  functions: Functions,
+  payload: AddExistingEmployeeRequest
+): Promise<unknown> {
+  const fn = httpsCallable(functions, 'addExistingEmployee');
+  return fn(payload);
 }
 
 /**
