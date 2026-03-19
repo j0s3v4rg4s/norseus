@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Firestore } from 'firebase/firestore';
-import type { EmployeeModel } from '@models/facility';
+import type { EmployeeModel, FacilityModel } from '@models/facility';
 import { type PermissionsBySection, PermissionSection, PermissionAction } from '@models/permissions';
 import { getRoleById } from '@front/roles';
 
@@ -8,8 +8,9 @@ interface PermissionsState {
   permissions: PermissionsBySection | null;
   isAdmin: boolean;
   loading: boolean;
-
-  loadPermissions: (db: Firestore, facilityId: string, employee: EmployeeModel, isSuperAdmin: boolean) => Promise<void>;
+  completed: boolean;
+  error: unknown | null;
+  loadPermissions: (db: Firestore, facility: FacilityModel, employee: EmployeeModel) => Promise<void>;
   hasPermission: (section: PermissionSection, action: PermissionAction) => boolean;
   hasSectionAccess: (section: PermissionSection) => boolean;
   resetPermissions: () => void;
@@ -19,29 +20,34 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   permissions: null,
   isAdmin: false,
   loading: false,
-
-  loadPermissions: async (db, facilityId, employee, isSuperAdmin) => {
+  completed: false,
+  error: null,
+  loadPermissions: async (db, facility, employee) => {
     set({ loading: true });
 
-    if (isSuperAdmin || employee.isAdmin) {
-      set({ isAdmin: true, permissions: {}, loading: false });
+    const isFacilityAdmin = facility.admins?.includes(employee.uid) ?? false;
+
+    if (isFacilityAdmin) {
+      set({ isAdmin: true, permissions: {}, loading: false, completed: true });
       return;
     }
 
     if (!employee.roleId) {
-      set({ isAdmin: false, permissions: {}, loading: false });
+      set({ isAdmin: false, permissions: {}, loading: false, completed: true });
       return;
     }
 
     try {
-      const role = await getRoleById(db, facilityId, employee.roleId);
+      const role = await getRoleById(db, facility.id as string, employee.roleId);
       set({
         isAdmin: false,
         permissions: role?.permissions ?? {},
         loading: false,
+        completed: true,
       });
-    } catch {
-      set({ isAdmin: false, permissions: {}, loading: false });
+    } catch(error) {
+      console.error('Error loading permissions:', error);
+      set({ isAdmin: false, permissions: {}, loading: false, completed: true, error: error });
     }
   },
 
@@ -58,6 +64,6 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   },
 
   resetPermissions: () => {
-    set({ permissions: null, isAdmin: false, loading: false });
+    set({ permissions: null, isAdmin: false, loading: false, completed: false, error: null });
   },
 }));

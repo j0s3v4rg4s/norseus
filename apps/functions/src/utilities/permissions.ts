@@ -1,6 +1,34 @@
 import { EMPLOYEE_COLLECTION, FACILITY_COLLECTION, ROLE_COLLECTION } from '@models/facility';
-import { EmployeeModel } from '@models/facility';
+import { EmployeeModel, FacilityModel } from '@models/facility';
 import { PermissionSection, PermissionAction } from '@models/permissions';
+
+/**
+ * Check if the user is a facility admin by checking the facility's admins array
+ * @param db Firestore database instance
+ * @param facilityId ID of the facility
+ * @param userId ID of the user to check
+ * @returns Promise<boolean> - true if user is a facility admin, false otherwise
+ */
+export async function isFacilityAdminCheck(
+  db: FirebaseFirestore.Firestore,
+  facilityId: string,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const facilityRef = db.collection(FACILITY_COLLECTION).doc(facilityId);
+    const facilityDoc = await facilityRef.get();
+
+    if (!facilityDoc.exists) {
+      return false;
+    }
+
+    const facilityData = facilityDoc.data() as FacilityModel;
+    return facilityData.admins?.includes(userId) ?? false;
+  } catch (error) {
+    console.error('Error checking facility admin:', error);
+    return false;
+  }
+}
 
 /**
  * Check if the user has a specific permission in a facility
@@ -19,6 +47,11 @@ export async function checkUserPermission(
   permission: PermissionAction,
 ): Promise<boolean> {
   try {
+    const isAdmin = await isFacilityAdminCheck(db, facilityId, userId);
+    if (isAdmin) {
+      return true;
+    }
+
     // Get user's employee document
     const employeeRef = db
       .collection(FACILITY_COLLECTION)
@@ -33,11 +66,6 @@ export async function checkUserPermission(
     }
 
     const employeeData = employeeDoc.data() as EmployeeModel;
-
-    // If user is facility admin, they have all permissions
-    if (employeeData.isAdmin) {
-      return true;
-    }
 
     // If user has no role assigned, they can't have specific permissions
     if (!employeeData.roleId) {
@@ -73,8 +101,6 @@ export async function checkUserPermission(
     return false;
   }
 }
-
-
 
 /**
  * Check if the user is an employee of the facility

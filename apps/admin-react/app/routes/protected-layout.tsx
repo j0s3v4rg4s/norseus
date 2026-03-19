@@ -7,11 +7,11 @@ import { usePermissionsStore } from '../stores/permissions.store';
 import { db } from '../firebase';
 
 export default function ProtectedLayout() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
-  const { loading: sessionLoading, loadFacilities } = useSessionStore();
-  const facilityId = useSessionStore((s) => s.selectedFacility?.id);
+  const { user, loading: authLoading } = useAuth();
+  const { loadFacilities, completed: sessionCompleted } = useSessionStore();
+  const selectedFacility = useSessionStore((s) => s.selectedFacility);
   const currentEmployee = useSessionStore((s) => s.currentEmployee);
-  const { loading: permissionsLoading, loadPermissions, permissions } = usePermissionsStore();
+  const { loadPermissions, completed: permissionsCompleted } = usePermissionsStore();
 
   useEffect(() => {
     if (user) {
@@ -20,12 +20,12 @@ export default function ProtectedLayout() {
   }, [user, loadFacilities]);
 
   useEffect(() => {
-    if (facilityId && currentEmployee) {
-      loadPermissions(db, facilityId, currentEmployee, isAdmin);
+    if (selectedFacility && currentEmployee) {
+      loadPermissions(db, selectedFacility, currentEmployee);
     }
-  }, [facilityId, currentEmployee, isAdmin, loadPermissions]);
+  }, [selectedFacility, currentEmployee, loadPermissions]);
 
-  if (authLoading || sessionLoading || permissionsLoading || !permissions) {
+  if (authLoading || !sessionCompleted || !permissionsCompleted) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

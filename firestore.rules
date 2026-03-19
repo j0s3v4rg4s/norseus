@@ -13,8 +13,7 @@ service cloud.firestore {
 
     function isFacilityAdmin(request, facilityId) {
       return isAuth(request) &&
-      exists(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)) &&
-      get(/databases/$(database)/documents/facilities/$(facilityId)/employees/$(request.auth.uid)).data.isAdmin == true;
+      request.auth.uid in get(/databases/$(database)/documents/facilities/$(facilityId)).data.admins;
     }
 
     function isFacilityEmployee(request, facilityId) {

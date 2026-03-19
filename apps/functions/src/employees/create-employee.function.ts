@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { CreateEmployeeRequest, EMPLOYEE_COLLECTION, EmployeeModel, FACILITY_COLLECTION } from '@models/facility';
 import { PROFILE_COLLECTION, ProfileModel, Role } from '@models/user';
 import { PermissionSection, PermissionAction } from '@models/permissions';
@@ -21,7 +21,7 @@ const CreateEmployeeSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   roleId: z.string().min(1, 'Role ID is required'),
   facilityId: z.string().min(1, 'Facility ID is required'),
-  userType: z.enum([Role.ADMIN, Role.EMPLOYEE]),
+  isAdmin: z.boolean().default(false),
 });
 
 export const createEmployee = onCall(async (request) => {
@@ -58,7 +58,7 @@ export const createEmployee = onCall(async (request) => {
       emailVerified: false,
     });
 
-    await auth.setCustomUserClaims(userRecord.uid, { roles: [data.userType] });
+    await auth.setCustomUserClaims(userRecord.uid, { roles: [Role.EMPLOYEE] });
     const timestamp = Timestamp.fromDate(new Date());
 
     const profileData: ProfileModelForAdmin = {
@@ -74,7 +74,6 @@ export const createEmployee = onCall(async (request) => {
       uid: userRecord.uid,
       joined: timestamp,
       roleId: data.roleId,
-      isAdmin: data.userType === Role.ADMIN,
       isActive: true,
       profile: profileData,
     };
@@ -85,7 +84,15 @@ export const createEmployee = onCall(async (request) => {
       .doc(userRecord.uid)
       .set(employeeData);
 
-    auth.generatePasswordResetLink(data.email);
+    if (data.isAdmin) {
+      await db
+        .collection(FACILITY_COLLECTION)
+        .doc(data.facilityId)
+        .update({ admins: FieldValue.arrayUnion(userRecord.uid) });
+    }
+
+    const passwordResetLink = await auth.generatePasswordResetLink(data.email);
+    console.log('Password reset link:', passwordResetLink);
 
     return { success: true, userId: userRecord.uid };
   } catch (error) {

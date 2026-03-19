@@ -62,7 +62,7 @@ export const createUser = onRequest(async (request, response) => {
         emailVerified: false,
       });
 
-      auth.setCustomUserClaims(userRecord.uid, { roles: [Role.ADMIN] });
+      auth.setCustomUserClaims(userRecord.uid, { roles: [Role.EMPLOYEE] });
 
       // Create profile document in Firestore
       const profileData = {

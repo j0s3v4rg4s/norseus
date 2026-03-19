@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { FACILITY_COLLECTION, CLIENT_COLLECTION, EMPLOYEE_COLLECTION, EmployeeModel } from '@models/facility';
+import { FACILITY_COLLECTION, CLIENT_COLLECTION } from '@models/facility';
 import { PLANS_COLLECTION, Plan, PlanDuration, PlanDurationDays } from '@models/plans';
 import {
   SUBSCRIPTION_COLLECTION,
@@ -49,32 +49,19 @@ export const createSubscription = onCall(
     const currentUserId = request.auth.uid;
     const facilityRef = db.collection(FACILITY_COLLECTION).doc(data.facilityId);
 
-    const employeeRef = facilityRef
-      .collection(EMPLOYEE_COLLECTION)
-      .doc(currentUserId);
-    const employeeDoc = await employeeRef.get();
+    const hasPermission = await checkUserPermission(
+      db,
+      data.facilityId,
+      currentUserId,
+      PermissionSection.CLIENTS,
+      PermissionAction.UPDATE,
+    );
 
-    if (!employeeDoc.exists) {
-      throw new HttpsError('permission-denied', 'You are not an employee of this facility');
-    }
-
-    const employeeData = employeeDoc.data() as EmployeeModel;
-
-    if (!employeeData.isAdmin) {
-      const hasPermission = await checkUserPermission(
-        db,
-        data.facilityId,
-        currentUserId,
-        PermissionSection.CLIENTS,
-        PermissionAction.UPDATE,
+    if (!hasPermission) {
+      throw new HttpsError(
+        'permission-denied',
+        'You do not have permission to assign plans to clients'
       );
-
-      if (!hasPermission) {
-        throw new HttpsError(
-          'permission-denied',
-          'You do not have permission to assign plans to clients'
-        );
-      }
     }
 
     try {

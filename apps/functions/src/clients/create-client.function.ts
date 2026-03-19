@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getAuth, FirebaseAuthError } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { CLIENT_COLLECTION, FACILITY_COLLECTION, EMPLOYEE_COLLECTION, ClientModel, EmployeeModel } from '@models/facility';
+import { CLIENT_COLLECTION, FACILITY_COLLECTION, ClientModel } from '@models/facility';
 import {
   CreateClientRequest,
   CreateClientResponse,
@@ -56,35 +56,16 @@ export const createClient = onCall(async (request): Promise<CreateClientResponse
   const auth = getAuth();
   const currentUserId = request.auth.uid;
 
-  // 3. Check if user is facility admin (bypass permission check for admins)
-  const employeeRef = db
-    .collection(FACILITY_COLLECTION)
-    .doc(data.facilityId)
-    .collection(EMPLOYEE_COLLECTION)
-    .doc(currentUserId);
+  const hasPermission = await checkUserPermission(
+    db,
+    data.facilityId,
+    currentUserId,
+    PermissionSection.CLIENTS,
+    PermissionAction.CREATE,
+  );
 
-  const employeeDoc = await employeeRef.get();
-
-  if (!employeeDoc.exists) {
-    throw new HttpsError('permission-denied', 'You are not an employee of this facility');
-  }
-
-  const employeeData = employeeDoc.data() as EmployeeModel;
-
-  // Facility admins have full access - skip permission check
-  if (!employeeData.isAdmin) {
-    // Non-admins need explicit CLIENTS.CREATE permission
-    const hasPermission = await checkUserPermission(
-      db,
-      data.facilityId,
-      currentUserId,
-      PermissionSection.CLIENTS,
-      PermissionAction.CREATE,
-    );
-
-    if (!hasPermission) {
-      throw new HttpsError('permission-denied', 'You do not have permission to create clients');
-    }
+  if (!hasPermission) {
+    throw new HttpsError('permission-denied', 'You do not have permission to create clients');
   }
 
   try {

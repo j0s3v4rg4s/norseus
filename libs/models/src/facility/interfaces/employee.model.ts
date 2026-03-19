@@ -9,7 +9,6 @@ export interface EmployeeModel {
   uid: string;
   joined: Timestamp;
   roleId: string | null;
-  isAdmin: boolean;
   isActive: boolean;
   profile: ProfileModel;
 }

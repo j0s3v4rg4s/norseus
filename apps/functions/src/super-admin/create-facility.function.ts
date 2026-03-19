@@ -39,7 +39,7 @@ export const createFacilityWithAdmin = onCall(async (request) => {
       displayName: adminName,
       emailVerified: false,
     });
-    await auth.setCustomUserClaims(userRecord.uid, { roles: [Role.ADMIN] });
+    await auth.setCustomUserClaims(userRecord.uid, { roles: [Role.EMPLOYEE] });
 
     // 2. Create profile
     const profileData = {
@@ -57,6 +57,7 @@ export const createFacilityWithAdmin = onCall(async (request) => {
       name: facilityName,
       logo: null,
       logoIcon: null,
+      admins: [userRecord.uid],
     });
 
     // 4. Create employee (admin) in facility
@@ -64,7 +65,6 @@ export const createFacilityWithAdmin = onCall(async (request) => {
       uid: userRecord.uid,
       joined: timestamp,
       roleId: null,
-      isAdmin: true,
       isActive: true,
       profile: profileData,
     });
