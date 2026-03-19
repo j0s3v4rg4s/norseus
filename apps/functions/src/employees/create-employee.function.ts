@@ -91,7 +91,8 @@ export const createEmployee = onCall(async (request) => {
         .update({ admins: FieldValue.arrayUnion(userRecord.uid) });
     }
 
-    auth.generatePasswordResetLink(data.email);
+    const passwordResetLink = await auth.generatePasswordResetLink(data.email);
+    console.log('Password reset link:', passwordResetLink);
 
     return { success: true, userId: userRecord.uid };
   } catch (error) {

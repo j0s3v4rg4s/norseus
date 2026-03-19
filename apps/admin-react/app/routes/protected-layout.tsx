@@ -8,10 +8,10 @@ import { db } from '../firebase';
 
 export default function ProtectedLayout() {
   const { user, loading: authLoading } = useAuth();
-  const { loading: sessionLoading, loadFacilities } = useSessionStore();
+  const { loadFacilities, completed: sessionCompleted } = useSessionStore();
   const selectedFacility = useSessionStore((s) => s.selectedFacility);
   const currentEmployee = useSessionStore((s) => s.currentEmployee);
-  const { loading: permissionsLoading, loadPermissions, permissions } = usePermissionsStore();
+  const { loadPermissions, completed: permissionsCompleted } = usePermissionsStore();
 
   useEffect(() => {
     if (user) {
@@ -25,7 +25,7 @@ export default function ProtectedLayout() {
     }
   }, [selectedFacility, currentEmployee, loadPermissions]);
 
-  if (authLoading || sessionLoading || permissionsLoading || !permissions) {
+  if (authLoading || !sessionCompleted || !permissionsCompleted) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

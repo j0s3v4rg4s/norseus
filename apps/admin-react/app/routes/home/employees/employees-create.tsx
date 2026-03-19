@@ -22,9 +22,10 @@ import { createEmployee } from '@front/employees';
 import { getAllRoles } from '@front/roles';
 import type { Role as RoleModel } from '@models/permissions';
 import { PermissionSection, PermissionAction } from '@models/permissions';
-import { db, functions } from '../../../firebase';
+import { auth, db, functions } from '../../../firebase';
 import { useSessionStore } from '../../../stores/session.store';
 import { PermissionGuard } from '../../../components/permission-guard';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 const employeeCreateSchema = z.object({
   name: z.string().min(1, 'Nombre requerido').max(50, 'Maximo 50 caracteres'),
@@ -72,6 +73,7 @@ export default function EmployeesCreatePage() {
         facilityId: selectedFacility.id,
       });
       sileo.success({ title: 'Empleado creado correctamente', duration: 3000 });
+      await sendPasswordResetEmail(auth, data.email);
       navigate('/home/employees');
     } catch (error: unknown) {
       const message =

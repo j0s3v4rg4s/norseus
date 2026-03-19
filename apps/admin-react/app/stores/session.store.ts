@@ -9,6 +9,7 @@ interface SessionState {
   selectedFacility: FacilityModel | null;
   currentEmployee: EmployeeModel | null;
   loading: boolean;
+  completed: boolean;
   error: string | null;
   loadFacilities: (userId: string) => Promise<void>;
   setSelectedFacility: (facility: FacilityModel, userId: string) => Promise<void>;
@@ -21,6 +22,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   currentEmployee: null,
   loading: false,
   error: null,
+  completed: false,
 
   loadFacilities: async (userId: string) => {
     if (get().facilities.length > 0) return;
@@ -40,11 +42,14 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         selectedFacility,
         currentEmployee,
         loading: false,
+        completed: true,
       });
     } catch (error) {
+      console.error('Error loading facilities:', error);
       set({
         loading: false,
         error: 'Failed to load facilities',
+        completed: true,
       });
     }
   },
@@ -56,6 +61,6 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   resetSession: () => {
-    set({ facilities: [], selectedFacility: null, currentEmployee: null, loading: false, error: null });
+    set({ facilities: [], selectedFacility: null, currentEmployee: null, loading: false, error: null, completed: false });
   },
 }));
