@@ -1,6 +1,21 @@
+export interface CheckUserExistsRequest {
+  email: string;
+}
+
+export interface CheckUserExistsResponse {
+  exists: boolean;
+  uid?: string;
+  name?: string;
+}
+
 export interface CreateFacilityRequest {
   adminEmail: string;
   adminName: string;
+  facilityName: string;
+}
+
+export interface CreateFacilityWithExistingAdminRequest {
+  adminEmail: string;
   facilityName: string;
 }
 

@@ -9,13 +9,28 @@ import {
 import { type FacilityModel, FACILITY_COLLECTION } from '@models/facility';
 import { type ProfileModel, SUPER_ADMIN_COLLECTION } from '@models/user';
 import {
+  type CheckUserExistsRequest,
+  type CheckUserExistsResponse,
   type CreateFacilityRequest,
+  type CreateFacilityWithExistingAdminRequest,
   type CreateFacilityResponse,
   type CreateSuperAdminRequest,
   type CreateSuperAdminResponse,
 } from '@models/super-admin';
 
 // -- Facilities --
+
+export async function checkUserExists(
+  functions: Functions,
+  payload: CheckUserExistsRequest,
+): Promise<CheckUserExistsResponse> {
+  const fn = httpsCallable<CheckUserExistsRequest, CheckUserExistsResponse>(
+    functions,
+    'checkUserExists',
+  );
+  const result = await fn(payload);
+  return result.data;
+}
 
 export async function getAllFacilities(
   db: Firestore,
@@ -32,6 +47,18 @@ export async function createFacilityWithAdmin(
   const fn = httpsCallable<CreateFacilityRequest, CreateFacilityResponse>(
     functions,
     'createFacilityWithAdmin',
+  );
+  const result = await fn(payload);
+  return result.data;
+}
+
+export async function createFacilityWithExistingAdmin(
+  functions: Functions,
+  payload: CreateFacilityWithExistingAdminRequest,
+): Promise<CreateFacilityResponse> {
+  const fn = httpsCallable<CreateFacilityWithExistingAdminRequest, CreateFacilityResponse>(
+    functions,
+    'createFacilityWithExistingAdmin',
   );
   const result = await fn(payload);
   return result.data;
